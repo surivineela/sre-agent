@@ -23,6 +23,7 @@ import { KnowledgeBaseResources, KnowledgeSettingsResources, SreAgentResources }
 import { SreAgentContext } from '../../Contracts/Context';
 import { UploadedFile, useKnowledgeBase } from '../Hooks/useKnowledgeBase';
 import { useKnowledgeSettingsStyles } from '../Styles/KnowledgeSettings.styles';
+import { useSettingsStyles } from '../Styles/Settings.styles';
 import { ActionCard } from './ActionCard';
 import { AddRepositoryDialog } from './AddRepositoryDialog/AddRepositoryDialog';
 import { AddWebPageDialog } from './AddWebPageDialog';
@@ -35,6 +36,7 @@ type KnowledgeSourceType = 'all' | 'file' | 'webpage' | 'repository';
 const KnowledgeSettings: FC = () => {
     const intl = useIntl();
     const styles = useKnowledgeSettingsStyles();
+    const settingsStyles = useSettingsStyles();
     const portalContext = useContext(AzPortalContext);
     const { resourceId } = useContext(EnvironmentContext);
     const { agentObj } = useContext(SreAgentContext);
@@ -184,171 +186,180 @@ const KnowledgeSettings: FC = () => {
     const showEmptyState = !isLoadingFiles && uploadedFiles.length === 0 && originalUploadedFiles.length === 0;
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <h2 className={styles.title}>{intl.formatMessage(KnowledgeSettingsResources.knowledgeBaseTitle)}</h2>
-                <TextWithLink
-                    text={intl.formatMessage(KnowledgeSettingsResources.knowledgeBaseDescription)}
-                    linkText={intl.formatMessage(KnowledgeSettingsResources.learnMoreAboutKnowledgeSources)}
-                    linkUrl={SreAgentFwLinks.sreAgentSupportedServices}
-                    textClassName={styles.description}
-                />
-            </div>
+        <div style={settingsStyles.settingsContainer}>
+            <div style={settingsStyles.settingsContainerInner}>
+                <div className={styles.container}>
+                    <div className={styles.header}>
+                        <h2 className={styles.title}>{intl.formatMessage(KnowledgeSettingsResources.knowledgeBaseTitle)}</h2>
+                        <TextWithLink
+                            text={intl.formatMessage(KnowledgeSettingsResources.knowledgeBaseDescription)}
+                            linkText={intl.formatMessage(KnowledgeSettingsResources.learnMoreAboutKnowledgeSources)}
+                            linkUrl={SreAgentFwLinks.sreAgentSupportedServices}
+                            textClassName={styles.description}
+                        />
+                    </div>
 
-            <div className={styles.actionCardsContainer}>
-                <ActionCard
-                    icon={<Document16Regular />}
-                    label={intl.formatMessage(KnowledgeSettingsResources.addFile)}
-                    onClick={handleAddFile}
-                />
-                <ActionCard
-                    icon={<Globe16Regular />}
-                    label={intl.formatMessage(KnowledgeSettingsResources.addWebPage)}
-                    onClick={handleAddWebPage}
-                />
-                <ActionCard
-                    icon={<WebAssetRegular />}
-                    label={intl.formatMessage(KnowledgeSettingsResources.addRepository)}
-                    onClick={handleAddRepository}
-                />
-            </div>
+                    <div className={styles.actionCardsContainer}>
+                        <ActionCard
+                            icon={<Document16Regular />}
+                            label={intl.formatMessage(KnowledgeSettingsResources.addFile)}
+                            onClick={handleAddFile}
+                        />
+                        <ActionCard
+                            icon={<Globe16Regular />}
+                            label={intl.formatMessage(KnowledgeSettingsResources.addWebPage)}
+                            onClick={handleAddWebPage}
+                        />
+                        <ActionCard
+                            icon={<WebAssetRegular />}
+                            label={intl.formatMessage(KnowledgeSettingsResources.addRepository)}
+                            onClick={handleAddRepository}
+                        />
+                    </div>
 
-            <Toolbar className={styles.toolbar}>
-                <ToolbarButton
-                    className={styles.deleteButton}
-                    icon={<Delete16Regular />}
-                    appearance="subtle"
-                    onClick={handleBulkDeleteStart}
-                    disabled={selectedUploadedFileKeys.length === 0 || isDeletingFiles || showEmptyState}
-                >
-                    {intl.formatMessage(SreAgentResources.delete)}
-                </ToolbarButton>
-                <ToolbarDivider />
-                <SearchBoxWithDebounce
-                    className={styles.searchBox}
-                    placeholder={intl.formatMessage(KnowledgeSettingsResources.searchKnowledgeSources)}
-                    setSearchTerm={setSearchText}
-                    textToAnnounce={searchResultToAnnounce}
-                    size="small"
-                />
-                <PillFilter
-                    filterType="combobox"
-                    label={intl.formatMessage(KnowledgeSettingsResources.typeColumn)}
-                    options={typeFilterOptions}
-                    selectedKeys={[typeFilter]}
-                    onApply={handleTypeFilterChange}
-                />
-                <div className={styles.lastIndexedText}>
-                    <ToolbarButton icon={<ArrowClockwise16Regular />} appearance="subtle" disabled={isLoadingFiles} onClick={handleRefresh}>
-                        {intl.formatMessage(KnowledgeSettingsResources.lastIndexed, { time: '2:10 PM' })}
-                    </ToolbarButton>
-                </div>
-            </Toolbar>
-
-            {selectedUploadedFileKeys.length > 0 && (
-                <Text className={styles.filesSelectedText}>
-                    {intl.formatMessage(KnowledgeBaseResources.filesSelected, { count: selectedUploadedFileKeys.length })}
-                </Text>
-            )}
-
-            <div className={styles.dataGridContainer}>
-                <DataGrid
-                    columns={columns}
-                    items={showEmptyState ? [] : uploadedFiles}
-                    sortable={!isLoadingFiles}
-                    sortState={sortState}
-                    onSortChange={onSortChange}
-                    selectionMode="multiselect"
-                    onSelectionChange={onSelectionChange}
-                    getRowId={(item: UploadedFile) => item.name}
-                    columnSizingOptions={columnSizingOptions}
-                    resizableColumns
-                >
-                    <DataGridHeader>
-                        <DataGridRow
-                            selectionCell={{
-                                checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
-                            }}
+                    <Toolbar className={styles.toolbar}>
+                        <ToolbarButton
+                            className={styles.deleteButton}
+                            icon={<Delete16Regular />}
+                            appearance="subtle"
+                            onClick={handleBulkDeleteStart}
+                            disabled={selectedUploadedFileKeys.length === 0 || isDeletingFiles || showEmptyState}
                         >
-                            {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
-                        </DataGridRow>
-                    </DataGridHeader>
-                    <DataGridBody<UploadedFile>>
-                        {({ item, rowId }) => (
-                            <DataGridRow<UploadedFile>
-                                key={rowId}
-                                selectionCell={{
-                                    checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
-                                }}
+                            {intl.formatMessage(SreAgentResources.delete)}
+                        </ToolbarButton>
+                        <ToolbarDivider />
+                        <SearchBoxWithDebounce
+                            className={styles.searchBox}
+                            placeholder={intl.formatMessage(KnowledgeSettingsResources.searchKnowledgeSources)}
+                            setSearchTerm={setSearchText}
+                            textToAnnounce={searchResultToAnnounce}
+                            size="small"
+                        />
+                        <PillFilter
+                            filterType="combobox"
+                            label={intl.formatMessage(KnowledgeSettingsResources.typeColumn)}
+                            options={typeFilterOptions}
+                            selectedKeys={[typeFilter]}
+                            onApply={handleTypeFilterChange}
+                        />
+                        <div className={styles.lastIndexedText}>
+                            <ToolbarButton
+                                icon={<ArrowClockwise16Regular />}
+                                appearance="subtle"
+                                disabled={isLoadingFiles}
+                                onClick={handleRefresh}
                             >
-                                {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
-                            </DataGridRow>
-                        )}
-                    </DataGridBody>
-                </DataGrid>
+                                {intl.formatMessage(KnowledgeSettingsResources.lastIndexed, { time: '2:10 PM' })}
+                            </ToolbarButton>
+                        </div>
+                    </Toolbar>
+
+                    {selectedUploadedFileKeys.length > 0 && (
+                        <Text className={styles.filesSelectedText}>
+                            {intl.formatMessage(KnowledgeBaseResources.filesSelected, { count: selectedUploadedFileKeys.length })}
+                        </Text>
+                    )}
+
+                    <div className={styles.dataGridContainer}>
+                        <DataGrid
+                            columns={columns}
+                            items={showEmptyState ? [] : uploadedFiles}
+                            sortable={!isLoadingFiles}
+                            sortState={sortState}
+                            onSortChange={onSortChange}
+                            selectionMode="multiselect"
+                            onSelectionChange={onSelectionChange}
+                            getRowId={(item: UploadedFile) => item.name}
+                            columnSizingOptions={columnSizingOptions}
+                            resizableColumns
+                        >
+                            <DataGridHeader>
+                                <DataGridRow
+                                    selectionCell={{
+                                        checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectAllRowsAriaLabel) },
+                                    }}
+                                >
+                                    {({ renderHeaderCell }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
+                                </DataGridRow>
+                            </DataGridHeader>
+                            <DataGridBody<UploadedFile>>
+                                {({ item, rowId }) => (
+                                    <DataGridRow<UploadedFile>
+                                        key={rowId}
+                                        selectionCell={{
+                                            checkboxIndicator: { 'aria-label': intl.formatMessage(SreAgentResources.selectRowAriaLabel) },
+                                        }}
+                                    >
+                                        {({ renderCell }) => <DataGridCell>{renderCell(item)}</DataGridCell>}
+                                    </DataGridRow>
+                                )}
+                            </DataGridBody>
+                        </DataGrid>
+                    </div>
+
+                    {showEmptyState && (
+                        <KnowledgeSettingsEmptyState
+                            onAddFile={handleAddFile}
+                            onAddWebPage={handleAddWebPage}
+                            onAddRepository={handleAddRepository}
+                        />
+                    )}
+
+                    <FileUploadDialog
+                        isOpen={isFileUploadDialogOpen}
+                        onOpenChange={handleFileUploadDialogOpenChange}
+                        selectedFiles={selectedFiles}
+                        isDragOver={isDragOver}
+                        isUploading={isUploading}
+                        fileInputRef={fileInputRef}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onBrowseClick={handleButtonClick}
+                        onFileInputChange={handleFileInputChange}
+                        onRemoveFile={handleRemoveFile}
+                        onUpload={handleUploadAndClose}
+                        onCancel={handleFileUploadDialogCancel}
+                        onCreateFile={handleCreateFile}
+                    />
+
+                    <AddWebPageDialog
+                        isOpen={isAddWebPageDialogOpen}
+                        onOpenChange={handleAddWebPageDialogOpenChange}
+                        onAddWebPage={handleAddWebPageSubmit}
+                        onCancel={handleAddWebPageCancel}
+                    />
+
+                    <AddRepositoryDialog
+                        isOpen={isAddRepositoryDialogOpen}
+                        onOpenChange={handleAddRepositoryDialogOpenChange}
+                        onSuccess={handleAddRepositorySuccess}
+                        agentName={agentObj?.name}
+                        agentLocation={agentObj?.location}
+                    />
+
+                    <DeleteConfirmationDialog
+                        isOpen={isDeleteConfirmOpen}
+                        onOpenChange={setIsDeleteConfirmOpen}
+                        onConfirmDelete={handleDeleteConfirmation}
+                        onCancelDelete={handleCancelDelete}
+                        isOperationInProgress={isDeletingFiles}
+                        itemType="file"
+                        actionVerb={intl.formatMessage(SreAgentResources.delete)}
+                        selectedItems={selectedUploadedFileKeys}
+                        title={
+                            selectedUploadedFileKeys.length > 1
+                                ? intl.formatMessage(KnowledgeBaseResources.deleteFiles, { count: selectedUploadedFileKeys.length })
+                                : intl.formatMessage(KnowledgeBaseResources.deleteFile)
+                        }
+                        message={
+                            selectedUploadedFileKeys.length > 1
+                                ? intl.formatMessage(KnowledgeBaseResources.deleteFilesMessage, { count: selectedUploadedFileKeys.length })
+                                : intl.formatMessage(KnowledgeBaseResources.deleteFileMessage)
+                        }
+                    />
+                </div>
             </div>
-
-            {showEmptyState && (
-                <KnowledgeSettingsEmptyState
-                    onAddFile={handleAddFile}
-                    onAddWebPage={handleAddWebPage}
-                    onAddRepository={handleAddRepository}
-                />
-            )}
-
-            <FileUploadDialog
-                isOpen={isFileUploadDialogOpen}
-                onOpenChange={handleFileUploadDialogOpenChange}
-                selectedFiles={selectedFiles}
-                isDragOver={isDragOver}
-                isUploading={isUploading}
-                fileInputRef={fileInputRef}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onBrowseClick={handleButtonClick}
-                onFileInputChange={handleFileInputChange}
-                onRemoveFile={handleRemoveFile}
-                onUpload={handleUploadAndClose}
-                onCancel={handleFileUploadDialogCancel}
-                onCreateFile={handleCreateFile}
-            />
-
-            <AddWebPageDialog
-                isOpen={isAddWebPageDialogOpen}
-                onOpenChange={handleAddWebPageDialogOpenChange}
-                onAddWebPage={handleAddWebPageSubmit}
-                onCancel={handleAddWebPageCancel}
-            />
-
-            <AddRepositoryDialog
-                isOpen={isAddRepositoryDialogOpen}
-                onOpenChange={handleAddRepositoryDialogOpenChange}
-                onSuccess={handleAddRepositorySuccess}
-                agentName={agentObj?.name}
-                agentLocation={agentObj?.location}
-            />
-
-            <DeleteConfirmationDialog
-                isOpen={isDeleteConfirmOpen}
-                onOpenChange={setIsDeleteConfirmOpen}
-                onConfirmDelete={handleDeleteConfirmation}
-                onCancelDelete={handleCancelDelete}
-                isOperationInProgress={isDeletingFiles}
-                itemType="file"
-                actionVerb={intl.formatMessage(SreAgentResources.delete)}
-                selectedItems={selectedUploadedFileKeys}
-                title={
-                    selectedUploadedFileKeys.length > 1
-                        ? intl.formatMessage(KnowledgeBaseResources.deleteFiles, { count: selectedUploadedFileKeys.length })
-                        : intl.formatMessage(KnowledgeBaseResources.deleteFile)
-                }
-                message={
-                    selectedUploadedFileKeys.length > 1
-                        ? intl.formatMessage(KnowledgeBaseResources.deleteFilesMessage, { count: selectedUploadedFileKeys.length })
-                        : intl.formatMessage(KnowledgeBaseResources.deleteFileMessage)
-                }
-            />
         </div>
     );
 };

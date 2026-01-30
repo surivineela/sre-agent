@@ -43,7 +43,10 @@ import { useOnboardingVisibility } from './Onboarding/Hooks/useOnboardingVisibil
 import { OnboardingWizard } from './Onboarding/OnboardingWizard';
 import { ScheduledTasks } from './ScheduledTasks/ScheduledTasks.ReactView';
 import SessionInsights from './SessionInsights/SessionInsights';
+import { Connectors } from './Settings/Connectors/Connectors';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
+import KnowledgeBase from './Settings/KnowledgeBaseComponents/KnowledgeBase.ReactView';
+import KnowledgeSettings from './Settings/KnowledgeBaseComponents/KnowledgeSettings';
 import Settings from './Settings/Settings.ReactView';
 import { useCommonStyles } from './Styles/Common.styles';
 import { useSreAgentSpaceStyles } from './Styles/SreAgentSpaceStyles';
@@ -352,6 +355,16 @@ const OutletComponent = memo(
     }
 );
 
+const ConnectorsWrapper: FC = () => {
+    const showConnectors = useConfigSetting(SettingNames.Connectors);
+    return showConnectors ? <Connectors /> : undefined;
+};
+
+const KnowledgeSettingsWrapper: FC = () => {
+    const showKnowledgeSettings = useConfigSetting(SettingNames.KnowledgeSettings);
+    return showKnowledgeSettings ? <KnowledgeSettings /> : undefined;
+};
+
 const router = createHashRouter([
     {
         path: '/',
@@ -404,6 +417,18 @@ const router = createHashRouter([
             {
                 path: getPathName(false, PrimaryNavItemValues.Builder, [SecondaryNavItemValues.ExtendedAgentsGraph]),
                 element: <ExtendedAgentGraph />,
+            },
+            {
+                path: getPathName(false, PrimaryNavItemValues.Builder, [SecondaryNavItemValues.Connectors]),
+                element: <ConnectorsWrapper />,
+            },
+            {
+                path: getPathName(false, PrimaryNavItemValues.Builder, [SecondaryNavItemValues.KnowledgeBase]),
+                element: <KnowledgeBase />,
+            },
+            {
+                path: getPathName(false, PrimaryNavItemValues.Builder, [SecondaryNavItemValues.KnowledgeSettings]),
+                element: <KnowledgeSettingsWrapper />,
             },
 
             { path: getPathName(false, PrimaryNavItemValues.Settings), element: <Settings /> },

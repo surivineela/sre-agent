@@ -17,6 +17,7 @@ import { ServiceTypeFilter, ServiceTypeFilterKey } from '../DataConnectorsUtilit
 import { useAgentConnectors } from '../Hooks/useAgentConnectors';
 import { useSreAgent } from '../Hooks/useSreAgent';
 import DeleteConfirmationDialog from '../KnowledgeBaseComponents/DeleteConfirmationDialog';
+import { useSettingsStyles } from '../Styles/Settings.styles';
 import { useConnectorsStyles } from './Connectors.styles';
 import { ConnectorsDataGrid } from './ConnectorsDataGrid';
 import ConnectorsToolbar from './ConnectorsToolbar';
@@ -47,6 +48,7 @@ const isMethodNotAllowedError = (error: any): boolean => {
 export const Connectors = () => {
     const intl = useIntl();
     const styles = useConnectorsStyles();
+    const settingsStyles = useSettingsStyles();
 
     const { resourceId, userInfo } = useContext(EnvironmentContext);
     const { log, startNotification, stopNotification } = useContext(AzPortalContext);
@@ -396,75 +398,79 @@ export const Connectors = () => {
     }, []);
 
     return (
-        <div className={styles.container}>
-            <div className={styles.titleContainer}>
-                <h3 className={styles.title}>{intl.formatMessage(ConnectorsResources.addAConnector)}</h3>
-                <TextWithLink
-                    text={intl.formatMessage(ConnectorsResources.connectorsDescription)}
-                    linkText={intl.formatMessage(ConnectorsResources.connectorsDescriptionLearnMore)}
-                    linkUrl={SreAgentFwLinks.connectors}
-                />
+        <div style={settingsStyles.settingsContainer}>
+            <div style={settingsStyles.settingsContainerInner}>
+                <div className={styles.container}>
+                    <div className={styles.titleContainer}>
+                        <h3 className={styles.title}>{intl.formatMessage(ConnectorsResources.addAConnector)}</h3>
+                        <TextWithLink
+                            text={intl.formatMessage(ConnectorsResources.connectorsDescription)}
+                            linkText={intl.formatMessage(ConnectorsResources.connectorsDescriptionLearnMore)}
+                            linkUrl={SreAgentFwLinks.connectors}
+                        />
+                    </div>
+                    <ConnectorsToolbar
+                        onRefreshClick={refresh}
+                        onNewConnectorClick={addNewConnector}
+                        onDeleteConnectorClick={onBulkDelete}
+                        isConnectorSelected={!!selectedConnector || selectedKeys.size > 0}
+                        selectedCount={selectedKeys.size}
+                        isOperationInProgress={isOperationInProgress || isRefreshing}
+                        setSearchTerm={setSearchTerm}
+                        serviceTypeFilter={serviceTypeFilter}
+                        setServiceTypeFilter={setServiceTypeFilter}
+                    />
+                    <ConnectorsDataGrid
+                        connectors={filteredConnectors}
+                        selectedKeys={selectedKeys}
+                        isEmpty={connectors.length === 0}
+                        isLoading={isConnectorsLoading}
+                        isRefreshing={isRefreshing}
+                        isOperationInProgress={isOperationInProgress}
+                        setSelectedKeys={setSelectedKeys}
+                        addNewConnector={addNewConnector}
+                        onEditConnector={onEditConnector}
+                        onDeleteConnector={onDeleteConnector}
+                        connectionMap={connectionMap}
+                        loadingStatusMap={loadingStatusMap}
+                    />
+                    <DeleteConfirmationDialog
+                        isOpen={isDeleteConfirmOpen}
+                        onOpenChange={setIsDeleteConfirmOpen}
+                        onConfirmDelete={onConfirmDelete}
+                        onCancelDelete={onCancelDelete}
+                        isOperationInProgress={isOperationInProgress}
+                        itemType={intl.formatMessage(ConnectorsResources.connector)}
+                        actionVerb={intl.formatMessage(ConnectorsResources.remove)}
+                        actionPositive={intl.formatMessage(SreAgentResources.yes)}
+                        actionNegative={intl.formatMessage(SreAgentResources.no)}
+                        selectedItems={Array.from(selectedKeys)}
+                        connectorTypes={selectedConnectorTypes}
+                    />
+                    <ConnectorWizardFormik
+                        agentName={agent?.name}
+                        agentLocation={agent?.location}
+                        agentIdentity={agent?.identity}
+                        isDialogOpen={isDialogOpen}
+                        setIsDialogOpen={setIsDialogOpen}
+                        onSubmit={createDataConnection}
+                        refreshAgent={refreshAgent}
+                        existingConnectors={connectors}
+                    />
+                    {selectedConnector && (
+                        <ConnectorEditDialogFormik
+                            agentName={agent?.name}
+                            agentLocation={agent?.location}
+                            agentIdentity={agent?.identity}
+                            isOpen={isEditDialogOpen}
+                            onOpenChange={onEditDialogueChange}
+                            connector={selectedConnector}
+                            onSubmit={updateDataConnection}
+                            refreshAgent={refreshAgent}
+                        />
+                    )}
+                </div>
             </div>
-            <ConnectorsToolbar
-                onRefreshClick={refresh}
-                onNewConnectorClick={addNewConnector}
-                onDeleteConnectorClick={onBulkDelete}
-                isConnectorSelected={!!selectedConnector || selectedKeys.size > 0}
-                selectedCount={selectedKeys.size}
-                isOperationInProgress={isOperationInProgress || isRefreshing}
-                setSearchTerm={setSearchTerm}
-                serviceTypeFilter={serviceTypeFilter}
-                setServiceTypeFilter={setServiceTypeFilter}
-            />
-            <ConnectorsDataGrid
-                connectors={filteredConnectors}
-                selectedKeys={selectedKeys}
-                isEmpty={connectors.length === 0}
-                isLoading={isConnectorsLoading}
-                isRefreshing={isRefreshing}
-                isOperationInProgress={isOperationInProgress}
-                setSelectedKeys={setSelectedKeys}
-                addNewConnector={addNewConnector}
-                onEditConnector={onEditConnector}
-                onDeleteConnector={onDeleteConnector}
-                connectionMap={connectionMap}
-                loadingStatusMap={loadingStatusMap}
-            />
-            <DeleteConfirmationDialog
-                isOpen={isDeleteConfirmOpen}
-                onOpenChange={setIsDeleteConfirmOpen}
-                onConfirmDelete={onConfirmDelete}
-                onCancelDelete={onCancelDelete}
-                isOperationInProgress={isOperationInProgress}
-                itemType={intl.formatMessage(ConnectorsResources.connector)}
-                actionVerb={intl.formatMessage(ConnectorsResources.remove)}
-                actionPositive={intl.formatMessage(SreAgentResources.yes)}
-                actionNegative={intl.formatMessage(SreAgentResources.no)}
-                selectedItems={Array.from(selectedKeys)}
-                connectorTypes={selectedConnectorTypes}
-            />
-            <ConnectorWizardFormik
-                agentName={agent?.name}
-                agentLocation={agent?.location}
-                agentIdentity={agent?.identity}
-                isDialogOpen={isDialogOpen}
-                setIsDialogOpen={setIsDialogOpen}
-                onSubmit={createDataConnection}
-                refreshAgent={refreshAgent}
-                existingConnectors={connectors}
-            />
-            {selectedConnector && (
-                <ConnectorEditDialogFormik
-                    agentName={agent?.name}
-                    agentLocation={agent?.location}
-                    agentIdentity={agent?.identity}
-                    isOpen={isEditDialogOpen}
-                    onOpenChange={onEditDialogueChange}
-                    connector={selectedConnector}
-                    onSubmit={updateDataConnection}
-                    refreshAgent={refreshAgent}
-                />
-            )}
         </div>
     );
 };

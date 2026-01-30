@@ -950,6 +950,9 @@ export const SreAgentTabResources = defineMessages({
     scheduledTasks: { defaultMessage: 'Scheduled tasks', id: 'sy7vzf' },
     monitor: { defaultMessage: 'Monitor', id: 'YpVoLg' },
     builder: { defaultMessage: 'Builder', id: '+cRDz7' },
+    connectors: { defaultMessage: 'Connectors', id: '2mMJRv' },
+    knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
+    knowledgeSettings: { defaultMessage: 'Knowledge settings', id: '1BkoOu' },
 });
 
 export const ResourcePickerTabResources = defineMessages({
@@ -2478,12 +2481,9 @@ export const SettingsTabResources = defineMessages({
     basics: { defaultMessage: 'Basics', id: 'itC9lG' },
     grafanaDashboard: { defaultMessage: 'Grafana dashboard', id: '2zi2Yj' },
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
-    connectors: { defaultMessage: 'Connectors', id: '2mMJRv' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     azureSettings: { defaultMessage: 'Azure settings', id: 'XXOHJH' },
     configureAzureSettings: { defaultMessage: 'Configure Azure settings', id: 'Q9DSD7' },
-    knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
-    knowledgeSettings: { defaultMessage: 'Knowledge settings', id: '1BkoOu' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
     usage: { defaultMessage: 'Agent consumption', id: 'p7xkho' },
     sessionInsights: { defaultMessage: 'Session insights', id: 'CQ0CLu' },

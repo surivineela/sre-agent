@@ -7,9 +7,6 @@ import { SecondaryNavItemValues } from '../Contracts/SreAgentSpace';
 import SessionInsights from '../SessionInsights/SessionInsights';
 import AzureSettings from './AzureSettings.ReactView';
 import Basics from './Basics.ReactView';
-import { Connectors } from './Connectors/Connectors';
-import KnowledgeBase from './KnowledgeBaseComponents/KnowledgeBase.ReactView';
-import KnowledgeSettings from './KnowledgeBaseComponents/KnowledgeSettings';
 import McpServer from './McpServer';
 import Permissions from './Permissions/Permissions.ReactView';
 import ManagedResources from './ResourceGroups/ManagedResources.ReactView';
@@ -20,9 +17,7 @@ import Usage from './Usage';
 const Settings: FC = () => {
     const styles = useSettingsStyles();
     const { menuItem } = useParams();
-    const showConnectors = useConfigSetting(SettingNames.Connectors);
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
-    const showKnowledgeSettings = useConfigSetting(SettingNames.KnowledgeSettings);
 
     const [iconsInitialized, setIconsInitialized] = useState(false);
     const selectedKey = useMemo(() => {
@@ -45,9 +40,6 @@ const Settings: FC = () => {
                     {selectedKey === SecondaryNavItemValues.AzureSettings && <AzureSettings />}
                     {selectedKey === SecondaryNavItemValues.ManagedResources && <ManagedResources />}
                     {selectedKey === SecondaryNavItemValues.GrafanaDashboard && <GrafanaDashboard />}
-                    {selectedKey === SecondaryNavItemValues.Connectors && showConnectors && <Connectors />}
-                    {selectedKey === SecondaryNavItemValues.KnowledgeBase && <KnowledgeBase />}
-                    {selectedKey === SecondaryNavItemValues.KnowledgeSettings && showKnowledgeSettings && <KnowledgeSettings />}
                     {selectedKey === SecondaryNavItemValues.Permissions && <Permissions />}
                     {selectedKey === SecondaryNavItemValues.SubAgents && showSubAgents && <SubAgents />}
                     {selectedKey === SecondaryNavItemValues.McpServers && <McpServer />}

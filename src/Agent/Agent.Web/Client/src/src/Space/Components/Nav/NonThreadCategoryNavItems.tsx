@@ -37,6 +37,7 @@ const NonThreadCategoryNavItems: FC<INonThreadCategoryNavItemsProps> = ({
             />
             <BuilderCategoryNavItem
                 isNavOpen={isNavOpen}
+                controlPlaneTabsVisible={controlPlaneTabsVisible}
                 incidentVisible={incidentVisible}
                 incidentDisabled={incidentDisabled}
                 onClickCategoryNavItem={onClickCategoryNavItem}
