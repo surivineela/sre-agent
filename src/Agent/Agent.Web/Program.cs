@@ -1810,8 +1810,25 @@ public class Program
 
     private static string GetRuntimeForcedExperimentVariants(WebApplicationBuilder builder)
     {
+        var variants = new List<string>();
+
         var forcedVariants = builder.Configuration.GetValue<string>("ForcedExperimentVariants");
-        return forcedVariants ?? string.Empty;
+        if (!string.IsNullOrEmpty(forcedVariants))
+        {
+            variants.Add(forcedVariants);
+        }
+
+        // Force workspace experiment when EnableWorkspaceTools is configured
+        var experimentalSettings = builder.Configuration
+            .GetSection("AppSettings:Core:Experimental")
+            .Get<ExperimentalSettings>();
+
+        if (experimentalSettings?.EnableWorkspaceTools ?? false)
+        {
+            variants.Add("workspace=workspace_agent");
+        }
+
+        return string.Join(";", variants);
     }
 }
 

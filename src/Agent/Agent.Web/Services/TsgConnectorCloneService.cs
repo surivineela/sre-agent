@@ -500,7 +500,7 @@ public class TsgConnectorCloneService : BackgroundService
             var uri = new Uri(url);
             var builder = new UriBuilder(uri)
             {
-                UserName = string.Empty,
+                UserName = "sreagent", // any non-empty username
                 Password = pat
             };
 
