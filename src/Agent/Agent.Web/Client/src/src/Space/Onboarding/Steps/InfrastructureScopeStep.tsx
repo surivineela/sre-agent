@@ -1,6 +1,6 @@
 import { Caption1, Subtitle2 } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
-import { FC, useCallback, useContext, useMemo, useState } from 'react';
+import { FC, startTransition, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import ResourceGroupIcon from '../../../../assets/ResourceGroup.svg';
 import SubscriptionIcon from '../../../../assets/Subscription.svg';
@@ -11,10 +11,10 @@ import { useSubscriptionsWithRoles } from '../../../Common/Components/AzureResou
 import { SelectableCard } from '../../../Common/Components/SelectableCard/SelectableCard';
 import { getUserFriendlyLocation } from '../../../Common/Helpers/LocationHelper';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
+import { AgentFormValues } from '../../../Common/Utils/AgentFormUtils';
 import { openResourceGroupOverviewInNewTab, openSubscriptionOverviewInNewTab } from '../../../Common/Utils/UrlUtils';
 import { OnboardingWizardResources } from '../../../Strings/SREAgentResources';
 import { useSubscriptions } from '../../Settings/Hooks/useSubscriptions';
-import { WizardFormValues } from '../OnboardingWizard';
 import { useInfrastructureScopeStepStyles } from '../OnboardingWizard.styles';
 import { ResourceGroupPickerDialog } from './ResourceGroupPickerDialog';
 import { ScopeCellWithLink, ScopeDataGrid, ScopeDataGridColumn } from './ScopeDataGrid';
@@ -40,7 +40,7 @@ export const InfrastructureScopeStep: FC = () => {
     const portalContext = useContext(AzPortalContext) as AzPortalProxy;
     const { resourceId } = useContext(EnvironmentContext);
 
-    const { values, setFieldValue } = useFormikContext<WizardFormValues>();
+    const { values, setFieldValue } = useFormikContext<AgentFormValues>();
     const { subscriptionsList, subscriptionsLoading } = useSubscriptions();
     const {
         selectableSubscriptions,
@@ -235,7 +235,7 @@ export const InfrastructureScopeStep: FC = () => {
 
             <div className={styles.addButtonsContainer}>
                 <SelectableCard
-                    onSelect={() => setIsSubscriptionPickerOpen(true)}
+                    onSelect={() => startTransition(() => setIsSubscriptionPickerOpen(true))}
                     disabled={subscriptionsLoading}
                     icon={<img src={SubscriptionIcon} alt="" aria-hidden="true" />}
                     title={intl.formatMessage(OnboardingWizardResources.addSubscription)}

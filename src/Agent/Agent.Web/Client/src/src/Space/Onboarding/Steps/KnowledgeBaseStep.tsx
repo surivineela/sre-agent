@@ -5,12 +5,12 @@ import { FC, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SelectableCard } from '../../../Common/Components/SelectableCard/SelectableCard';
 import { resolveResourceIcon } from '../../../Common/Helpers/Resources';
+import { AgentFormValues, KnowledgeSource, KnowledgeSourceType } from '../../../Common/Utils/AgentFormUtils';
 import { OnboardingWizardResources } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
 import { AddRepositoryDialog } from '../../Settings/KnowledgeBaseComponents/AddRepositoryDialog/AddRepositoryDialog';
 import { AddWebPageDialog } from '../../Settings/KnowledgeBaseComponents/AddWebPageDialog';
 import { FileUploadDialog } from '../../Settings/KnowledgeBaseComponents/FileUploadDialog';
-import { KnowledgeSource, KnowledgeSourceType, WizardFormValues } from '../OnboardingWizard';
 import { useKnowledgeBaseStepStyles } from '../OnboardingWizard.styles';
 import { ScopeDataGrid, ScopeDataGridColumn } from './ScopeDataGrid';
 
@@ -19,7 +19,7 @@ export const KnowledgeBaseStep: FC = () => {
     const styles = useKnowledgeBaseStepStyles();
     const { agentObj } = useContext(SreAgentContext);
 
-    const { values, setFieldValue } = useFormikContext<WizardFormValues>();
+    const { values, setFieldValue } = useFormikContext<AgentFormValues>();
 
     const [isFileDialogOpen, setIsFileDialogOpen] = useState(false);
     const [isWebPageDialogOpen, setIsWebPageDialogOpen] = useState(false);
@@ -129,15 +129,9 @@ export const KnowledgeBaseStep: FC = () => {
         setIsRepositoryDialogOpen(false);
     }, []);
 
-    const fileSources = useMemo(
-        () => values.knowledgeSources.filter(source => source.type === 'file'),
-        [values.knowledgeSources]
-    );
+    const fileSources = useMemo(() => values.knowledgeSources.filter(source => source.type === 'file'), [values.knowledgeSources]);
 
-    const webPageSources = useMemo(
-        () => values.knowledgeSources.filter(source => source.type === 'webpage'),
-        [values.knowledgeSources]
-    );
+    const webPageSources = useMemo(() => values.knowledgeSources.filter(source => source.type === 'webpage'), [values.knowledgeSources]);
 
     const repositorySources = useMemo(
         () => values.knowledgeSources.filter(source => source.type === 'repository'),
@@ -163,8 +157,7 @@ export const KnowledgeBaseStep: FC = () => {
                 headerLabel: intl.formatMessage(OnboardingWizardResources.lastModifiedColumn),
                 minWidth: 150,
                 defaultWidth: 180,
-                renderCell: (item: KnowledgeSource) =>
-                    item.lastModified ? new Date(item.lastModified).toLocaleDateString() : '—',
+                renderCell: (item: KnowledgeSource) => (item.lastModified ? new Date(item.lastModified).toLocaleDateString() : '—'),
             },
         ],
         [intl, getIconForType, styles.nameCell]
@@ -174,9 +167,7 @@ export const KnowledgeBaseStep: FC = () => {
         <div className={styles.container}>
             <div className={styles.headerSection}>
                 <Subtitle2>{intl.formatMessage(OnboardingWizardResources.knowledgeBase)}</Subtitle2>
-                <Caption1 className={styles.description}>
-                    {intl.formatMessage(OnboardingWizardResources.knowledgeBaseDescription)}
-                </Caption1>
+                <Caption1 className={styles.description}>{intl.formatMessage(OnboardingWizardResources.knowledgeBaseDescription)}</Caption1>
             </div>
 
             <div className={styles.addButtonsContainer}>

@@ -6,10 +6,10 @@ import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { RBACRoleIdToNameMap, RBACRoleNames } from '../../../Common/Contracts/Azure/Permission';
 import { AgentAccessLevel } from '../../../Common/Contracts/Azure/SreAgent';
+import { AgentFormValues } from '../../../Common/Utils/AgentFormUtils';
 import { OnboardingWizardResources, RolesResources } from '../../../Strings/SREAgentResources';
 import { SreAgentContext } from '../../Contracts/Context';
 import { useGrantPermissions } from '../Hooks/useGrantPermissions';
-import { WizardFormValues } from '../OnboardingWizard';
 import { usePermissionsStepStyles } from '../OnboardingWizard.styles';
 
 /**
@@ -62,7 +62,7 @@ export const GrantPermissionsStep: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
     const { agentObj } = useContext(SreAgentContext);
 
-    const { values, setFieldValue } = useFormikContext<WizardFormValues>();
+    const { values, setFieldValue } = useFormikContext<AgentFormValues>();
 
     const hasSubscriptionScope = values.selectedSubscriptionIds.length > 0;
     const hasResourceGroupScope = values.selectedResourceGroupIds.length > 0;

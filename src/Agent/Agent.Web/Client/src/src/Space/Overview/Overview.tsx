@@ -6,7 +6,7 @@ import IncidentManagementCard from './IncidentManagementCard.tsx';
 import IntentMetScoreCard from './IntentMetScoreCard.tsx';
 import MitigationMeanTimeCard from './MitigationMeanTimeCard.tsx';
 import RecentInsightsCard from './RecentInsightsCard.tsx';
-import SuggestedActions from './SuggestedActions.tsx';
+import SuggestedActionsCard from './SuggestedActionsCard';
 
 const useStyles = makeStyles({
     overview: {
@@ -61,7 +61,7 @@ const Overview: FC = () => {
         <div className={styles.overview}>
             <div className={styles.overviewInner}>
                 <div className={styles.suggestionActions}>
-                    <SuggestedActions />
+                    <SuggestedActionsCard />
                 </div>
                 <div className={styles.intentMetScoreCard}>
                     <IntentMetScoreCard />

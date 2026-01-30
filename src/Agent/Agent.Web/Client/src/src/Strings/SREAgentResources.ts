@@ -6563,7 +6563,7 @@ export const RolesResources = defineMessages({
 
 export const OverviewResources = defineMessages({
     overview: { defaultMessage: 'Overview', id: '9uOFF3' },
-    suggestionActions: { defaultMessage: 'Suggested actions {value}', id: 'Efkzqy' },
+    suggestionActions: { defaultMessage: 'Suggested actions ({value})', id: 'AhbkmU' },
     goToQuickStart: { defaultMessage: 'Go to quick start', id: 'qZ6FID' },
     intentMetScore: { defaultMessage: 'Intent met score', id: '07461w' },
     meanTimeToMitigate: { defaultMessage: 'Mean time to mitigate', id: 'o8Lpmf' },

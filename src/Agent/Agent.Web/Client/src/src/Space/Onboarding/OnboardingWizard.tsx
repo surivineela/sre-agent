@@ -8,8 +8,8 @@ import RocketImage from '../../../assets/Rocket.svg';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { WizardStepperHorizontal } from '../../Common/Components/Wizard/WizardStepperHorizontal';
-import { AgentAccessLevel, IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
-import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
+import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
+import { AgentFormValues, getAgentFormInitialValues } from '../../Common/Utils/AgentFormUtils';
 import { OnboardingWizardResources } from '../../Strings/SREAgentResources';
 import { SreAgentContext } from '../Contracts/Context';
 import { useOnboardingWizard, WizardStep } from './Hooks/useOnboardingWizard';
@@ -19,7 +19,7 @@ import { IncidentPlatformStep } from './Steps/IncidentPlatformStep';
 import { InfrastructureScopeStep } from './Steps/InfrastructureScopeStep';
 import { KnowledgeBaseStep } from './Steps/KnowledgeBaseStep';
 
-const isStepDirty = (step: WizardStep, currentValues: WizardFormValues, initialValues: WizardFormValues): boolean => {
+const isStepDirty = (step: WizardStep, currentValues: AgentFormValues, initialValues: AgentFormValues): boolean => {
     switch (step) {
         case WizardStep.InfrastructureScope:
             return (
@@ -43,29 +43,6 @@ const isStepDirty = (step: WizardStep, currentValues: WizardFormValues, initialV
     }
 };
 
-export type KnowledgeSourceType = 'repository' | 'file' | 'webpage';
-
-export interface KnowledgeSource {
-    id: string;
-    type: KnowledgeSourceType;
-    name: string;
-    url?: string;
-    lastModified?: string;
-}
-
-export interface WizardFormValues {
-    selectedSubscriptionIds: string[];
-    selectedResourceGroupIds: string[];
-    resourceGroupLocations: Record<string, string>;
-    incidentPlatformType: IncidentManagementType | undefined;
-    pagerDutyApiKey: string;
-    serviceNowEndpoint: string;
-    serviceNowUsername: string;
-    serviceNowPassword: string;
-    permissionsLevel: AgentAccessLevel;
-    knowledgeSources: KnowledgeSource[];
-}
-
 export interface OnboardingWizardProps {
     onComplete?: () => void;
 }
@@ -74,43 +51,12 @@ export const OnboardingWizard: FC<OnboardingWizardProps> = ({ onComplete }) => {
     const { resourceId } = useContext(EnvironmentContext);
     const { agentObj } = useContext(SreAgentContext);
 
-    const initialValues = useMemo<WizardFormValues>(() => {
-        const agent = agentObj?.properties;
-        const existingManagedResources = agent?.knowledgeGraphConfiguration?.managedResources ?? [];
-        const existingIncidentConfig = agent?.incidentManagementConfiguration;
-        const existingAccessLevel = agent?.actionConfiguration?.accessLevel ?? AgentAccessLevel.low;
+    const initialValues = useMemo<AgentFormValues>(() => getAgentFormInitialValues(agentObj, resourceId), [agentObj, resourceId]);
 
-        const existingSubscriptionIds = existingManagedResources
-            .filter((r: string) => !r.includes('/resourceGroups/'))
-            .map((r: string) => {
-                const match = r.match(/\/subscriptions\/([^/]+)/i);
-                return match ? match[1] : '';
-            })
-            .filter((id: string) => id.length > 0);
-
-        const existingResourceGroupIds = existingManagedResources.filter((r: string) => r.includes('/resourceGroups/'));
-
-        const descriptor = new ArmResourceDescriptor(resourceId);
-        const currentSubscriptionId = descriptor.subscription;
-
-        return {
-            selectedSubscriptionIds: existingSubscriptionIds.length > 0 ? existingSubscriptionIds : [currentSubscriptionId],
-            selectedResourceGroupIds: existingResourceGroupIds,
-            resourceGroupLocations: {},
-            incidentPlatformType: existingIncidentConfig?.type,
-            pagerDutyApiKey: '',
-            serviceNowEndpoint: existingIncidentConfig?.connectionUrl ?? '',
-            serviceNowUsername: '',
-            serviceNowPassword: '',
-            permissionsLevel: existingAccessLevel,
-            knowledgeSources: [],
-        };
-    }, [agentObj, resourceId]);
-
-    const handleSubmit = useCallback((_values: WizardFormValues, _helpers: FormikHelpers<WizardFormValues>) => {}, []);
+    const handleSubmit = useCallback((_values: AgentFormValues, _helpers: FormikHelpers<AgentFormValues>) => { }, []);
 
     return (
-        <Formik<WizardFormValues> initialValues={initialValues} onSubmit={handleSubmit}>
+        <Formik<AgentFormValues> initialValues={initialValues} onSubmit={handleSubmit}>
             <OnboardingWizardContent onComplete={onComplete} />
         </Formik>
     );
@@ -126,7 +72,7 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
     const azPortalContext = useAzPortalContext();
     const { agentObj, patchAgent } = useContext(SreAgentContext);
 
-    const { values, initialValues } = useFormikContext<WizardFormValues>();
+    const { values, initialValues } = useFormikContext<AgentFormValues>();
 
     const { currentStep, steps, isLastStep, isFirstStep, goToNextStep, goToPreviousStep, finishWizard } = useOnboardingWizard();
 
