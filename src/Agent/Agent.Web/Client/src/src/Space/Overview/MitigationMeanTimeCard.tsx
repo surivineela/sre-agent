@@ -1,4 +1,3 @@
-import { ArrowTrendingSettingsRegular } from '@fluentui/react-icons';
 import { FC, memo } from 'react';
 import { useIntl } from 'react-intl';
 import { OverviewResources } from '../../Strings/SREAgentResources';
@@ -13,11 +12,6 @@ const MitigationMeanTimeCard: FC = () => {
             subtitle={'Last 30 days'}
             percentageChange={-10}
             score={'12m'}
-            footer={{
-                icon: <ArrowTrendingSettingsRegular />,
-                text: 'Projected savings',
-                result: '40 hrs',
-            }}
             refresh={() => Promise.resolve()}
         />
     );

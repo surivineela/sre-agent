@@ -24,7 +24,7 @@ const useStyles = makeStyles({
     },
 });
 
-const RecentInsightsCard: FC = () => {
+const InsightsAndSuggestionsCard: FC = () => {
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const sessionInsightClient = SessionInsightClient.getInstance(sreAgentEndpoint);
 
@@ -64,8 +64,8 @@ const RecentInsightsCard: FC = () => {
     }, []);
 
     return (
-        <Card size={'small'} className={styles.root}>
-            <MetricsCardHeader title={intl.formatMessage(OverviewResources.recentInsights)} refresh={async () => { }} />
+        <Card className={styles.root}>
+            <MetricsCardHeader title={intl.formatMessage(OverviewResources.recentInsights)} refresh={async () => {}} />
             <div className={scrollable} style={{ overflow: 'auto' }}>
                 {loading ? (
                     <Skeleton>
@@ -84,7 +84,7 @@ const RecentInsightsCard: FC = () => {
                                 ) : (
                                     sessionInsights.map((insight, index) => {
                                         return (
-                                            <Card size={'small'} key={index} className={styles.insightCard}>
+                                            <Card key={index} className={styles.insightCard}>
                                                 <CardHeader
                                                     header={
                                                         <>
@@ -114,4 +114,4 @@ const RecentInsightsCard: FC = () => {
     );
 };
 
-export default memo(RecentInsightsCard);
+export default memo(InsightsAndSuggestionsCard);

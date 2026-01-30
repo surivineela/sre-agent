@@ -72,7 +72,7 @@ const MetricsCard: FC<IMetricsCardProps> = ({ title, subtitle, percentageChange,
     const styles = useStyles();
 
     return (
-        <Card size={'small'} className={styles.root}>
+        <Card className={styles.root}>
             <MetricsCardHeader title={title} subtitle={subtitle} refresh={refresh}>
                 {percentageChange !== undefined && (
                     <Badge appearance={'tint'} color={percentageChange === 0 ? undefined : percentageChange > 0 ? 'success' : 'severe'}>

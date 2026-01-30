@@ -3,18 +3,18 @@ import { useIntl } from 'react-intl';
 import { OverviewResources } from '../../Strings/SREAgentResources';
 import MetricsCard from './MetricsCard';
 
-const AnalyzedIncidentsCard: FC = () => {
+const ReviewedIncidentsCard: FC = () => {
     const intl = useIntl();
 
     return (
         <MetricsCard
-            title={intl.formatMessage(OverviewResources.incidentsAnalyzed)}
+            title={intl.formatMessage(OverviewResources.reviewedIncidents)}
             subtitle={'Last 30 days'}
-            percentageChange={0}
-            score={'124'}
+            percentageChange={-10}
+            score={'80/100'}
             refresh={() => Promise.resolve()}
         />
     );
 };
 
-export default memo(AnalyzedIncidentsCard);
+export default memo(ReviewedIncidentsCard);

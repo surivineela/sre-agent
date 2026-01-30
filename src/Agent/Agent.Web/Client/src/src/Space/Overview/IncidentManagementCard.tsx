@@ -95,7 +95,7 @@ const IncidentManagementCard: FC = () => {
     const noIncidents = !isLoadingInitialThreads && !moreThreadsToLoad && threads.length === 0;
 
     return (
-        <Card size={'small'} className={styles.card}>
+        <Card className={styles.card}>
             <CardHeader header={<Body1Strong>{intl.formatMessage(OverviewResources.incidentManagement)}</Body1Strong>} />
             <div className={mergeClasses(styles.tableContainer, scrollable)} ref={threadListDivRef} onScroll={onScroll}>
                 <div className={styles.tableBadge}>
