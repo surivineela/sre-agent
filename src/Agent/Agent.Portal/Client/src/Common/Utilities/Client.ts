@@ -57,11 +57,15 @@ export const acquireAccessToken = async (
     }
 
     const scopes = getScopesForApi(scopeIdentifier);
+    // Use the account's tenant-specific authority to ensure tokens are acquired
+    // from the correct tenant, not the user's home tenant
+    const authority = `https://login.microsoftonline.com/${account.tenantId}`;
 
     try {
         const response = await msalInstance.acquireTokenSilent({
             scopes,
             account,
+            authority,
             forceRefresh,
         });
 
@@ -94,6 +98,7 @@ export const acquireAccessToken = async (
                 const popupResponse = await msalInstance.acquireTokenPopup({
                     scopes,
                     account,
+                    authority,
                 });
 
                 return {

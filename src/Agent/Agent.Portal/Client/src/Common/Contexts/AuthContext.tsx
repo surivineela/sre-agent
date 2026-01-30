@@ -1,12 +1,4 @@
-import {
-    AuthenticationResult,
-    AuthError,
-    EventMessage,
-    EventType,
-    InteractionRequiredAuthError,
-    InteractionStatus,
-    RedirectRequest,
-} from '@azure/msal-browser';
+import { AuthError, InteractionRequiredAuthError, InteractionStatus, RedirectRequest } from '@azure/msal-browser';
 import { useAccount, useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { loginRequest, msalInstance } from '../Auth/msalConfig';
@@ -83,32 +75,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const switchTenant = useCallback(
         async (tenantId: string) => {
+            // Clear the current account from cache to ensure clean tenant switch
+            // This prevents useAccount() from returning the old tenant's account
+            if (account) {
+                await msalInstance.clearCache({ account });
+            }
+
             await instance.loginRedirect({
                 ...loginRequest,
+                prompt: 'none',
+                loginHint: account?.username,
                 authority: `https://login.microsoftonline.com/${tenantId}`,
             });
         },
-        [instance]
+        [instance, account]
     );
-
-    // Handle login success events (including tenant switches) to set the correct active account
-    // This ensures that after a redirect login, the newly authenticated account is set as active
-    useEffect(() => {
-        const callbackId = instance.addEventCallback((event: EventMessage) => {
-            if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
-                const authResult = event.payload as AuthenticationResult;
-                if (authResult.account) {
-                    instance.setActiveAccount(authResult.account);
-                }
-            }
-        });
-
-        return () => {
-            if (callbackId) {
-                instance.removeEventCallback(callbackId);
-            }
-        };
-    }, [instance]);
 
     // If there are accounts but no active account, set one
     useEffect(() => {
@@ -137,6 +118,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             const activeAccount = msalInstance.getActiveAccount() || accounts[0];
+            // Use the account's tenant-specific authority
+            const authority = `https://login.microsoftonline.com/${activeAccount.tenantId}`;
 
             try {
                 // Attempt silent token acquisition to validate the session
@@ -144,6 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 await msalInstance.acquireTokenSilent({
                     scopes: loginRequest.scopes,
                     account: activeAccount,
+                    authority,
                 });
                 // Session is valid, user can continue
             } catch (error) {
@@ -166,6 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                         await msalInstance.ssoSilent({
                             scopes: loginRequest.scopes,
                             loginHint: activeAccount.username,
+                            authority,
                         });
                         // SSO succeeded - user has an active Entra session
                     } catch (ssoError) {
