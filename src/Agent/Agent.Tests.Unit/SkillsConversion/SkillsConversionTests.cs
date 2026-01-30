@@ -3,22 +3,16 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Agent.Core.DataConnectors;
-using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Framework.Skills;
 using Agent.Runtime;
-using Agent.Runtime.Extensions;
-using Agent.Runtime.Interfaces;
 using Agent.Runtime.Reasoning;
 using Agent.Runtime.Services;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace Agent.Tests.Unit.SkillsConversion;
 
@@ -31,23 +25,6 @@ public class SkillsConversionTests
         var builder = Web.Program.CreateWebApplicationBuilder(new WebApplicationOptions { EnvironmentName = "test" });
         builder.LoadAppSettings(isDevelopment: true);
         builder.ValidateAndRegisterAppSettings<AppSettings>();
-
-        // Mock IMcpConnectable to provide MCP tools without requiring actual MCP server connections
-        var mockMcpConnectable = new Mock<IMcpConnectable>();
-        mockMcpConnectable.Setup(m => m.GetAllFunctions()).Returns(
-        [
-            AIFunctionFactory.Create((string query) => "mock docs search result", "microsoft-learn-mcp_microsoft_docs_search"),
-            AIFunctionFactory.Create((string url) => "mock docs fetch result", "microsoft-learn-mcp_microsoft_docs_fetch"),
-            AIFunctionFactory.Create((string query) => "mock code sample result", "microsoft-learn-mcp_microsoft_code_sample_search")
-        ]);
-
-        // Replace IMcpConnectable registration with our mock
-        var serviceDescriptor = builder.Services.FirstOrDefault(d => d.ServiceType == typeof(IMcpConnectable));
-        if (serviceDescriptor != null)
-        {
-            builder.Services.Remove(serviceDescriptor);
-        }
-        builder.Services.AddSingleton(mockMcpConnectable.Object);
 
         // re-register agent factory to ensure extensible agents are not loaded for the tests
         builder.Services.ReplaceAll<IAgentFactory<AgentContext>>(ServiceLifetime.Singleton, sp =>
