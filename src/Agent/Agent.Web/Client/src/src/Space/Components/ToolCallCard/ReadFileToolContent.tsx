@@ -34,7 +34,7 @@ const ReadFileToolContent = ({ result }: ReadFileToolContentProps) => {
             <>
                 <div className={classes.contentHeader}>
                     <div className={classes.contentHeaderLeft}>
-                        <Text weight="semibold">{result.filePath}</Text>
+                        <Text size={200}>{result.filePath}</Text>
                     </div>
                 </div>
                 <div className={mergeClasses(classes.terminalOutput, classes.errorText)}>{result.error}</div>
@@ -48,9 +48,8 @@ const ReadFileToolContent = ({ result }: ReadFileToolContentProps) => {
             <>
                 <div className={classes.contentHeader}>
                     <div className={classes.contentHeaderLeft}>
-                        <Text weight="semibold">{result.filePath}</Text>
-                        <Text size={200} style={{ fontStyle: 'italic', opacity: 0.7 }}>
-                            (empty file)
+                        <Text size={200}>
+                            {result.filePath} <span style={{ opacity: 0.5 }}>(empty)</span>
                         </Text>
                     </div>
                 </div>
@@ -60,16 +59,16 @@ const ReadFileToolContent = ({ result }: ReadFileToolContentProps) => {
 
     return (
         <>
-            {/* Header with file path and copy button */}
+            {/* Header - minimal */}
             <div className={classes.contentHeader}>
                 <div className={classes.contentHeaderLeft}>
-                    <Text weight="semibold">{headerText}</Text>
+                    <Text size={200}>{headerText}</Text>
                 </div>
                 <CopyButton textToCopy={result.content} />
             </div>
 
-            {/* File content with line numbers */}
-            <div className={classes.codeContainer}>
+            {/* File content with line numbers - scrollable with max height */}
+            <div className={classes.codeContainerScrollable}>
                 {lines.map((line, index) => {
                     const lineNumber = result.startLine + index;
                     return (

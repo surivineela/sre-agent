@@ -5,8 +5,6 @@ import {
     AccordionPanel,
     Badge,
     Caption1,
-    Card,
-    Divider,
     Spinner,
     Text,
     makeStyles,
@@ -14,14 +12,13 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import {
+    AppsAddIn20Regular,
     BranchFork20Regular,
     CheckmarkCircle16Regular,
-    ChevronDownUp16Regular,
-    ChevronUpDown16Regular,
+    ChevronDown16Regular,
+    ChevronRight16Regular,
     Database20Regular,
-    Dismiss16Regular,
     DismissCircle16Filled,
-    PlugConnected20Regular,
 } from '@fluentui/react-icons';
 import { useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -86,43 +83,111 @@ type McpToolExecutionMessageProps = {
 };
 
 const useStyles = makeStyles({
-    card: {
-        width: '100%',
-        maxWidth: '100%',
-        marginBottom: tokens.spacingVerticalS,
+    root: {
+        display: 'flex',
+        flexDirection: 'column',
     },
-    headerRow: {
+
+    // Summary line - minimal, VS Code style
+    summaryLine: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '2px 0',
+        cursor: 'pointer',
+        color: tokens.colorNeutralForeground3,
+        fontSize: '13px',
+        userSelect: 'none',
+        ':hover': {
+            color: tokens.colorNeutralForeground2,
+        },
+    },
+    chevron: {
+        color: tokens.colorNeutralForeground4,
+        flexShrink: 0,
+        fontSize: '14px',
+    },
+    summaryIcon: {
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+    },
+    summaryToolName: {
+        fontFamily: 'Consolas, Monaco, monospace',
+        color: tokens.colorNeutralForeground2,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        flexShrink: 1,
+        minWidth: 0,
+        fontSize: '12px',
+    },
+    summaryServerName: {
+        color: tokens.colorNeutralForeground4,
+        fontSize: '12px',
+        flexShrink: 0,
+        whiteSpace: 'nowrap',
+    },
+    separator: {
+        flexShrink: 0,
+        color: tokens.colorNeutralForeground4,
+    },
+    summaryResultInfo: {
+        color: tokens.colorNeutralForeground4,
+        flexShrink: 0,
+        whiteSpace: 'nowrap',
+        fontSize: '12px',
+    },
+    summaryResultInfoSuccess: {
+        color: tokens.colorPaletteGreenForeground1,
+    },
+    summaryResultInfoError: {
+        color: tokens.colorPaletteRedForeground1,
+    },
+    spinner: {
+        marginLeft: '-2px',
+    },
+
+    // Expanded container - minimal left border
+    expandedContainer: {
+        borderLeft: `1px solid ${tokens.colorNeutralStroke3}`,
+        marginLeft: '7px',
+        marginTop: '2px',
+        overflow: 'hidden',
+    },
+
+    // Content header - minimal
+    contentHeader: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        columnGap: '8px',
-        rowGap: '8px',
-        flexWrap: 'wrap',
+        padding: '4px 8px 4px 12px',
+        gap: '8px',
     },
-    headerLeft: {
+    contentHeaderLeft: {
         display: 'flex',
         alignItems: 'center',
-        columnGap: '8px',
-    },
-    mcpBadge: {
-        backgroundColor: tokens.colorBrandBackground2,
-        color: tokens.colorBrandForeground2,
+        gap: '6px',
+        flex: 1,
+        minWidth: 0,
+        flexWrap: 'wrap',
     },
     toolNameBadge: {
-        backgroundColor: tokens.colorNeutralBackground3,
+        color: tokens.colorNeutralForeground4,
+        fontSize: '11px',
     },
     statusBadge: {
-        minWidth: '24px',
-        borderRadius: tokens.borderRadiusLarge,
-        height: '24px',
+        minWidth: '18px',
+        height: '18px',
+        fontSize: '11px',
     },
     parameterSection: {
-        marginTop: tokens.spacingVerticalS,
+        padding: '8px 12px',
     },
     parameterLabel: {
-        color: tokens.colorNeutralForeground3,
-        fontWeight: tokens.fontWeightSemibold,
-        marginBottom: tokens.spacingVerticalXS,
+        color: tokens.colorNeutralForeground4,
+        fontSize: '11px',
+        marginBottom: '4px',
     },
     parameterValue: {
         fontFamily: 'Consolas, Monaco, monospace',
@@ -131,56 +196,48 @@ const useStyles = makeStyles({
     },
     codeBlock: {
         position: 'relative',
-        border: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStrokeDisabled}`,
-        borderRadius: tokens.borderRadiusMedium,
-        backgroundColor: tokens.colorNeutralBackground2,
-        padding: '10px',
         fontFamily: 'Consolas, Monaco, monospace',
         fontSize: '12px',
         color: tokens.colorNeutralForeground2,
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
         overflow: 'auto',
-        maxHeight: '300px',
+        maxHeight: '280px',
+        padding: '8px 0',
     },
     kqlBlock: {
-        backgroundColor: '#1e1e1e',
+        backgroundColor: 'rgba(30, 30, 30, 0.5)',
         color: '#d4d4d4',
+        padding: '8px 12px',
+        borderRadius: '4px',
     },
     copyButtonContainer: {
         position: 'absolute',
-        top: '6px',
-        right: '6px',
+        top: '4px',
+        right: '4px',
+        opacity: 0.6,
+        ':hover': {
+            opacity: 1,
+        },
     },
     parameterGrid: {
         display: 'grid',
         gridTemplateColumns: 'auto 1fr',
-        gap: `${tokens.spacingVerticalXS} ${tokens.spacingHorizontalM}`,
-        marginBottom: tokens.spacingVerticalS,
+        gap: '2px 12px',
+        marginBottom: '8px',
+        fontSize: '12px',
     },
     parameterName: {
-        color: tokens.colorNeutralForeground3,
-        fontWeight: tokens.fontWeightSemibold,
-    },
-    iconContainer: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '28px',
-        height: '28px',
-        borderRadius: tokens.borderRadiusMedium,
-        backgroundColor: tokens.colorBrandBackground2,
+        color: tokens.colorNeutralForeground4,
     },
     kustoIcon: {
-        backgroundColor: '#0078d4',
-        color: 'white',
+        color: '#0078d4',
     },
     adoIcon: {
-        backgroundColor: '#0078d4',
-        color: 'white',
+        color: '#0078d4',
     },
-    genericIcon: {
-        backgroundColor: tokens.colorNeutralBackground3,
+    mcpIcon: {
+        color: tokens.colorBrandForeground1,
     },
     outputPre: {
         margin: 0,
@@ -188,7 +245,6 @@ const useStyles = makeStyles({
         wordBreak: 'break-word',
         fontFamily: 'Consolas, Monaco, monospace',
         fontSize: '12px',
-        width: 'calc(100% - 32px)',
     },
     outputPreCollapsed: {
         whiteSpace: 'nowrap',
@@ -203,16 +259,16 @@ const useStyles = makeStyles({
         fontFamily: 'Consolas, Monaco, monospace',
     },
     resultTableHeader: {
-        backgroundColor: tokens.colorNeutralBackground3,
-        color: tokens.colorNeutralForeground1,
-        fontWeight: tokens.fontWeightSemibold,
-        padding: '8px 12px',
+        color: tokens.colorNeutralForeground3,
+        fontWeight: 500,
+        padding: '4px 8px',
         textAlign: 'left',
-        borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
+        fontSize: '11px',
     },
     resultTableCell: {
-        padding: '6px 12px',
-        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        padding: '4px 8px',
+        borderBottom: `1px solid ${tokens.colorNeutralStroke3}`,
         color: tokens.colorNeutralForeground2,
     },
     resultTableRow: {
@@ -222,75 +278,97 @@ const useStyles = makeStyles({
     },
     resultSummary: {
         display: 'flex',
-        gap: tokens.spacingHorizontalM,
-        marginBottom: tokens.spacingVerticalS,
-        color: tokens.colorNeutralForeground3,
-        fontSize: '12px',
+        gap: '12px',
+        marginBottom: '8px',
+        color: tokens.colorNeutralForeground4,
+        fontSize: '11px',
+    },
+    resultSection: {
+        padding: '4px 12px 8px 12px',
     },
 });
 
 const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) => {
     const classes = useStyles();
     const intl = useIntl();
-    const [isCollapsed, setIsCollapsed] = useState(execution.status !== 'Running');
+    const [isExpanded, setIsExpanded] = useState(execution.status === 'Running');
 
     const displayConfig = useMemo(
         () => getMcpToolDisplayConfig(execution.mcpServerName, execution.toolName),
         [execution.mcpServerName, execution.toolName]
     );
 
+    // Get icon for summary line and header
     const getIcon = () => {
         switch (displayConfig.colorScheme) {
             case 'kusto':
-                return <Database20Regular />;
+                return <Database20Regular className={classes.kustoIcon} />;
             case 'ado':
-                return <BranchFork20Regular />;
+                return <BranchFork20Regular className={classes.adoIcon} />;
             default:
-                return <PlugConnected20Regular />;
+                return <AppsAddIn20Regular className={classes.mcpIcon} />;
         }
     };
 
-    const getIconClass = () => {
-        switch (displayConfig.colorScheme) {
-            case 'kusto':
-                return mergeClasses(classes.iconContainer, classes.kustoIcon);
-            case 'ado':
-                return mergeClasses(classes.iconContainer, classes.adoIcon);
+    // Get result info for summary line
+    const getResultInfo = useMemo(() => {
+        switch (execution.status) {
+            case 'Completed':
+                return intl.formatMessage(SreAgentResources.completed);
+            case 'Failed':
+                return intl.formatMessage(SreAgentResources.failed);
+            case 'Running':
+                return intl.formatMessage(SreAgentResources.running);
+            case 'Cancelled':
+                return intl.formatMessage(SreAgentResources.canceled);
             default:
-                return mergeClasses(classes.iconContainer, classes.genericIcon);
+                return '';
         }
-    };
+    }, [execution.status, intl]);
+
+    const isError = execution.status === 'Failed';
+    const isSuccess = execution.status === 'Completed';
+    const isLoading = execution.status === 'Running';
 
     const statusBadge = useMemo(() => {
         switch (execution.status) {
             case 'Completed':
                 return (
                     <Badge color="success" icon={<CheckmarkCircle16Regular />} className={classes.statusBadge}>
-                        {!isCollapsed && <FormattedMessage {...SreAgentResources.completed} />}
+                        <FormattedMessage {...SreAgentResources.completed} />
                     </Badge>
                 );
             case 'Failed':
                 return (
                     <Badge color="danger" size="large" icon={<DismissCircle16Filled />} className={classes.statusBadge}>
-                        {!isCollapsed && <FormattedMessage {...SreAgentResources.failed} />}
+                        <FormattedMessage {...SreAgentResources.failed} />
                     </Badge>
                 );
             case 'Running':
                 return (
                     <Badge appearance="outline" color="informative" icon={<Spinner size="extra-tiny" />} className={classes.statusBadge}>
-                        {!isCollapsed && <FormattedMessage {...SreAgentResources.running} />}
+                        <FormattedMessage {...SreAgentResources.running} />
                     </Badge>
                 );
             case 'Cancelled':
                 return (
-                    <Badge color="informative" icon={<Dismiss16Regular />} className={classes.statusBadge}>
-                        {!isCollapsed && <FormattedMessage {...SreAgentResources.canceled} />}
+                    <Badge color="informative" className={classes.statusBadge}>
+                        <FormattedMessage {...SreAgentResources.canceled} />
                     </Badge>
                 );
             default:
                 return null;
         }
-    }, [execution.status, classes.statusBadge, isCollapsed]);
+    }, [execution.status, classes.statusBadge]);
+
+    const handleToggleExpand = () => setIsExpanded(prev => !prev);
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleToggleExpand();
+        }
+    };
 
     const renderParameters = () => {
         if (!execution.parameters) return null;
@@ -412,43 +490,66 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
         return null;
     };
 
-    const toggleCollapse = () => setIsCollapsed(prev => !prev);
+    // Truncate tool name for summary
+    const truncatedToolName =
+        (execution.displayName || execution.toolName).length > 50
+            ? (execution.displayName || execution.toolName).slice(0, 47) + '...'
+            : execution.displayName || execution.toolName;
 
     return (
-        <Card className={classes.card}>
-            <div className={classes.headerRow}>
-                <div className={classes.headerLeft}>
-                    <div className={getIconClass()}>{getIcon()}</div>
-                    <Badge className={classes.mcpBadge} size="medium">
-                        {intl.formatMessage(SreAgentResources.mcpLabel)}
-                    </Badge>
-                    <Text weight="semibold">{execution.displayName || execution.toolName}</Text>
-                    <Caption1 className={classes.toolNameBadge} style={{ padding: '2px 6px', borderRadius: '4px' }}>
-                        {execution.mcpServerName}
-                    </Caption1>
-                </div>
-                <div className={classes.headerLeft}>
-                    {statusBadge}
-                    <button
-                        onClick={toggleCollapse}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                        }}
-                        aria-label={isCollapsed ? 'Expand' : 'Collapse'}
-                    >
-                        {isCollapsed ? <ChevronUpDown16Regular /> : <ChevronDownUp16Regular />}
-                    </button>
-                </div>
+        <div className={classes.root}>
+            {/* Summary Line */}
+            <div
+                className={classes.summaryLine}
+                onClick={handleToggleExpand}
+                onKeyDown={handleKeyDown}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+            >
+                {isLoading ? (
+                    <Spinner size="extra-tiny" className={classes.spinner} />
+                ) : isExpanded ? (
+                    <ChevronDown16Regular className={classes.chevron} />
+                ) : (
+                    <ChevronRight16Regular className={classes.chevron} />
+                )}
+
+                <span className={classes.summaryIcon}>{getIcon()}</span>
+
+                <span className={classes.summaryToolName}>{truncatedToolName}</span>
+
+                <span className={classes.separator}>·</span>
+                <span className={classes.summaryServerName}>{execution.mcpServerName}</span>
+
+                <span className={classes.separator}>·</span>
+                <span
+                    className={mergeClasses(
+                        classes.summaryResultInfo,
+                        isSuccess && classes.summaryResultInfoSuccess,
+                        isError && classes.summaryResultInfoError
+                    )}
+                >
+                    {getResultInfo}
+                </span>
             </div>
 
-            {!isCollapsed && (
-                <>
-                    <Divider style={{ margin: `${tokens.spacingVerticalS} 0` }} />
+            {/* Expanded Content */}
+            {isExpanded && (
+                <div className={classes.expandedContainer}>
+                    {/* Header - minimal */}
+                    <div className={classes.contentHeader}>
+                        <div className={classes.contentHeaderLeft}>
+                            {getIcon()}
+                            <Text weight="semibold" size={200}>
+                                {execution.displayName || execution.toolName}
+                            </Text>
+                            <Caption1 className={classes.toolNameBadge}>{execution.mcpServerName}</Caption1>
+                        </div>
+                        {statusBadge}
+                    </div>
+
+                    {/* Parameters */}
                     {renderParameters()}
 
                     {/* Show result if completed */}
@@ -466,74 +567,82 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
                             if (shouldShowTable) {
                                 // Render as formatted table
                                 return (
-                                    <Accordion collapsible defaultOpenItems={['result']}>
-                                        <AccordionItem value="result">
-                                            <AccordionHeader>
-                                                <Text weight="semibold">{intl.formatMessage(SreAgentResources.mcpResult)}</Text>
-                                                <span
-                                                    style={{ marginLeft: '8px', color: tokens.colorNeutralForeground3, fontSize: '12px' }}
-                                                >
-                                                    ({kustoResult.rowCount} row{kustoResult.rowCount !== 1 ? 's' : ''})
-                                                </span>
-                                            </AccordionHeader>
-                                            <AccordionPanel>
-                                                <div className={classes.resultSummary}>
-                                                    <span>Status: {kustoResult.status}</span>
-                                                    {kustoResult.duration !== undefined && <span>Duration: {kustoResult.duration}s</span>}
-                                                </div>
-                                                <div style={{ overflowX: 'auto', maxHeight: '300px' }}>
-                                                    <table className={classes.resultTable}>
-                                                        <thead>
-                                                            <tr>
-                                                                {kustoResult.columns.map((col, i) => (
-                                                                    <th key={i} className={classes.resultTableHeader}>
-                                                                        {col.name}
-                                                                        <span
-                                                                            style={{
-                                                                                fontWeight: 'normal',
-                                                                                color: tokens.colorNeutralForeground4,
-                                                                                fontSize: '10px',
-                                                                                marginLeft: '4px',
-                                                                            }}
-                                                                        >
-                                                                            ({col.type})
-                                                                        </span>
-                                                                    </th>
-                                                                ))}
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {kustoResult.rows.map((row, rowIdx) => (
-                                                                <tr key={rowIdx} className={classes.resultTableRow}>
-                                                                    {row.map((cell, cellIdx) => (
-                                                                        <td key={cellIdx} className={classes.resultTableCell}>
-                                                                            {cell === null ? (
-                                                                                <span
-                                                                                    style={{
-                                                                                        color: tokens.colorNeutralForeground4,
-                                                                                        fontStyle: 'italic',
-                                                                                    }}
-                                                                                >
-                                                                                    {intl.formatMessage(SreAgentResources.mcpNullValue)}
-                                                                                </span>
-                                                                            ) : typeof cell === 'object' ? (
-                                                                                JSON.stringify(cell)
-                                                                            ) : (
-                                                                                String(cell)
-                                                                            )}
-                                                                        </td>
+                                    <div className={classes.resultSection}>
+                                        <Accordion collapsible defaultOpenItems={['result']}>
+                                            <AccordionItem value="result">
+                                                <AccordionHeader>
+                                                    <Text weight="semibold">{intl.formatMessage(SreAgentResources.mcpResult)}</Text>
+                                                    <span
+                                                        style={{
+                                                            marginLeft: '8px',
+                                                            color: tokens.colorNeutralForeground3,
+                                                            fontSize: '12px',
+                                                        }}
+                                                    >
+                                                        ({kustoResult.rowCount} row{kustoResult.rowCount !== 1 ? 's' : ''})
+                                                    </span>
+                                                </AccordionHeader>
+                                                <AccordionPanel>
+                                                    <div className={classes.resultSummary}>
+                                                        <span>Status: {kustoResult.status}</span>
+                                                        {kustoResult.duration !== undefined && (
+                                                            <span>Duration: {kustoResult.duration}s</span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ overflowX: 'auto', maxHeight: '300px' }}>
+                                                        <table className={classes.resultTable}>
+                                                            <thead>
+                                                                <tr>
+                                                                    {kustoResult.columns.map((col, i) => (
+                                                                        <th key={i} className={classes.resultTableHeader}>
+                                                                            {col.name}
+                                                                            <span
+                                                                                style={{
+                                                                                    fontWeight: 'normal',
+                                                                                    color: tokens.colorNeutralForeground4,
+                                                                                    fontSize: '10px',
+                                                                                    marginLeft: '4px',
+                                                                                }}
+                                                                            >
+                                                                                ({col.type})
+                                                                            </span>
+                                                                        </th>
                                                                     ))}
                                                                 </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
-                                                    <CopyButton textToCopy={execution.result} />
-                                                </div>
-                                            </AccordionPanel>
-                                        </AccordionItem>
-                                    </Accordion>
+                                                            </thead>
+                                                            <tbody>
+                                                                {kustoResult.rows.map((row, rowIdx) => (
+                                                                    <tr key={rowIdx} className={classes.resultTableRow}>
+                                                                        {row.map((cell, cellIdx) => (
+                                                                            <td key={cellIdx} className={classes.resultTableCell}>
+                                                                                {cell === null ? (
+                                                                                    <span
+                                                                                        style={{
+                                                                                            color: tokens.colorNeutralForeground4,
+                                                                                            fontStyle: 'italic',
+                                                                                        }}
+                                                                                    >
+                                                                                        {intl.formatMessage(SreAgentResources.mcpNullValue)}
+                                                                                    </span>
+                                                                                ) : typeof cell === 'object' ? (
+                                                                                    JSON.stringify(cell)
+                                                                                ) : (
+                                                                                    String(cell)
+                                                                                )}
+                                                                            </td>
+                                                                        ))}
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
+                                                        <CopyButton textToCopy={execution.result} />
+                                                    </div>
+                                                </AccordionPanel>
+                                            </AccordionItem>
+                                        </Accordion>
+                                    </div>
                                 );
                             }
 
@@ -548,51 +657,61 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
                                 }
 
                                 return (
-                                    <Accordion collapsible defaultOpenItems={[]}>
-                                        <AccordionItem value="result">
-                                            <AccordionHeader>
-                                                <Text weight="semibold">{intl.formatMessage(SreAgentResources.mcpResult)}</Text>
-                                                <span
-                                                    style={{ marginLeft: '8px', color: tokens.colorNeutralForeground3, fontSize: '12px' }}
-                                                >
-                                                    ({kustoResult.rowCount} row{kustoResult.rowCount !== 1 ? 's' : ''} ×{' '}
-                                                    {kustoResult.columns.length} columns)
-                                                </span>
-                                            </AccordionHeader>
-                                            <AccordionPanel>
-                                                <div className={classes.resultSummary}>
-                                                    <span>Status: {kustoResult.status}</span>
-                                                    {kustoResult.duration !== undefined && <span>Duration: {kustoResult.duration}s</span>}
-                                                </div>
-                                                <div className={classes.codeBlock}>
-                                                    <div className={classes.copyButtonContainer}>
-                                                        <CopyButton textToCopy={execution.result} />
+                                    <div className={classes.resultSection}>
+                                        <Accordion collapsible defaultOpenItems={[]}>
+                                            <AccordionItem value="result">
+                                                <AccordionHeader>
+                                                    <Text weight="semibold">{intl.formatMessage(SreAgentResources.mcpResult)}</Text>
+                                                    <span
+                                                        style={{
+                                                            marginLeft: '8px',
+                                                            color: tokens.colorNeutralForeground3,
+                                                            fontSize: '12px',
+                                                        }}
+                                                    >
+                                                        ({kustoResult.rowCount} row{kustoResult.rowCount !== 1 ? 's' : ''} ×{' '}
+                                                        {kustoResult.columns.length} columns)
+                                                    </span>
+                                                </AccordionHeader>
+                                                <AccordionPanel>
+                                                    <div className={classes.resultSummary}>
+                                                        <span>Status: {kustoResult.status}</span>
+                                                        {kustoResult.duration !== undefined && (
+                                                            <span>Duration: {kustoResult.duration}s</span>
+                                                        )}
                                                     </div>
-                                                    <pre className={mergeClasses(classes.outputPre)}>{formattedResult}</pre>
-                                                </div>
-                                            </AccordionPanel>
-                                        </AccordionItem>
-                                    </Accordion>
+                                                    <div className={classes.codeBlock}>
+                                                        <div className={classes.copyButtonContainer}>
+                                                            <CopyButton textToCopy={execution.result} />
+                                                        </div>
+                                                        <pre className={mergeClasses(classes.outputPre)}>{formattedResult}</pre>
+                                                    </div>
+                                                </AccordionPanel>
+                                            </AccordionItem>
+                                        </Accordion>
+                                    </div>
                                 );
                             }
 
                             // Fallback to raw display
                             return (
-                                <Accordion collapsible defaultOpenItems={[]}>
-                                    <AccordionItem value="result">
-                                        <AccordionHeader>
-                                            <Text weight="semibold">{intl.formatMessage(SreAgentResources.mcpResult)}</Text>
-                                        </AccordionHeader>
-                                        <AccordionPanel>
-                                            <div className={classes.codeBlock}>
-                                                <div className={classes.copyButtonContainer}>
-                                                    <CopyButton textToCopy={execution.result} />
+                                <div className={classes.resultSection}>
+                                    <Accordion collapsible defaultOpenItems={[]}>
+                                        <AccordionItem value="result">
+                                            <AccordionHeader>
+                                                <Text weight="semibold">{intl.formatMessage(SreAgentResources.mcpResult)}</Text>
+                                            </AccordionHeader>
+                                            <AccordionPanel>
+                                                <div className={classes.codeBlock}>
+                                                    <div className={classes.copyButtonContainer}>
+                                                        <CopyButton textToCopy={execution.result} />
+                                                    </div>
+                                                    <pre className={mergeClasses(classes.outputPre)}>{execution.result}</pre>
                                                 </div>
-                                                <pre className={mergeClasses(classes.outputPre)}>{execution.result}</pre>
-                                            </div>
-                                        </AccordionPanel>
-                                    </AccordionItem>
-                                </Accordion>
+                                            </AccordionPanel>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </div>
                             );
                         })()}
 
@@ -607,9 +726,9 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
                             </div>
                         </div>
                     )}
-                </>
+                </div>
             )}
-        </Card>
+        </div>
     );
 };
 
