@@ -1,0 +1,23 @@
+// In-product feedback reported within the last 7 days
+cluster('https://azportalpartnerrow.westus.kusto.windows.net').database("AzurePortal").ExtTelemetry
+| where TIMESTAMP > ago(7d)
+| where extension == "Microsoft_Azure_PaasServerless"
+| where action == "send-general-feedback"
+| extend parsedData = todynamic(data)
+| project
+    TIMESTAMP,
+    Feedback = tostring(parsedData.feedbackText),
+    resourceId = tostring(parsedData.resourceId),
+    subscriptionId = tostring(split(tostring(parsedData.resourceId), '/', 2)[0]),
+    extension = tostring(parsedData.extension),
+    sessionId
+| join kind = leftouter (
+    cluster('https://sreagent-sec.swedencentral.kusto.windows.net').database("sreagent").ExtendedAgentDocumentDBState
+    | project
+        subscriptionId = tostring(SubscriptionId),
+        CustomerName,
+        CustomerCategory)
+    on subscriptionId
+| distinct TIMESTAMP, Feedback, subscriptionId, CustomerName, CustomerCategory, resourceId
+| order by TIMESTAMP desc
+
