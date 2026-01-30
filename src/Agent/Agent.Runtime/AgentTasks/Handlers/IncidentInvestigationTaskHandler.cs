@@ -1388,7 +1388,8 @@ public sealed class IncidentInvestigationTaskHandler(
                     ChatClient = chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = loggerFactory,
                     SkillRegistry = new EmptySkillRegistry(),
-                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+                    ChatClientProvider = chatClientProvider
                 };
 
                 // Inject tool call history into the chat input

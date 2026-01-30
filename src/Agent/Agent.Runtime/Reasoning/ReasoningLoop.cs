@@ -927,7 +927,8 @@ public class ReasoningLoop : IDisposable
             ThreadId = _context.ThreadId,
             SkillRegistry = _skillRegistry,
             EnablePartialToolOutput = _featureConfig.PartialOutputEnabled,
-            AmbientContextProvider = _ambientContextProvider
+            AmbientContextProvider = _ambientContextProvider,
+            ChatClientProvider = _chatClientProvider
         };
 
         List<UserActionRequiredResult> userActionRequiredResults = [];
@@ -3552,7 +3553,8 @@ public class ReasoningLoop : IDisposable
                 ThreadId = _context.ThreadId,
                 SkillRegistry = _skillRegistry,
                 EnablePartialToolOutput = _featureConfig.PartialOutputEnabled,
-                AmbientContextProvider = _ambientContextProvider
+                AmbientContextProvider = _ambientContextProvider,
+                ChatClientProvider = _chatClientProvider
             };
 
             try

@@ -676,9 +676,30 @@ public static class Runner
         ChatResponse? response = null;
         object? structuredOutput = null;
 
-        var reasoningStreamHandler = displayModelOutput is not null
-            ? new ReasoningStreamContentHandler(displayModelOutput)
-            : default;
+        // Detect Anthropic model to use specialized reasoning handler with title generation
+        var isAnthropicModel = ChatOptionsExtensions.IsAnthropicModel(
+            chatClientMetaData?.DefaultModelId,
+            chatClientMetaData?.ProviderName);
+
+        IStreamContentHandler? reasoningStreamHandler;
+        if (displayModelOutput is not null)
+        {
+            if (isAnthropicModel && config.ChatClientProvider is not null)
+            {
+                reasoningStreamHandler = new AnthropicReasoningStreamContentHandler(
+                    displayModelOutput,
+                    config.ChatClientProvider.ReasoningFastModel,
+                    logger);
+            }
+            else
+            {
+                reasoningStreamHandler = new ReasoningStreamContentHandler(displayModelOutput);
+            }
+        }
+        else
+        {
+            reasoningStreamHandler = default;
+        }
 
         var textStreamHandler = displayModelOutput is not null
             ? new TextStreamContentHandler(displayModelOutput)

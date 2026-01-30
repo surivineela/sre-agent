@@ -30,4 +30,10 @@ public class RunConfig
     /// Check the Enabled property to determine if context injection is active.
     /// </summary>
     public required IAmbientContextProvider AmbientContextProvider { get; set; }
+
+    /// <summary>
+    /// Optional chat client provider for accessing specialized models like ReasoningFast.
+    /// Used for reasoning title generation for Anthropic models.
+    /// </summary>
+    public IChatClientProvider? ChatClientProvider { get; set; }
 }

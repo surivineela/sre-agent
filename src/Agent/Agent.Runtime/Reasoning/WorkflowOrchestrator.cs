@@ -236,7 +236,8 @@ public class WorkflowOrchestrator : IDisposable
                     ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
                     SkillRegistry = _skillRegistry,
-                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+                    ChatClientProvider = _chatClientProvider
                 },
                 context: _context,
                 hooks: runHooks,
@@ -582,7 +583,8 @@ public class WorkflowOrchestrator : IDisposable
                     ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
                     SkillRegistry = _skillRegistry,
-                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+                    ChatClientProvider = _chatClientProvider
                 },
                 context: _context,
                 hooks: runHooks,
@@ -651,7 +653,8 @@ public class WorkflowOrchestrator : IDisposable
                     ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
                     SkillRegistry = _skillRegistry,
-                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+                    ChatClientProvider = _chatClientProvider
                 },
                 context: _context,
                 hooks: runHooks,

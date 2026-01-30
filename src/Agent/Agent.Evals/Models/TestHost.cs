@@ -20,12 +20,14 @@ public sealed record TestHost(
 {
     public static TestHost Create(IHost host)
     {
+        var chatClientProvider = host.Services.GetRequiredService<IChatClientProvider>();
         var runConfig = new RunConfig
         {
-            ChatClient = host.Services.GetRequiredService<IChatClientProvider>().EvalModel,
+            ChatClient = chatClientProvider.EvalModel,
             LoggerFactory = host.Services.GetRequiredService<ILoggerFactory>(),
             SkillRegistry = host.Services.GetRequiredService<ISkillRegistry>(),
             AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+            ChatClientProvider = chatClientProvider
         };
 
         return new(
