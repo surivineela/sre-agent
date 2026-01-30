@@ -66,14 +66,21 @@ const Basics = () => {
     }, [appInsightsResourceId]);
 
     const fetchAppInsightsId = useCallback(async () => {
-        // First check for the hidden tag
+        // First check for applicationInsightsResourceId from configuration
+        const configResourceId = agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.applicationInsightsResourceId;
+        if (configResourceId) {
+            setAppInsightsResourceId(configResourceId);
+            return;
+        }
+
+        // Fall back to hidden tag
         const tagResourceId = agent?.tags?.['hidden-link: /app-insights-resource-id'];
         if (tagResourceId) {
             setAppInsightsResourceId(tagResourceId);
             return;
         }
 
-        // If not found in tags, get appId from logConfiguration and query for resource ID
+        // If not found in config or tags, get appId from logConfiguration and query for resource ID
         const appId = agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.appId;
         if (!appId) {
             setAppInsightsResourceId(undefined);
@@ -86,7 +93,7 @@ const Basics = () => {
             setAppInsightsResourceId(response);
         }
         setAppInsightsLoading(false);
-    }, [agent?.tags, agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.appId, subscriptionGuid, resourceGroup]);
+    }, [agent?.tags, agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.applicationInsightsResourceId, agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.appId, subscriptionGuid, resourceGroup]);
 
     useEffect(() => {
         if (agent) {

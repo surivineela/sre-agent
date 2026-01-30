@@ -82,9 +82,6 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
             type: ArmServiceType.Agents,
             location: `[parameters('${location}')]`,
             dependsOn: this.dependsOn,
-            tags: {
-                'hidden-link: /app-insights-resource-id': `[parameters('${AppInsightsParameterName.AppInsightsResourceId}')]`,
-            },
             properties: {
                 ...(this._options.agentSpaceId ? { agentSpaceId: this._options.agentSpaceId } : {}),
                 knowledgeGraphConfiguration: {
@@ -101,6 +98,7 @@ export class SreAgentTemplateResource extends ArmTemplateResource<object> {
                     applicationInsightsConfiguration: {
                         appId: `[reference(parameters('${AppInsightsParameterName.AppInsightsResourceId}'), '${ApiVersions.appInsightsApiVersion20200202}').AppId]`,
                         connectionString: `[reference(parameters('${AppInsightsParameterName.AppInsightsResourceId}'), '${ApiVersions.appInsightsApiVersion20200202}').ConnectionString]`,
+                        applicationInsightsResourceId: `[parameters('${AppInsightsParameterName.AppInsightsResourceId}')]`,
                     },
                 },
                 ...(this._options.defaultModelProvider

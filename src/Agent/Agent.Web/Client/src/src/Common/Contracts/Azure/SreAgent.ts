@@ -117,6 +117,7 @@ export interface OutboundConnectionConfiguration {
 export interface ApplicationInsightsConfiguration {
     appId: string;
     connectionString: string;
+    applicationInsightsResourceId?: string;
 }
 
 export interface LogConfiguration {

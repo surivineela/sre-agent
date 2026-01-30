@@ -14,6 +14,7 @@ import {
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
+import { AppInsightsClient } from '../../../Common/Clients/AppInsightsClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import SubscriptionClient from '../../../Common/Clients/SubscriptionClient';
 import DropdownNoFormik from '../../../Common/Components/Dropdown/DropdownNoFormik';
@@ -159,9 +160,35 @@ export const ApplicationInsightsDialog = ({
         onClose();
         setSaving(true);
 
+        // Fetch the App Insights component details to get appId and connectionString
+        const appInsightsResponse = await AppInsightsClient.getAppInsightsComponentById(selectedAppInsightsId);
+
+        if (!appInsightsResponse.isSuccessful || !appInsightsResponse.data) {
+            setSaving(false);
+            stopNotification(notificationId, false, intl.formatMessage(SreAgentResources.failedToUpdateApplicationInsights));
+            log({
+                action: 'saveApplicationInsights',
+                actionModifier: 'failed',
+                resourceId: agentResourceId,
+                logLevel: 'error',
+                data: {
+                    error: appInsightsResponse.error || 'Failed to fetch App Insights component details',
+                },
+            });
+            return;
+        }
+
+        const { appId, connectionString } = appInsightsResponse.data;
+
         const response = await SreAgentClient.patchAgent(agentResourceId, {
-            tags: {
-                'hidden-link: /app-insights-resource-id': selectedAppInsightsId,
+            properties: {
+                logConfiguration: {
+                    applicationInsightsConfiguration: {
+                        appId,
+                        connectionString,
+                        applicationInsightsResourceId: selectedAppInsightsId,
+                    },
+                },
             },
         });
 
