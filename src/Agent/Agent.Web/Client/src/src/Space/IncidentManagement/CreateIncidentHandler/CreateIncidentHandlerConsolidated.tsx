@@ -1,3 +1,4 @@
+import { tokens } from '@fluentui/react-components';
 import { Formik, FormikErrors, useFormikContext } from 'formik';
 import { FC, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -32,7 +33,7 @@ const CreateIncidentHandlerConsolidated: FC<CreateIncidentHandlerProps> = props 
         impactedService: handlerCreateOrEditInfo?.filter?.impactedService || undefined,
         priorities: handlerCreateOrEditInfo?.filter?.priorities || undefined,
         titleContains: handlerCreateOrEditInfo?.filter?.titleContains || undefined,
-        agentMode: handlerCreateOrEditInfo?.filter?.agentMode || AgentMode.autonomous,
+        agentMode: handlerCreateOrEditInfo?.filter?.agentMode || AgentMode.review,
         owningTeamId: handlerCreateOrEditInfo?.filter?.owningTeamId || undefined,
         createdBy: handlerCreateOrEditInfo?.filter?.createdBy || undefined,
         monitorId: handlerCreateOrEditInfo?.filter?.monitorId || undefined,
@@ -163,12 +164,12 @@ const CreateIncidentHandlerConsolidatedInner: FC<CreateIncidentHandlerInnerProps
 
     return filterMode === 'create' ? (
         <BreadcrumbNavigation
-            title={intl.formatMessage(IncidentHandlerCreateResources.newIncidentHandler)}
+            title={intl.formatMessage(IncidentHandlerCreateResources.addIncidentResponsePlan)}
             parentTitle={intl.formatMessage(IncidentManagementResources.handlerConfiguration)}
             onParentClick={exitToHome}
             isDirty={dirty}
         >
-            {innerComponent}
+            <div style={{ borderTop: `1px solid ${tokens.colorNeutralStroke1}`, height: '100%' }}>{innerComponent}</div>
         </BreadcrumbNavigation>
     ) : (
         <TitleBarNavigation

@@ -462,7 +462,7 @@ export const IncidentTriggerStep: FC = () => {
                     onClick={() =>
                         setCurrentStep(
                             values.isIncidentTriggerWithLearnings
-                                ? IncidentHandlerCreateSteps.IncidentsAndGuidanceStep
+                                ? IncidentHandlerCreateSteps.DefineAgentLearningStep
                                 : IncidentHandlerCreateSteps.PreviewIncidentsStep
                         )
                     }

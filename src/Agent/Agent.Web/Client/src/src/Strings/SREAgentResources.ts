@@ -1672,6 +1672,7 @@ export const ActionsStatusResources = defineMessages({
 
 export const IncidentHandlerCreateResources = defineMessages({
     generateCustomHandler: { defaultMessage: 'Generate custom response plan', id: 'm0kcbz' },
+    chooseAgentAutonomyLevel: { defaultMessage: 'Choose agent autonomy level for this handler', id: 'I6v/YT' },
     reviewAndEdit: { defaultMessage: 'Review + edit', id: 'nFOo9o' },
     priority: { defaultMessage: 'Priority', id: '8lCjAM' },
     dateCreated: { defaultMessage: 'Date created', id: 'Yjk5Ow' },
@@ -1686,33 +1687,35 @@ export const IncidentHandlerCreateResources = defineMessages({
     last30days: { defaultMessage: 'Last 30 days', id: 'Rfvi9/' },
     last60days: { defaultMessage: 'Last 60 days', id: 'KLYuRX' },
     last90days: { defaultMessage: 'Last 90 days', id: 'mgYBYo' },
-    chooseIncidentsTitle: { defaultMessage: 'Choose incidents', id: 'aj2txf' },
+    chooseIncidentsTitle: { defaultMessage: 'Choose past incidents', id: 'zGt4c2' },
     chooseIncidentDescription: {
-        defaultMessage: 'These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents.',
-        id: 'yDh8i7',
+        defaultMessage:
+            'These past incidents match your filter criteria. Choose up to 5 for the agent to learn from in order to effectively manage and respond to similar incidents. If an incident is missing, go back to the previous step and modify the filter parameters.',
+        id: 'tEKXZf',
     },
     availableToolsTitle: { defaultMessage: 'Available tools', id: 'iukUKz' },
     availableToolsDescription: {
         defaultMessage: `The agent uses these available tools to generate incident response plan instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use.`,
         id: 'c25ipa',
     },
-    addCustomInstructionTitle: { defaultMessage: 'Instruction generation guidance', id: 'eEu4cm' },
-    addCustomInstructionDescription: {
-        defaultMessage: 'Guidance might include resolution steps, specific instructions, or other relevant context.',
-        id: 'yiAEBc',
+    addInstructionsTitle: { defaultMessage: 'Add instructions', id: 'HjTHxo' },
+    addInstructionsDescription: {
+        defaultMessage: 'Include details such as additional incident context, mitigation, logic, and resolution steps.',
+        id: 'gf1/SS',
     },
     customInstructionPlaceholder: { defaultMessage: 'Enter instructions', id: 'AbpmRv' },
-    customInstructionsAriaLabel: { defaultMessage: 'Custom response guidance', id: 'et+X02' },
-    reviewCustomInstructionsTitle: { defaultMessage: 'Custom response guidance', id: 'et+X02' },
+    customInstructionsAriaLabel: { defaultMessage: 'Review custom incident response plan', id: '5+vedn' },
+    reviewCustomInstructionsTitle: { defaultMessage: 'Review custom incident response plan', id: '5+vedn' },
     reviewCustomInstructionsDescription: {
-        defaultMessage: 'This is the prompt the agent will use. It includes your custom response guidance. Review and edit if needed.',
-        id: 'eackGq',
+        defaultMessage:
+            'This response plan was generated from the selected incidents and instructions. It includes suggested tools for the agent to use when handling incidents, which can be changed in the next step. Review and edit the response plan as needed.',
+        id: 'f9Cni3',
     },
-    reviewToolsTitle: { defaultMessage: 'Tools selected for incident response', id: 'unxs9C' },
+    reviewToolsTitle: { defaultMessage: 'Suggested tools', id: 'C84F9h' },
     reviewToolsDescription: {
         defaultMessage:
-            'The tool list is generated from the custom response guidance. If you modify the guidance, select Regenerate to update the tool list. Once regenerated, the previous list cannot be restored. To add or remove tools, select Manage tools.',
-        id: '0mx8D9',
+            'This list has suggested tools for the generated response plan. To add or remove any, select "Manage tools," then regenerate the list. Also regenerate the list if edits to the instructions change the agent\'s workflow or the services it needs to access. Once the list is regenerated, the previous version cannot be restored. ',
+        id: 'Sv4VXi',
     },
     maximumToolsErrorMessage: { defaultMessage: 'A response plan can use a maximum of {maxTools} tools.', id: 'JkbJ/T' },
     regenerateTools: { defaultMessage: 'Regenerate tools list', id: 'd6hQf3' },
@@ -1722,12 +1725,12 @@ export const IncidentHandlerCreateResources = defineMessages({
         id: '0VuGey',
     },
     manageTools: { defaultMessage: 'Manage tools', id: 'ybIDiK' },
-    testHandlerTitle: { defaultMessage: 'Test incident response', id: 'rwwXv0' },
-    incidentLabel: { defaultMessage: 'Incident', id: 'zaYxwd' },
+    testHandlerTitle: { defaultMessage: 'Test the response plan', id: 'wPem91' },
+    incidentLabel: { defaultMessage: 'Incident title', id: '2Oxmp9' },
     incidentPlaceholder: { defaultMessage: 'Select or search for an incident', id: 'XRdOZL' },
     testHandlerEmptyMessage: {
-        defaultMessage: 'Select an incident and run the test to see the results here.',
-        id: 'MhTfXm',
+        defaultMessage: 'Select an incident to test the response plan.',
+        id: '0mfk/a',
     },
     testHandlerRunButton: { defaultMessage: 'Run test', id: 'mZ0R9v' },
     testHandlerRunFailure: {
@@ -1744,6 +1747,7 @@ export const IncidentHandlerCreateResources = defineMessages({
     previous: { defaultMessage: 'Previous', id: 'JJNc3c' },
     back: { defaultMessage: 'Back', id: 'cyR7Kh' },
     generate: { defaultMessage: 'Generate', id: 'Pc+tM3' },
+    generateAndReview: { defaultMessage: 'Generate + review', id: '9IaMr4' },
     retry: { defaultMessage: 'Retry', id: '62nsdy' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
     customHandlerAddNotificationTitle: { defaultMessage: 'Add custom incident response plan', id: 'wezZny' },
@@ -1774,7 +1778,7 @@ export const IncidentHandlerCreateResources = defineMessages({
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     newCustomHandler: { defaultMessage: 'New custom response plan', id: 'iqdd9H' },
     editCustomHandler: { defaultMessage: 'Edit custom response plan', id: 'LyuutK' },
-    newIncidentHandler: { defaultMessage: 'New incident response plan', id: 'uEYYty' },
+    addIncidentResponsePlan: { defaultMessage: 'Add an incident response plan', id: 'jma5nl' },
     editIncidentHandler: { defaultMessage: 'Edit incident response plan', id: 'Kkc3/u' },
     regenerate: { defaultMessage: 'Regenerate', id: '6PgVSe' },
     regenerateTooltip: {
@@ -1791,33 +1795,35 @@ export const IncidentHandlerCreateResources = defineMessages({
     customInstructions: { defaultMessage: 'Custom instructions', id: 'D7U9Zo' },
     selectedIncidents: { defaultMessage: 'Selected incidents', id: 'DX7w9O' },
     selectedIncidentsEmptyText: { defaultMessage: 'No incidents selected', id: 'QQX4Pv' },
-    filterStep: { defaultMessage: 'Create incident response plan', id: 'Z9pRs5' },
-    previewIncidentsStep: { defaultMessage: 'Preview incidents', id: '69FfbB' },
+    setUpIncidentFiltersStep: { defaultMessage: 'Set up incident filters', id: '4Mb+50' },
+    previewFilterResultsStep: { defaultMessage: 'Preview filter results', id: 'S1MxVl' },
+    saveResponsePlanStep: { defaultMessage: 'Save response plan', id: '50v2pt' },
     previewIncidentsDescription: {
         defaultMessage:
             'These incidents match your filter criteria. If an incident is missing, go back to the previous step and modify the filter parameters.',
         id: '6LZ2qn',
     },
-    incidentsAndGuidanceStep: { defaultMessage: 'Add instructions', id: 'HjTHxo' },
-    reviewAndTestStep: { defaultMessage: 'Review + test', id: '3PxUNi' },
+    defineAgentLearningStep: { defaultMessage: 'Define agent learning', id: 'fauCGp' },
+    reviewAndTestStep: { defaultMessage: 'Review custom plan', id: '7KMTwc' },
     deployStep: { defaultMessage: 'Deploy incident response plan', id: 'p21QSW' },
-    filterParametersTitle: { defaultMessage: 'Choose filter parameters', id: 'JwHSD6' },
+    filterParametersTitle: { defaultMessage: 'Set up incident filters', id: '4Mb+50' },
     filterParametersDescription: {
         defaultMessage:
-            'Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step.',
-        id: 'LZyV4T',
+            'The agent handles only active incidents that match the filter criteria. The same filters will generate a list of past incidents that you’ll choose from to help the agent learn and improve its incident response.',
+        id: 'w/OihQ',
     },
     enableDeepInvestigationTitle: {
-        defaultMessage: 'Choose whether to run deep investigations alongside regular investigations',
-        id: 'DJN+DZ',
+        defaultMessage: 'Turn on deep investigation',
+        id: 'm6RiRf',
     },
     enableDeepInvestigationDescription: { defaultMessage: 'Run deep investigation autonomously', id: 's7HLdg' },
-    addCustomResponseGuidanceTitle: { defaultMessage: 'Add custom response guidance (optional)', id: 'koWZK8' },
+    addCustomResponseGuidanceTitle: { defaultMessage: 'Customize the incident response plan (optional)', id: 'rwrVpm' },
     addCustomResponseGuidanceDescription: {
-        defaultMessage: 'This guidance helps generate the tools list and the final prompt the agent uses during incident handling.',
-        id: 'vao/Lv',
+        defaultMessage:
+            'With a custom incident response plan, the agent will learn how to handle this type of incident using similar past incidents and your instructions.',
+        id: 'eGnLix',
     },
-    addCustomResponseGuidanceLabel: { defaultMessage: 'Add guidance', id: 'eZMksq' },
+    addCustomResponseGuidanceLabel: { defaultMessage: 'I want a custom response plan.', id: 'guQ/IW' },
     includedIncidentsLabel: { defaultMessage: 'Choose how to set up this incident response plan', id: 'gKi3tP' },
     includedIncidentsFutureOnly: { defaultMessage: 'Apply only to incidents triggered after the response plan is created', id: 'd1Cewp' },
     includedIncidentsPastAndFuture: { defaultMessage: 'Apply to all current and future active incidents', id: '0w0iFy' },
@@ -1944,6 +1950,7 @@ export const IncidentManagementResources = defineMessages({
     autonomyLevel: { defaultMessage: 'Autonomy level', id: 'Sdc+Dp' },
     agentAutonomyLevel: { defaultMessage: 'Agent autonomy level', id: 'AC5nsM' },
     autonomousDefault: { defaultMessage: 'Autonomous (Default)', id: 'Ypp6em' },
+    reviewDefault: { defaultMessage: 'Review (Default)', id: 'Ve40iX' },
     reviewWord: { defaultMessage: 'Review', id: 'R+J5ox' },
     autonomousWord: { defaultMessage: 'Autonomous', id: 'Sr5R7d' },
     autonomyLevelReviewDescription: {

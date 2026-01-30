@@ -6,11 +6,12 @@ import { ExtendedAgentsGraphResources, IncidentHandlerCreateResources } from '..
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
 import { CreateSubagentStep } from '../Steps/CreateSubagentStep';
+import { DefineAgentLearningStep } from '../Steps/DefineAgentLearningStep';
 import { FilterStep } from '../Steps/FilterStep';
-import { IncidentsAndGuidanceStep } from '../Steps/IncidentsAndGuidanceStep';
 import { IncidentTriggerStep } from '../Steps/IncidentTriggerStep';
 import { PreviewIncidentsStep } from '../Steps/PreviewIncidentsStep';
 import { ReviewAndTestStep } from '../Steps/ReviewAndTestStep';
+import { SaveStep } from '../Steps/SaveStep';
 import { StepWizard } from '../StepWizard/StepWizard';
 
 export const FullEditIncidentHandlerConsolidated: FC = () => {
@@ -39,8 +40,8 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                     stepTitle: intl.formatMessage(ExtendedAgentsGraphResources.incidentTriggerStep),
                 },
                 {
-                    stepKey: IncidentHandlerCreateSteps.IncidentsAndGuidanceStep,
-                    stepTitle: intl.formatMessage(IncidentHandlerCreateResources.incidentsAndGuidanceStep),
+                    stepKey: IncidentHandlerCreateSteps.DefineAgentLearningStep,
+                    stepTitle: intl.formatMessage(IncidentHandlerCreateResources.defineAgentLearningStep),
                 },
                 {
                     stepKey: IncidentHandlerCreateSteps.CreateSubagentStep,
@@ -53,15 +54,19 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
             return [
                 {
                     stepKey: IncidentHandlerCreateSteps.FilterStep,
-                    stepTitle: intl.formatMessage(IncidentHandlerCreateResources.filterStep),
+                    stepTitle: intl.formatMessage(IncidentHandlerCreateResources.setUpIncidentFiltersStep),
                 },
                 {
-                    stepKey: IncidentHandlerCreateSteps.IncidentsAndGuidanceStep,
-                    stepTitle: intl.formatMessage(IncidentHandlerCreateResources.incidentsAndGuidanceStep),
+                    stepKey: IncidentHandlerCreateSteps.DefineAgentLearningStep,
+                    stepTitle: intl.formatMessage(IncidentHandlerCreateResources.defineAgentLearningStep),
                 },
                 {
                     stepKey: IncidentHandlerCreateSteps.ReviewAndTestStep,
                     stepTitle: intl.formatMessage(IncidentHandlerCreateResources.reviewAndTestStep),
+                },
+                {
+                    stepKey: IncidentHandlerCreateSteps.SaveStep,
+                    stepTitle: intl.formatMessage(IncidentHandlerCreateResources.saveResponsePlanStep),
                 },
             ];
         }
@@ -69,11 +74,15 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
         return [
             {
                 stepKey: IncidentHandlerCreateSteps.FilterStep,
-                stepTitle: intl.formatMessage(IncidentHandlerCreateResources.filterStep),
+                stepTitle: intl.formatMessage(IncidentHandlerCreateResources.setUpIncidentFiltersStep),
             },
             {
                 stepKey: IncidentHandlerCreateSteps.PreviewIncidentsStep,
-                stepTitle: intl.formatMessage(IncidentHandlerCreateResources.previewIncidentsStep),
+                stepTitle: intl.formatMessage(IncidentHandlerCreateResources.previewFilterResultsStep),
+            },
+            {
+                stepKey: IncidentHandlerCreateSteps.SaveStep,
+                stepTitle: intl.formatMessage(IncidentHandlerCreateResources.saveResponsePlanStep),
             },
         ];
     }, [intl, isSubagentTrigger, values.isIncidentTriggerWithLearnings, values.useCustomHandler]);
@@ -96,7 +105,7 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
             >
                 <StepWizard
                     currentStep={currentStep}
-                    skippedSteps={generateInstructionsStepSkipped ? [IncidentHandlerCreateSteps.IncidentsAndGuidanceStep] : []}
+                    skippedSteps={generateInstructionsStepSkipped ? [IncidentHandlerCreateSteps.DefineAgentLearningStep] : []}
                     steps={steps}
                 />
             </div>
@@ -113,14 +122,16 @@ export const FullEditIncidentHandlerConsolidated: FC = () => {
                     <FilterStep />
                 ) : currentStep === IncidentHandlerCreateSteps.IncidentTriggerStep ? (
                     <IncidentTriggerStep />
-                ) : currentStep === IncidentHandlerCreateSteps.IncidentsAndGuidanceStep ? (
-                    <IncidentsAndGuidanceStep />
+                ) : currentStep === IncidentHandlerCreateSteps.DefineAgentLearningStep ? (
+                    <DefineAgentLearningStep />
                 ) : currentStep === IncidentHandlerCreateSteps.CreateSubagentStep ? (
                     <CreateSubagentStep />
                 ) : currentStep === IncidentHandlerCreateSteps.PreviewIncidentsStep ? (
                     <PreviewIncidentsStep />
                 ) : currentStep === IncidentHandlerCreateSteps.ReviewAndTestStep ? (
                     <ReviewAndTestStep />
+                ) : currentStep === IncidentHandlerCreateSteps.SaveStep ? (
+                    <SaveStep />
                 ) : null}
             </div>
         </div>

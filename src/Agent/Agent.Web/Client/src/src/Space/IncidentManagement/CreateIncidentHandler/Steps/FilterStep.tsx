@@ -2,29 +2,21 @@ import {
     Button,
     Dropdown,
     Field,
-    InfoLabel,
     Input,
-    Link,
     MessageBar,
-    MessageBarBody,
-    MessageBarTitle,
     Option,
     OptionOnSelectData,
-    RadioGroup,
     Skeleton,
     SkeletonItem,
     Text,
-    tokens,
 } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useCallback, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { LearnMoreLinks } from '../../../../Common/Constants/Links';
 import { IncidentTriggerEvent } from '../../../../Common/Contracts/Azure/IncidentHandler';
-import { AgentMode, IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
-import { AgentTaskResources, IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
+import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAgent';
+import { IncidentHandlerCreateResources, IncidentManagementResources } from '../../../../Strings/SREAgentResources';
 import { CopilotCheckbox as Checkbox } from '../../../Components/Common/CopilotCheckbox';
-import { CopilotRadio as Radio } from '../../../Components/Common/CopilotRadio';
 import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IcmOwningTeamSearch } from '../../IcmOwningTeamSearch';
 import { getPlatformSpecificStrings } from '../../Utilities';
@@ -170,23 +162,12 @@ export const FilterStep: FC = () => {
 
     return (
         <>
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    padding: '20px 20px',
-                    gap: '32px',
-                    height: 'calc(100% - 114px)',
-                    overflowY: 'auto',
-                }}
-            >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {filterMode === 'edit' ? (
-                        <MessageBar intent="info">
+            <div className={styles.stepContent}>
+                <div className={styles.filterStepContentSection}>
+                    {filterMode === 'edit' && (
+                        <MessageBar intent="info" layout="multiline">
                             {intl.formatMessage(IncidentManagementResources.editIncidentHandlerDescription)}
                         </MessageBar>
-                    ) : (
-                        <Text size={300}>{intl.formatMessage(IncidentManagementResources.createIncidentHandlerDescription)}</Text>
                     )}
 
                     {incidentPlatformType === IncidentManagementType.Icm && <FilterConflictWarning conflicts={conflictingFilters ?? []} />}
@@ -203,14 +184,14 @@ export const FilterStep: FC = () => {
                     </Field>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
+                <div className={styles.filterStepContentSection}>
+                    <Text size={300} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(IncidentHandlerCreateResources.filterParametersTitle)}
                     </Text>
                     <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.filterParametersDescription)}</Text>
 
                     {incidentPlatformType === IncidentManagementType.Icm && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div className={styles.filterStepContentSection}>
                             <IcmOwningTeamSearch
                                 defaultTeamId={values.owningTeamId}
                                 onFieldTouched={() => setFieldTouched('owningTeamId', true)}
@@ -247,7 +228,7 @@ export const FilterStep: FC = () => {
                     )}
 
                     {incidentPlatformType !== IncidentManagementType.AzMonitor && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div className={styles.filterStepContentSection}>
                             <Field label={intl.formatMessage(IncidentManagementResources.incidentType)} required>
                                 {filterFieldOptionsLoading ? (
                                     <Skeleton className={styles.inputField}>
@@ -336,73 +317,8 @@ export const FilterStep: FC = () => {
                     </Field>
                 </div>
 
-                <Field label={intl.formatMessage(IncidentManagementResources.agentAutonomyLevel)}>
-                    <RadioGroup name="agentMode" value={values.agentMode} onChange={(_, data) => setFieldValue('agentMode', data.value)}>
-                        <Radio
-                            value={AgentMode.autonomous}
-                            label={
-                                <>
-                                    {intl.formatMessage(IncidentManagementResources.autonomousDefault)}
-                                    <br />
-                                    <Text size={200}>
-                                        {intl.formatMessage(IncidentManagementResources.autonomyLevelAutonomousDescription)}
-                                    </Text>
-                                </>
-                            }
-                        />
-                        <Radio
-                            value={AgentMode.review}
-                            label={
-                                <>
-                                    {intl.formatMessage(IncidentManagementResources.reviewWord)}
-                                    <br />
-                                    <Text size={200}>{intl.formatMessage(IncidentManagementResources.autonomyLevelReviewDescription)}</Text>
-                                </>
-                            }
-                        />
-                    </RadioGroup>
-                </Field>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <InfoLabel
-                        info={
-                            <>
-                                {intl.formatMessage(AgentTaskResources.deepInvestigationDescription)}{' '}
-                                <Link href={LearnMoreLinks.deepInvestigation} target="_blank">
-                                    {intl.formatMessage(AgentTaskResources.learnMoreLinkText)}
-                                </Link>
-                            </>
-                        }
-                    >
-                        <Text size={300} id="enable-deep-investigation-description">
-                            {intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationTitle)}
-                        </Text>
-                    </InfoLabel>
-                    <Checkbox
-                        name={'deepInvestigationEnabled'}
-                        checked={values.deepInvestigationEnabled}
-                        onChange={(_, data) => setFieldValue('deepInvestigationEnabled', data.checked)}
-                        label={intl.formatMessage(IncidentHandlerCreateResources.enableDeepInvestigationDescription)}
-                        labelPosition="after"
-                        aria-describedby="enable-deep-investigation-description"
-                    />
-                    {values.deepInvestigationEnabled && (
-                        <MessageBar intent={'warning'} layout={'multiline'} style={{ maxWidth: '850px' }}>
-                            <MessageBarBody>
-                                <MessageBarTitle>{intl.formatMessage(AgentTaskResources.consumptionReminder)}</MessageBarTitle>
-                                <div>
-                                    {intl.formatMessage(AgentTaskResources.deepInvestigationWarning)}{' '}
-                                    <Link href={LearnMoreLinks.usage} target="_blank">
-                                        {intl.formatMessage(AgentTaskResources.usageLearnMoreLinkText)}
-                                    </Link>
-                                </div>
-                            </MessageBarBody>
-                        </MessageBar>
-                    )}
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
+                <div className={styles.filterStepContentSection}>
+                    <Text size={300} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(IncidentHandlerCreateResources.addCustomResponseGuidanceTitle)}
                     </Text>
                     <Text size={300} id="add-custom-response-guidance-description">
@@ -418,20 +334,13 @@ export const FilterStep: FC = () => {
                     />
                 </div>
             </div>
-            <div
-                style={{
-                    display: 'flex',
-                    gap: 10,
-                    padding: 20,
-                    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
-                }}
-            >
+            <div className={styles.stepFooter}>
                 <Button
                     appearance="primary"
                     onClick={() => {
                         setCurrentStep(
                             values.useCustomHandler
-                                ? IncidentHandlerCreateSteps.IncidentsAndGuidanceStep
+                                ? IncidentHandlerCreateSteps.DefineAgentLearningStep
                                 : IncidentHandlerCreateSteps.PreviewIncidentsStep
                         );
                     }}

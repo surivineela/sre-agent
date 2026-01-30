@@ -1,5 +1,5 @@
 import { IColumn } from '@fluentui/react';
-import { Button, Dropdown, Option, Spinner, Text, Textarea, tokens } from '@fluentui/react-components';
+import { Button, Dropdown, Option, Spinner, Text, Textarea } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
@@ -8,21 +8,20 @@ import { IncidentManagementType } from '../../../../Common/Contracts/Azure/SreAg
 import { IncidentHandlerCreateResources, IncidentManagementResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
 import { MultipleSelectionShimmerDetailsList } from '../../../Components/MultipleSelectionShimmerDetailsList';
 import { SelectedItemsList } from '../../../Components/SelectedItemsList';
-import { generateHandlerStyles } from '../../../Styles/IncidentManagement.styles';
-import { getPlatformSpecificStrings } from '../../Utilities';
+import { generateHandlerStyles, useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { IncidentTableFieldNames, TimeDuration, TimeDurationKey } from '../Contracts';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
 import { IncidentHandlerCreateFormValues } from '../IncidentHandlerCreateFormValues';
 
-export const IncidentsAndGuidanceStep = () => {
+export const DefineAgentLearningStep = () => {
     const intl = useIntl();
+    const styles = useIncidentManagementStyles();
     const context = useContext(IncidentHandlerConsolidatedCreateContext);
     const {
         incidentPlatformType,
         exitToHome,
         setCurrentStep,
-        setGenerateInstructionsStepSkipped,
         selectedTimespan,
         onSelectedTimespanChange,
         incidents,
@@ -96,21 +95,29 @@ export const IncidentsAndGuidanceStep = () => {
     }, [selectedTimespan, timespanDropdownOptions]);
 
     const incidentTableColumns: IColumn[] = useMemo(() => {
-        const { severityOrPriorityLabel } = getPlatformSpecificStrings(incidentPlatformType);
         return [
-            {
-                key: IncidentTableFieldNames.Priority,
-                fieldName: IncidentTableFieldNames.Priority,
-                name: intl.formatMessage(severityOrPriorityLabel),
-                minWidth: 50,
-                maxWidth: 100,
-                isResizable: true,
-                isSortable: true,
-            },
             {
                 key: IncidentTableFieldNames.CreatedAt,
                 fieldName: IncidentTableFieldNames.CreatedAt,
                 name: intl.formatMessage(IncidentHandlerCreateResources.dateCreated),
+                minWidth: 100,
+                maxWidth: 200,
+                isResizable: true,
+                isSortable: true,
+            },
+            {
+                key: IncidentTableFieldNames.Id,
+                fieldName: IncidentTableFieldNames.Id,
+                name: intl.formatMessage(IncidentHandlerCreateResources.incidentId),
+                minWidth: 100,
+                maxWidth: 200,
+                isResizable: true,
+                isSortable: true,
+            },
+            {
+                key: IncidentTableFieldNames.Status,
+                fieldName: IncidentTableFieldNames.Status,
+                name: intl.formatMessage(IncidentHandlerCreateResources.status),
                 minWidth: 100,
                 maxWidth: 200,
                 isResizable: true,
@@ -125,27 +132,8 @@ export const IncidentsAndGuidanceStep = () => {
                 isResizable: true,
                 isSortable: true,
             },
-            {
-                key: IncidentTableFieldNames.Id,
-                fieldName: IncidentTableFieldNames.Id,
-                name: intl.formatMessage(IncidentHandlerCreateResources.incidentId),
-                minWidth: 100,
-                maxWidth: 200,
-                isResizable: true,
-                isSortable: true,
-            },
-
-            {
-                key: IncidentTableFieldNames.Status,
-                fieldName: IncidentTableFieldNames.Status,
-                name: intl.formatMessage(IncidentHandlerCreateResources.status),
-                minWidth: 100,
-                maxWidth: 200,
-                isResizable: true,
-                isSortable: true,
-            },
         ];
-    }, [intl, incidentPlatformType]);
+    }, [intl]);
 
     const incidentsTableHeight = useMemo(() => {
         const selectedIncidentsListHeaderHeight = 55;
@@ -177,19 +165,9 @@ export const IncidentsAndGuidanceStep = () => {
                     <Spinner size="large" aria-label={intl.formatMessage(IncidentManagementResources.generating)} />
                 </div>
             )}
-            <div
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    padding: '20px 20px',
-                    gap: '32px',
-                    height: 'calc(100% - 114px)',
-                    overflowY: 'auto',
-                }}
-            >
-                <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.customHandlerCreateDescription)}</Text>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
+            <div className={styles.stepContent}>
+                <div className={styles.stepContentSection}>
+                    <Text size={300} weight="semibold" as="h2" style={{ margin: 0 }}>
                         {intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentsTitle)}
                     </Text>
                     <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.chooseIncidentDescription)}</Text>
@@ -249,29 +227,25 @@ export const IncidentsAndGuidanceStep = () => {
                         />
                     </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
-                        {intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionTitle)}
+
+                <div className={styles.stepContentSection}>
+                    <Text size={300} weight="semibold" as="h2" style={{ margin: 0 }}>
+                        {intl.formatMessage(IncidentHandlerCreateResources.addInstructionsTitle)}
                     </Text>
-                    <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionDescription)}</Text>
+                    <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.addInstructionsDescription)}</Text>
                     <Textarea
                         placeholder={intl.formatMessage(IncidentHandlerCreateResources.customInstructionPlaceholder)}
                         value={values.customInstructions}
                         onChange={(_e, newValue) => setFieldValue('customInstructions', newValue.value ?? '')}
                         rows={4}
                         disabled={!handlerLoaded || generatingInstructions}
-                        className={generateHandlerStyles.textField}
+                        className={generateHandlerStyles.textArea}
+                        resize="vertical"
                     />
                 </div>
             </div>
-            <div
-                style={{
-                    display: 'flex',
-                    gap: 10,
-                    padding: 20,
-                    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
-                }}
-            >
+
+            <div className={styles.stepFooter}>
                 <Button
                     onClick={() => {
                         setCurrentStep(
@@ -291,11 +265,10 @@ export const IncidentsAndGuidanceStep = () => {
                     }}
                     disabled={!handlerLoaded || generatingInstructions || (!values.customInstructions && selectedIncidents?.length === 0)}
                 >
-                    {intl.formatMessage(IncidentHandlerCreateResources.generate)}
+                    {intl.formatMessage(IncidentHandlerCreateResources.generateAndReview)}
                 </Button>
                 <Button
                     onClick={() => {
-                        setGenerateInstructionsStepSkipped(true);
                         setCurrentStep(
                             incidentTriggerWithLearningsMetadata
                                 ? IncidentHandlerCreateSteps.CreateSubagentStep
@@ -304,7 +277,7 @@ export const IncidentsAndGuidanceStep = () => {
                     }}
                     disabled={!handlerLoaded || generatingInstructions}
                 >
-                    {intl.formatMessage(IncidentHandlerCreateResources.skip)}
+                    {intl.formatMessage(IncidentHandlerCreateResources.next)}
                 </Button>
                 <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={() => exitToHome()}>
                     <Button disabled={!handlerLoaded || generatingInstructions}>

@@ -11,8 +11,9 @@ export enum IncidentHandlerCreateSteps {
     FilterStep = 'FilterStep',
     IncidentTriggerStep = 'IncidentTriggerStep',
     PreviewIncidentsStep = 'PreviewIncidentsStep',
-    IncidentsAndGuidanceStep = 'IncidentsAndGuidanceStep',
+    DefineAgentLearningStep = 'DefineAgentLearningStep',
     ReviewAndTestStep = 'ReviewAndTestStep',
+    SaveStep = 'SaveStep',
     CreateSubagentStep = 'CreateSubagentStep',
 }
 
