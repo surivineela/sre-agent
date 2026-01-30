@@ -680,7 +680,10 @@ const ChatBoxFooter = ({
                     }
                 } else if (showShortcutLists && focusedShortcutRef.current) {
                     onSelectShortcut(focusedShortcutRef.current);
-                } else {
+                } else if (!event.nativeEvent.isComposing) {
+                    // Only send message if not in IME composition mode
+                    // The Enter key during IME composition (e.g., Chinese, Japanese, Korean input)
+                    // is used to confirm the composed characters, not to submit the message
                     chatInputHandleSendClick(imperativeControlPluginRef.current?.getInputText());
                 }
 
