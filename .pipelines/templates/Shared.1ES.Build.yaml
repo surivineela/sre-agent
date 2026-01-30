@@ -234,6 +234,7 @@ extends:
           displayName: '🦾 Build Agent solution'
           env:
             SRE_UX_VERSION: $(Build.BuildNumber)
+            SRE_AGENT_PORTAL_VERSION: $(Build.BuildNumber)
           inputs:
             command: build
             projects: '$(BuildSolution)'
