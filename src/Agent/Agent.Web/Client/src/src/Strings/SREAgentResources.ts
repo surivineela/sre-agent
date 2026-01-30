@@ -2531,6 +2531,7 @@ export const SettingsTabResources = defineMessages({
         defaultMessage: `Anthropic is not available due to your organization’s data residency policy. Contact your administrator for more information.`,
         id: 'x3nLRm',
     },
+    anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
 });
 
 export const GrafanaDashboardResources = defineMessages({

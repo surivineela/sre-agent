@@ -84,7 +84,7 @@ export const Basics = (props: BasicsProps) => {
 
     const showDefaultModelPicker = useConfigSetting(SettingNames.ShowDefaultModelPicker);
 
-    const { supportedProviders, isSupportedModelsLoading, getSupportedModelsFailure } = useSreSupportedModels(
+    const { supportedProviders, isSupportedModelsLoading, getSupportedModelsFailure, showAnthropicDisabledMessage } = useSreSupportedModels(
         values.subscriptionId,
         values.location,
         TelemetrySource.SreAgentCreate
@@ -288,6 +288,14 @@ export const Basics = (props: BasicsProps) => {
                 ))}
             </DropdownFormik>
 
+            {showAnthropicDisabledMessage && (
+                <MessageBar layout="multiline" style={{ alignItems: 'center' }}>
+                    <MessageBarBody>
+                        <Caption1>{intl.formatMessage(PortalResources.anthropicNotAvailable)}</Caption1>
+                    </MessageBarBody>
+                </MessageBar>
+            )}
+
             {showDefaultModelPicker && (
                 <Field
                     id="defaultModelProvider"
@@ -332,7 +340,7 @@ export const Basics = (props: BasicsProps) => {
                             }}
                         >
                             {supportedProviders?.map(option => (
-                                <Option value={option.key} checkIcon={null}>
+                                <Option value={option.key} checkIcon={null} disabled={option.disabled}>
                                     {option.text}
                                 </Option>
                             ))}

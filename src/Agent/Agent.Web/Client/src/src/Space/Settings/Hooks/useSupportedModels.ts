@@ -4,7 +4,7 @@ import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPorta
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import { LocationClient } from '../../../Common/Clients/LocationClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
-import { Model } from '../../../Common/Contracts/Azure/SreAgent';
+import { Model, ModelProvider } from '../../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { SettingNames, useConfigSetting } from '../../../Common/Hooks/ConfigSettings';
 import { SettingsTabResources } from '../../../Strings/SREAgentResources';
@@ -100,11 +100,13 @@ export const useSupportedModels = (agentResourceId: string, location: string) =>
         {
             key: string;
             text: string;
+            disabled?: boolean;
         }[]
     >();
     const [isSupportedModelsLoading, setIsSupportedModelsLoading] = useState(true);
     const [getSupportedModelsFailure, setGetSupportedModelsFailure] = useState('');
     const [isUpdatingDefaultModel, setIsUpdatingDefaultModel] = useState(false);
+    const [showAnthropicDisabledMessage, setShowAnthropicDisabledMessage] = useState(false);
 
     const { subscription } = useMemo(() => new ArmResourceDescriptor(agentResourceId), [agentResourceId]);
 
@@ -124,10 +126,19 @@ export const useSupportedModels = (agentResourceId: string, location: string) =>
             const providerMap = new Map(
                 supportedModels.map(model => [
                     model.properties.providerName,
-                    { key: model.properties.providerName, text: model.properties.providerDisplayName },
+                    { key: model.properties.providerName, text: model.properties.providerDisplayName, disabled: false },
                 ])
             );
             const supportedProviders = Array.from(providerMap.values());
+            // If Anthropic is not in the supported providers list, it isn't allowed by the administrator
+            if (!supportedProviders.find(provider => provider.key === ModelProvider.Anthropic)) {
+                supportedProviders.push({
+                    key: ModelProvider.Anthropic,
+                    text: intl.formatMessage(SettingsTabResources.anthropicProviderLabel),
+                    disabled: true,
+                });
+                setShowAnthropicDisabledMessage(true);
+            }
             setSupportedProviders(supportedProviders);
             setIsSupportedModelsLoading(false);
         } else {
@@ -213,5 +224,6 @@ export const useSupportedModels = (agentResourceId: string, location: string) =>
         updateDefaultModel,
         isUpdatingDefaultModel,
         refreshSupportedModels: getSupportedModels,
+        showAnthropicDisabledMessage,
     };
 };
