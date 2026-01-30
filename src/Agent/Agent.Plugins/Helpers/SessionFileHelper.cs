@@ -46,13 +46,13 @@ public static class SessionFileHelper
     /// </summary>
     /// <param name="imageResult">The image result to process.</param>
     /// <param name="threadId">The thread ID for file storage.</param>
-    /// <param name="threadFileStorageService">The file storage service.</param>
+    /// <param name="agentFileStorageService">The file storage service.</param>
     /// <param name="logger">Optional logger for warnings.</param>
     /// <returns>A CodeFileInfo object if the image was saved successfully, null otherwise.</returns>
     public static async Task<CodeFileInfo?> ProcessImageResultAsync(
         ImageExecutionResult imageResult,
         Guid threadId,
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         ILogger? logger = null)
     {
         if (string.IsNullOrEmpty(imageResult.Base64Data))
@@ -74,7 +74,7 @@ public static class SessionFileHelper
             };
             var imageFilename = $"output_{Guid.NewGuid():N}{imageExtension}";
 
-            await SaveToThreadFileStorageAsync(threadId, imageBytes, imageFilename, threadFileStorageService, logger);
+            await SaveToThreadFileStorageAsync(threadId, imageBytes, imageFilename, agentFileStorageService, logger);
 
             var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(imageFilename)}";
             return new CodeFileInfo
@@ -97,14 +97,14 @@ public static class SessionFileHelper
     /// <param name="sessionPoolService">The session pool service.</param>
     /// <param name="sessionIdentifier">The session identifier.</param>
     /// <param name="threadId">The thread ID for file storage.</param>
-    /// <param name="threadFileStorageService">The file storage service.</param>
+    /// <param name="agentFileStorageService">The file storage service.</param>
     /// <param name="logger">Optional logger for warnings.</param>
     /// <returns>A list of CodeFileInfo objects for the retrieved files.</returns>
     public static async Task<List<CodeFileInfo>> RetrieveSessionFilesAsync(
         ISessionPoolService sessionPoolService,
         string sessionIdentifier,
         Guid threadId,
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         ILogger? logger = null)
     {
         var retrievedFiles = new List<CodeFileInfo>();
@@ -145,7 +145,7 @@ public static class SessionFileHelper
                             var fileType = GetFileType(extension);
 
                             // Store to ThreadFileStorage for persistence
-                            await SaveToThreadFileStorageAsync(threadId, fileBytes, file.Filename, threadFileStorageService, logger);
+                            await SaveToThreadFileStorageAsync(threadId, fileBytes, file.Filename, agentFileStorageService, logger);
 
                             var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(Path.GetFileName(file.Filename))}";
 
@@ -181,12 +181,12 @@ public static class SessionFileHelper
         Guid threadId,
         byte[] fileBytes,
         string filename,
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         ILogger? logger = null)
     {
         try
         {
-            var fileKey = await threadFileStorageService.UploadThreadFileAsync(
+            var fileKey = await agentFileStorageService.UploadThreadFileAsync(
                 threadId,
                 filename,
                 fileBytes);
@@ -207,20 +207,20 @@ public static class SessionFileHelper
     /// <param name="sessionPoolService">The session pool service.</param>
     /// <param name="sessionIdentifier">The session identifier.</param>
     /// <param name="threadId">The thread ID for file storage.</param>
-    /// <param name="threadFileStorageService">The file storage service.</param>
+    /// <param name="agentFileStorageService">The file storage service.</param>
     /// <param name="logger">Optional logger for warnings.</param>
     public static async Task ProcessExecutionFilesAsync(
         CodeExecutionResponse execResp,
         ISessionPoolService sessionPoolService,
         string sessionIdentifier,
         Guid threadId,
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         ILogger? logger = null)
     {
         // Process image result if present
         if (execResp.Result is ImageExecutionResult imageResult && !string.IsNullOrEmpty(imageResult.Base64Data))
         {
-            var imageFile = await ProcessImageResultAsync(imageResult, threadId, threadFileStorageService, logger);
+            var imageFile = await ProcessImageResultAsync(imageResult, threadId, agentFileStorageService, logger);
             if (imageFile != null)
             {
                 execResp.ImageFile = imageFile;
@@ -232,7 +232,7 @@ public static class SessionFileHelper
             sessionPoolService,
             sessionIdentifier,
             threadId,
-            threadFileStorageService,
+            agentFileStorageService,
             logger);
 
         if (retrievedFiles.Count > 0)

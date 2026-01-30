@@ -20,7 +20,7 @@ namespace Agent.Web.Controllers;
 [ApiController]
 [Route("api/files")]            // Preferred new route
 [Route("api/reports")]          // Legacy route (do not remove until callers migrated)
-public class FilesController(IThreadFileStorageService threadFileStorageService) : ControllerBase
+public class FilesController(IAgentFileStorageService agentFileStorageService) : ControllerBase
 {
     private static readonly string ReportsRoot = Path.Combine(AppContext.BaseDirectory, "reports");
 
@@ -206,7 +206,7 @@ public class FilesController(IThreadFileStorageService threadFileStorageService)
 
     /// <summary>
     /// Download an artifact file by thread ID and filename.
-    /// Uses IThreadFileStorageService to retrieve thread-specific files.
+    /// Uses IAgentFileStorageService to retrieve thread-specific files.
     /// </summary>
     [HttpGet("{threadId}/{fileName}")]
     [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
@@ -238,7 +238,7 @@ public class FilesController(IThreadFileStorageService threadFileStorageService)
         }
 
         // Download from thread file storage
-        var filePath = await threadFileStorageService.DownloadThreadFileAsync(threadId, fileName);
+        var filePath = await agentFileStorageService.DownloadThreadFileAsync(threadId, fileName);
         if (filePath == null)
         {
             return NotFound();

@@ -2198,6 +2198,427 @@ public partial class ApiService : IDisposable
 
     #endregion
 
+    #region Workspace Memory Methods
+
+    #region Repo Instructions
+
+    /// <summary>
+    /// Uploads repo instructions files to the agent as a tar.gz archive.
+    /// </summary>
+    public async Task<(bool Success, string Response)> UploadRepoInstructionsAsync(byte[] tarGzData, string? repo)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var queryString = !string.IsNullOrEmpty(repo) ? $"?repo={Uri.EscapeDataString(repo)}" : "";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/repo-instructions{queryString}";
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
+            {
+                Content = new ByteArrayContent(tarGzData)
+            };
+            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/gzip");
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content);
+            }
+
+            return (false, $"Failed to upload repo instructions: {response.StatusCode} - {content}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"UploadRepoInstructions failed: {ex.Message}");
+            return (false, $"Failed to upload repo instructions: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Downloads repo instructions files from the agent as a tar.gz archive.
+    /// </summary>
+    public async Task<(bool Success, byte[] Data, string ErrorMessage)> DownloadRepoInstructionsAsync(string? repo)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, [], "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var queryString = !string.IsNullOrEmpty(repo) ? $"?repo={Uri.EscapeDataString(repo)}" : "";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/repo-instructions{queryString}";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/gzip"));
+
+            // Log request
+            var stopwatch = Stopwatch.StartNew();
+            var requestHeaders = request.Headers.ToList();
+            DebugLogger.LogHttpRequest(
+                request.Method.ToString(),
+                request.RequestUri?.ToString() ?? "unknown",
+                requestHeaders,
+                null,
+                null);
+
+            var response = await _httpClient.SendAsync(request);
+            stopwatch.Stop();
+
+            // Log response
+            var responseHeaders = response.Headers.ToList();
+            foreach (var h in response.Content.Headers)
+            {
+                responseHeaders.Add(new KeyValuePair<string, IEnumerable<string>>(h.Key, h.Value));
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadAsByteArrayAsync();
+                DebugLogger.LogHttpResponse(
+                    (int)response.StatusCode,
+                    response.StatusCode.ToString(),
+                    responseHeaders,
+                    $"[Binary: {data.Length} bytes]",
+                    stopwatch.ElapsedMilliseconds);
+                return (true, data, string.Empty);
+            }
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse(
+                (int)response.StatusCode,
+                response.StatusCode.ToString(),
+                responseHeaders,
+                errorContent,
+                stopwatch.ElapsedMilliseconds);
+            return (false, [], $"Failed to download repo instructions: {response.StatusCode} - {errorContent}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"DownloadRepoInstructions failed: {ex.Message}");
+            return (false, [], $"Failed to download repo instructions: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Deletes repo instructions files from the agent.
+    /// </summary>
+    public async Task<(bool Success, string Response)> DeleteRepoInstructionsAsync(string? repo)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var queryString = !string.IsNullOrEmpty(repo) ? $"?repo={Uri.EscapeDataString(repo)}" : "";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/repo-instructions{queryString}";
+            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content);
+            }
+
+            return (false, $"Failed to delete repo instructions: {response.StatusCode} - {content}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"DeleteRepoInstructions failed: {ex.Message}");
+            return (false, $"Failed to delete repo instructions: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #region Session Insights
+
+    /// <summary>
+    /// Uploads session insights files to the agent as a tar.gz archive.
+    /// </summary>
+    public async Task<(bool Success, string Response)> UploadSessionInsightsAsync(byte[] tarGzData, Guid? threadId = null)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var queryParams = threadId.HasValue ? $"?threadId={threadId.Value}" : "";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/session-insights{queryParams}";
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
+            {
+                Content = new ByteArrayContent(tarGzData)
+            };
+            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/gzip");
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content);
+            }
+
+            return (false, $"Failed to upload session insights: {response.StatusCode} - {content}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"UploadSessionInsights failed: {ex.Message}");
+            return (false, $"Failed to upload session insights: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Downloads session insights files from the agent as a tar.gz archive.
+    /// </summary>
+    public async Task<(bool Success, byte[] Data, string ErrorMessage)> DownloadSessionInsightsAsync(Guid? threadId = null)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, [], "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var queryParams = threadId.HasValue ? $"?threadId={threadId.Value}" : "";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/session-insights{queryParams}";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/gzip"));
+
+            // Log request
+            var stopwatch = Stopwatch.StartNew();
+            var requestHeaders = request.Headers.ToList();
+            DebugLogger.LogHttpRequest(
+                request.Method.ToString(),
+                request.RequestUri?.ToString() ?? "unknown",
+                requestHeaders,
+                null,
+                null);
+
+            var response = await _httpClient.SendAsync(request);
+            stopwatch.Stop();
+
+            // Log response
+            var responseHeaders = response.Headers.ToList();
+            foreach (var h in response.Content.Headers)
+            {
+                responseHeaders.Add(new KeyValuePair<string, IEnumerable<string>>(h.Key, h.Value));
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadAsByteArrayAsync();
+                DebugLogger.LogHttpResponse(
+                    (int)response.StatusCode,
+                    response.StatusCode.ToString(),
+                    responseHeaders,
+                    $"[Binary: {data.Length} bytes]",
+                    stopwatch.ElapsedMilliseconds);
+                return (true, data, string.Empty);
+            }
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse(
+                (int)response.StatusCode,
+                response.StatusCode.ToString(),
+                responseHeaders,
+                errorContent,
+                stopwatch.ElapsedMilliseconds);
+            return (false, [], $"Failed to download session insights: {response.StatusCode} - {errorContent}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"DownloadSessionInsights failed: {ex.Message}");
+            return (false, [], $"Failed to download session insights: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Deletes session insights files from the agent.
+    /// </summary>
+    public async Task<(bool Success, string Response)> DeleteSessionInsightsAsync(Guid? threadId = null)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var queryParams = threadId.HasValue ? $"?threadId={threadId.Value}" : "";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/session-insights{queryParams}";
+            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content);
+            }
+
+            return (false, $"Failed to delete session insights: {response.StatusCode} - {content}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"DeleteSessionInsights failed: {ex.Message}");
+            return (false, $"Failed to delete session insights: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #region Synthesized Knowledge
+
+    /// <summary>
+    /// Uploads synthesized knowledge files to the agent as a tar.gz archive.
+    /// </summary>
+    public async Task<(bool Success, string Response)> UploadSynthesizedKnowledgeAsync(byte[] tarGzData)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/synthesized-knowledge";
+            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
+            {
+                Content = new ByteArrayContent(tarGzData)
+            };
+            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/gzip");
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content);
+            }
+
+            return (false, $"Failed to upload synthesized knowledge: {response.StatusCode} - {content}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"UploadSynthesizedKnowledge failed: {ex.Message}");
+            return (false, $"Failed to upload synthesized knowledge: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Downloads synthesized knowledge files from the agent as a tar.gz archive.
+    /// </summary>
+    public async Task<(bool Success, byte[] Data, string ErrorMessage)> DownloadSynthesizedKnowledgeAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, [], "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/synthesized-knowledge";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/gzip"));
+
+            // Log request
+            var stopwatch = Stopwatch.StartNew();
+            var requestHeaders = request.Headers.ToList();
+            DebugLogger.LogHttpRequest(
+                request.Method.ToString(),
+                request.RequestUri?.ToString() ?? "unknown",
+                requestHeaders,
+                null,
+                null);
+
+            var response = await _httpClient.SendAsync(request);
+            stopwatch.Stop();
+
+            // Log response
+            var responseHeaders = response.Headers.ToList();
+            foreach (var h in response.Content.Headers)
+            {
+                responseHeaders.Add(new KeyValuePair<string, IEnumerable<string>>(h.Key, h.Value));
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadAsByteArrayAsync();
+                DebugLogger.LogHttpResponse(
+                    (int)response.StatusCode,
+                    response.StatusCode.ToString(),
+                    responseHeaders,
+                    $"[Binary: {data.Length} bytes]",
+                    stopwatch.ElapsedMilliseconds);
+                return (true, data, string.Empty);
+            }
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            DebugLogger.LogHttpResponse(
+                (int)response.StatusCode,
+                response.StatusCode.ToString(),
+                responseHeaders,
+                errorContent,
+                stopwatch.ElapsedMilliseconds);
+            return (false, [], $"Failed to download synthesized knowledge: {response.StatusCode} - {errorContent}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"DownloadSynthesizedKnowledge failed: {ex.Message}");
+            return (false, [], $"Failed to download synthesized knowledge: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Deletes synthesized knowledge files from the agent.
+    /// </summary>
+    public async Task<(bool Success, string Response)> DeleteSynthesizedKnowledgeAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/synthesized-knowledge";
+            var request = new HttpRequestMessage(HttpMethod.Delete, requestUrl);
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, content);
+            }
+
+            return (false, $"Failed to delete synthesized knowledge: {response.StatusCode} - {content}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"DeleteSynthesizedKnowledge failed: {ex.Message}");
+            return (false, $"Failed to delete synthesized knowledge: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #endregion
+
     public void Dispose()
     {
         _httpClient?.Dispose();

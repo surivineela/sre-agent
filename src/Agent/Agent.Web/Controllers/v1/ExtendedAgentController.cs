@@ -632,9 +632,9 @@ public class ExtendedAgentController : ControllerBase
             // Execute the tool
             var sessionPoolService = HttpContext.RequestServices.GetRequiredService<ISessionPoolService>();
             var hostEnvironment = HttpContext.RequestServices.GetRequiredService<IHostEnvironment>();
-            var threadFileStorageService = HttpContext.RequestServices.GetRequiredService<IThreadFileStorageService>();
+            var agentFileStorageService = HttpContext.RequestServices.GetRequiredService<IAgentFileStorageService>();
             var pythonToolLogger = HttpContext.RequestServices.GetRequiredService<ILogger<PythonFunctionTool>>();
-            var pythonTool = new PythonFunctionTool(sessionPoolService, hostEnvironment, threadFileStorageService, pythonToolLogger, toolDefinition, testMode: true);
+            var pythonTool = new PythonFunctionTool(sessionPoolService, hostEnvironment, agentFileStorageService, pythonToolLogger, toolDefinition, testMode: true);
 
             var startTime = DateTime.UtcNow;
             // Convert Dictionary<string, string> parameters to AIFunctionArguments

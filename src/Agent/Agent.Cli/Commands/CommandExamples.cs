@@ -1113,6 +1113,124 @@ Available Topics:
 
     #endregion
 
+    #region Workspace Command Examples
+
+    public static class Workspace
+    {
+        #region Repo Instructions
+
+        public const string RepoInstructionsUploadDescription = @"Upload repo instructions to the remote agent
+
+Uploads local .github repo instructions folder for a specific repository connector to the remote SRE Agent instance.
+
+Examples:
+  # Upload repo instructions for a connector (--repo is connector name)
+  srectl workspace repo-instructions upload --repo my-connector
+
+  # Upload from a custom path (path used directly)
+  srectl workspace repo-instructions upload --repo my-connector --path ./custom-folder";
+
+        public const string RepoInstructionsDownloadDescription = @"Download repo instructions from the remote agent
+
+Downloads .github repo instructions folder for a specific repository connector from the remote SRE Agent instance.
+
+Examples:
+  # Download repo instructions for a connector
+  srectl workspace repo-instructions download --repo my-connector
+
+  # Download to a custom path
+  srectl workspace repo-instructions download --repo my-connector --path ./output";
+
+        public const string RepoInstructionsDeleteDescription = @"Delete repo instructions from the remote agent
+
+Deletes .github repo instructions folder for a specific repository connector from the remote SRE Agent instance.
+
+Examples:
+  # Delete repo instructions for a connector
+  srectl workspace repo-instructions delete --repo my-connector";
+
+        #endregion
+
+        #region Session Insights
+
+        public const string SessionInsightsUploadDescription = @"Upload session insights to the remote agent
+
+Uploads local sessionInsights folder to the remote SRE Agent instance.
+
+Examples:
+  # Upload session insights for all threads
+  srectl workspace session-insights upload
+
+  # Upload session insights for a specific thread
+  srectl workspace session-insights upload --thread-id abc123
+
+  # Upload from a custom path (path used directly)
+  srectl workspace session-insights upload --path ./custom-folder";
+
+        public const string SessionInsightsDownloadDescription = @"Download session insights from the remote agent
+
+Downloads sessionInsights folder from the remote SRE Agent instance.
+
+Examples:
+  # Download session insights for all threads
+  srectl workspace session-insights download
+
+  # Download session insights for a specific thread
+  srectl workspace session-insights download --thread-id abc123
+
+  # Download to a custom path
+  srectl workspace session-insights download --path ./output";
+
+        public const string SessionInsightsDeleteDescription = @"Delete session insights from the remote agent
+
+Deletes sessionInsights folder from the remote SRE Agent instance.
+
+Examples:
+  # Delete session insights for all threads
+  srectl workspace session-insights delete
+
+  # Delete session insights for a specific thread
+  srectl workspace session-insights delete --thread-id abc123";
+
+        #endregion
+
+        #region Synthesized Knowledge
+
+        public const string SynthesizedKnowledgeUploadDescription = @"Upload synthesized knowledge to the remote agent
+
+Uploads local synthesizedKnowledge folder to the remote SRE Agent instance.
+
+Examples:
+  # Upload synthesized knowledge
+  srectl workspace synthesized-knowledge upload
+
+  # Upload from a custom path (path used directly)
+  srectl workspace synthesized-knowledge upload --path ./custom-folder";
+
+        public const string SynthesizedKnowledgeDownloadDescription = @"Download synthesized knowledge from the remote agent
+
+Downloads synthesizedKnowledge folder from the remote SRE Agent instance.
+
+Examples:
+  # Download synthesized knowledge
+  srectl workspace synthesized-knowledge download
+
+  # Download to a custom path
+  srectl workspace synthesized-knowledge download --path ./output";
+
+        public const string SynthesizedKnowledgeDeleteDescription = @"Delete synthesized knowledge from the remote agent
+
+Deletes synthesizedKnowledge folder from the remote SRE Agent instance.
+
+Examples:
+  # Delete synthesized knowledge
+  srectl workspace synthesized-knowledge delete";
+
+        #endregion
+    }
+
+    #endregion
+
     #region Incident Filter Command Examples
 
     public static class IncidentFilter

@@ -56,7 +56,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
         CoreSettings coreSettings,
         bool modeSwitchEnabled,
         IToolOutputProcessService toolOutputProcessService,
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         IHostEnvironment hostEnvironment,
         IAmbientContextProvider ambientContextProvider)
         : base(
@@ -84,7 +84,7 @@ public class WorkflowReasoningLoop : ReasoningLoop
             modeSwitchEnabled: modeSwitchEnabled,
             skillRegistry: skillRegistry,
             toolOutputProcessService: toolOutputProcessService,
-            threadFileStorageService: threadFileStorageService,
+            agentFileStorageService: agentFileStorageService,
             hostEnvironment: hostEnvironment,
             ambientContextProvider: ambientContextProvider)
     {

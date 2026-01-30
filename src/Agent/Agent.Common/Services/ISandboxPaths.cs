@@ -10,7 +10,8 @@ namespace Agent.Common.Services;
 /// <param name="SandboxRoot">Root directory for sandbox operations.</param>
 /// <param name="CodeRefsPath">Path to code repositories directory.</param>
 /// <param name="TmpPath">Path to temporary files directory.</param>
-public record SandboxPaths(string SandboxRoot, string CodeRefsPath, string TmpPath);
+/// <param name="MemoriesPath">Path to memories/workspace sync directory.</param>
+public record SandboxPaths(string SandboxRoot, string CodeRefsPath, string TmpPath, string MemoriesPath);
 
 /// <summary>
 /// Interface for accessing sandbox directory paths.

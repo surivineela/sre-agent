@@ -48,7 +48,8 @@ message InitializeSandboxRootResponse {
   string sandbox_root = 1;      // The initialized sandbox root path
   string code_refs_path = 2;    // Path to codeRefs directory
   string tmp_path = 3;          // Path to tmp directory
-  string error = 4;             // Error message if initialization failed
+  string memories_path = 4;     // Path to memories directory
+  string error = 5;             // Error message if initialization failed
 }
 
 // ==================== File Operations ====================

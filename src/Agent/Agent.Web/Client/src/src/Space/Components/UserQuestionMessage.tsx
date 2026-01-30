@@ -243,8 +243,7 @@ const UserQuestionMessage = ({ userQuestion, onSubmitResponse }: UserQuestionMes
         : -1;
 
     // Truncate question for summary line
-    const truncatedQuestion =
-        userQuestion.question.length > 80 ? userQuestion.question.slice(0, 77) + '...' : userQuestion.question;
+    const truncatedQuestion = userQuestion.question.length > 80 ? userQuestion.question.slice(0, 77) + '...' : userQuestion.question;
 
     // Get result info text
     const getResultInfo = () => {
@@ -332,10 +331,7 @@ const UserQuestionMessage = ({ userQuestion, onSubmitResponse }: UserQuestionMes
                                             disabled={isAnswered || isSubmitting}
                                         >
                                             <span
-                                                className={mergeClasses(
-                                                    classes.optionNumber,
-                                                    isSelected && classes.optionNumberSelected
-                                                )}
+                                                className={mergeClasses(classes.optionNumber, isSelected && classes.optionNumberSelected)}
                                             >
                                                 {index + 1}.
                                             </span>
@@ -352,10 +348,7 @@ const UserQuestionMessage = ({ userQuestion, onSubmitResponse }: UserQuestionMes
 
                             {userQuestion.allowFreeText && isPending && (
                                 <div
-                                    className={mergeClasses(
-                                        classes.optionRow,
-                                        focusedIndex === freeTextIndex && classes.optionRowSelected
-                                    )}
+                                    className={mergeClasses(classes.optionRow, focusedIndex === freeTextIndex && classes.optionRowSelected)}
                                     onMouseEnter={() => setFocusedIndex(freeTextIndex)}
                                     onMouseLeave={() => setFocusedIndex(null)}
                                 >

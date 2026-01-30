@@ -56,7 +56,7 @@ public class TsgConnectorCloneService : BackgroundService
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         var sandboxPaths = new LocalSandboxPaths();
-        _terminalManager = new TerminalSessionManager(logger, sandboxPaths.GetSandboxPathsAsync().Result.SandboxRoot);
+        _terminalManager = new TerminalSessionManager(logger, sandboxPaths.SandboxPaths.SandboxRoot);
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // Cache enabled state once - same pattern as WorkspaceToolsPlugin

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Agent.Common.Services;
+using Agent.Core.Services;
 using Agent.Framework;
 using Agent.Plugins.Models.WorkspaceTools;
 using Microsoft.Extensions.Logging;
@@ -155,6 +156,8 @@ public class LocalWorkspaceContext : IWorkspaceContext
         sb.AppendLine("The workspace has these special directories:");
         sb.AppendLine("- codeRefs/: Contains code repositories the user has attached for context.");
         sb.AppendLine("- tmp/: For throwaway work, scratch files, and temporary outputs.");
+        sb.AppendLine($"- memories/sessionInsights/{ThreadContextAccessor.CurrentThreadId}: For any findings, learnings, or insights you want to persist.");
+        sb.AppendLine($"- memories/synthesizedKnowledge: Contains knowledge from previous sessions ");
         sb.AppendLine();
         sb.AppendLine("I am working in a workspace that has the following structure:");
         sb.AppendLine("```");

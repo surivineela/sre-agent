@@ -39,6 +39,7 @@ public class FileSystemService : FileSystem.FileSystemBase
             var sandboxRoot = GetSandboxRoot();
             var codeRefsPath = Path.Combine(sandboxRoot, "codeRefs");
             var tmpPath = Path.Combine(sandboxRoot, "tmp");
+            var memoriesPath = Path.Combine(sandboxRoot, "memories");
 
             // Ensure directories exist
             if (!Directory.Exists(codeRefsPath))
@@ -53,11 +54,18 @@ public class FileSystemService : FileSystem.FileSystemBase
                 _logger.LogInformation("Created tmp directory: {TmpPath}", tmpPath);
             }
 
+            if (!Directory.Exists(memoriesPath))
+            {
+                Directory.CreateDirectory(memoriesPath);
+                _logger.LogInformation("Created memories directory: {MemoriesPath}", memoriesPath);
+            }
+
             return Task.FromResult(new InitializeSandboxRootResponse
             {
                 SandboxRoot = sandboxRoot,
                 CodeRefsPath = codeRefsPath,
-                TmpPath = tmpPath
+                TmpPath = tmpPath,
+                MemoriesPath = memoriesPath
             });
         }
         catch (Exception ex)

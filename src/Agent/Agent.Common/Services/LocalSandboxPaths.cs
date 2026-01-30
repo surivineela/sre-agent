@@ -25,8 +25,9 @@ public class LocalSandboxPaths : ISandboxPaths
         var sandboxRoot = ComputeSandboxRoot();
         var codeRefsPath = Path.Combine(sandboxRoot, "codeRefs");
         var tmpPath = Path.Combine(sandboxRoot, "tmp");
+        var memoriesPath = Path.Combine(sandboxRoot, "memories");
 
-        _paths = new SandboxPaths(sandboxRoot, codeRefsPath, tmpPath);
+        _paths = new SandboxPaths(sandboxRoot, codeRefsPath, tmpPath, memoriesPath);
 
         EnsureDirectoriesExist();
     }
@@ -67,6 +68,11 @@ public class LocalSandboxPaths : ISandboxPaths
         if (!Directory.Exists(_paths.TmpPath))
         {
             Directory.CreateDirectory(_paths.TmpPath);
+        }
+
+        if (!Directory.Exists(_paths.MemoriesPath))
+        {
+            Directory.CreateDirectory(_paths.MemoriesPath);
         }
     }
 }

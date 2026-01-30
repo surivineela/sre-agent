@@ -247,4 +247,34 @@ public class AzureBlobRemoteFileStorage : IRemoteFileStorage
             return false;
         }
     }
+
+    /// <inheritdoc />
+    public async IAsyncEnumerable<string> ListBlobsAsync(
+        string containerName,
+        string? prefix = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName.ToLowerInvariant());
+
+        // Check if container exists
+        try
+        {
+            var exists = await containerClient.ExistsAsync(cancellationToken);
+            if (!exists.Value)
+            {
+                _logger.LogInternalDebug("Container does not exist: {ContainerName}", containerName);
+                yield break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to check container existence: {ContainerName}", containerName);
+            yield break;
+        }
+
+        await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix, cancellationToken: cancellationToken))
+        {
+            yield return blobItem.Name;
+        }
+    }
 }

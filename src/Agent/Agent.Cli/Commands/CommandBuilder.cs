@@ -37,6 +37,7 @@ public static partial class CommandBuilder
             ExtensionCommand.Build(),
             McpCommand.Build(),
             DocumentCommand.Build(),
+            WorkspaceCommand.Build(),
             IncidentFilterCommand.Build(),
 
             // Other commands            

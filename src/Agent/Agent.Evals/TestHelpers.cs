@@ -317,8 +317,8 @@ public static class TestHelpers
         builder.Services.AddSingleton<CannotConnectToVmPluginDefinition>();
         builder.Services.AddSingleton<ICannotConnectToVmPlugin, CannotConnectToVmPlugin>();
 
-        // Register IThreadFileStorageService for test environment
-        builder.Services.AddSingleton(Mock.Of<IThreadFileStorageService>());
+        // Register IAgentFileStorageService for test environment
+        builder.Services.AddSingleton(Mock.Of<IAgentFileStorageService>());
 
         // Configure ToolOutputSettings
         builder.Services.Configure<ToolOutputSettings>(options =>

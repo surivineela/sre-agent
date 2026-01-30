@@ -80,7 +80,7 @@ public class TimerService : IHostedService, IDisposable
     private readonly LocalAuthScanner _localAuthScanner;
     private readonly ScheduledTaskExecutionService _scheduledTaskExecutionService;
     private readonly LinuxAppServiceConfigScanner _linuxAppServiceConfigScanner;
-    private readonly IThreadFileStorageService _threadFileStorageService;
+    private readonly IAgentFileStorageService _agentFileStorageService;
     private readonly IOptions<ToolOutputSettings> _toolOutputStorageSettings;
 
     private Timer? _crawlerTimer = null;
@@ -185,7 +185,7 @@ public class TimerService : IHostedService, IDisposable
         LinuxAppServiceConfigScanner linuxAppServiceConfigScanner,
         HeartbeatReporter heartbeatReporter,
         ScheduledTaskExecutionService scheduledTaskExecutionService,
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         IOptions<ToolOutputSettings> toolOutputStorageSettings)
     {
         _logger = logger;
@@ -212,7 +212,7 @@ public class TimerService : IHostedService, IDisposable
         _linuxAppServiceConfigScanner = linuxAppServiceConfigScanner;
         _scheduledTaskExecutionService = scheduledTaskExecutionService;
         _agentMemorySettings = agentMemorySettings;
-        _threadFileStorageService = threadFileStorageService;
+        _agentFileStorageService = agentFileStorageService;
         _toolOutputStorageSettings = toolOutputStorageSettings;
 
         _customerAuditLogger = customerAuditLogger;

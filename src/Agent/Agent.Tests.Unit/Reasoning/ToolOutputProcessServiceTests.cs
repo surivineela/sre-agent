@@ -20,13 +20,13 @@ namespace Agent.Tests.Unit.Reasoning;
 /// </summary>
 public class ToolOutputProcessServiceTests
 {
-    private readonly Mock<IThreadFileStorageService> _mockStorage;
+    private readonly Mock<IAgentFileStorageService> _mockStorage;
     private readonly Mock<ILogger<ToolOutputProcessService>> _mockLogger;
     private readonly ToolOutputProcessService _service;
 
     public ToolOutputProcessServiceTests()
     {
-        _mockStorage = new Mock<IThreadFileStorageService>();
+        _mockStorage = new Mock<IAgentFileStorageService>();
         _mockLogger = new Mock<ILogger<ToolOutputProcessService>>();
 
         var settings = Options.Create(new ToolOutputSettings

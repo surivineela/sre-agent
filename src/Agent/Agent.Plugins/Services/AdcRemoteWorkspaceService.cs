@@ -44,7 +44,7 @@ public class AdcRemoteWorkspaceService : IFileTool, IBashTool, ISandboxPaths, IW
             throw new InvalidOperationException($"Failed to initialize sandbox paths for thread {threadId}: {response.Error}");
         }
 
-        var paths = new SandboxPaths(response.SandboxRoot, response.CodeRefsPath, response.TmpPath);
+        var paths = new SandboxPaths(response.SandboxRoot, response.CodeRefsPath, response.TmpPath, response.MemoriesPath);
         return _sandboxPaths.GetOrAdd(threadId, paths);
     }
 

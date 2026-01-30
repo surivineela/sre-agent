@@ -128,7 +128,7 @@ public class ReasoningLoop : IDisposable
     // tool output processing
     private readonly IToolOutputProcessService _toolOutputProcessService;
 
-    private readonly IThreadFileStorageService _threadFileStorageService;
+    private readonly IAgentFileStorageService _agentFileStorageService;
 
     // ambient context provider for VS Code tools integration
     private readonly IAmbientContextProvider _ambientContextProvider;
@@ -157,7 +157,7 @@ public class ReasoningLoop : IDisposable
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         ISkillRegistry skillRegistry,
         IToolOutputProcessService toolOutputProcessService,
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         IHostEnvironment hostEnvironment,
         IAmbientContextProvider ambientContextProvider,
         bool modeSwitchEnabled)
@@ -216,7 +216,7 @@ public class ReasoningLoop : IDisposable
             _context.ThreadId,
             FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
         _toolOutputProcessService = toolOutputProcessService;
-        _threadFileStorageService = threadFileStorageService;
+        _agentFileStorageService = agentFileStorageService;
     }
 
     public virtual void CancelCurrentOperation()
@@ -1527,7 +1527,7 @@ public class ReasoningLoop : IDisposable
         try
         {
             // Download the image from thread storage
-            var filePath = await _threadFileStorageService.DownloadThreadFileAsync(
+            var filePath = await _agentFileStorageService.DownloadThreadFileAsync(
                 _context.ThreadId,
                 fileName,
                 cancellationToken);
@@ -2953,7 +2953,7 @@ public class ReasoningLoop : IDisposable
             string? chatHistoryFileKey = null;
             try
             {
-                chatHistoryFileKey = await _threadFileStorageService.SaveToolOutputAsync(
+                chatHistoryFileKey = await _agentFileStorageService.SaveToolOutputAsync(
                     threadId: _context.ThreadId,
                     toolName: "compaction_history",
                     content: fullChatTranscript,

@@ -20,19 +20,19 @@ namespace Agent.Runtime.Reasoning;
 /// </summary>
 public class ToolOutputProcessService : IToolOutputProcessService
 {
-    private readonly IThreadFileStorageService _threadFileStorageService;
+    private readonly IAgentFileStorageService _agentFileStorageService;
     private readonly ILogger<ToolOutputProcessService> _logger;
     private readonly IToolOutputProcessorFactory _processorFactory;
     private readonly DefaultToolOutputProcessor _defaultProcessor;
     private readonly int _maxCharacterCount;
 
     public ToolOutputProcessService(
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         ILogger<ToolOutputProcessService> logger,
         IOptions<ToolOutputSettings> settings,
         IToolOutputProcessorFactory? processorFactory = null)
     {
-        _threadFileStorageService = threadFileStorageService;
+        _agentFileStorageService = agentFileStorageService;
         _logger = logger;
         _maxCharacterCount = settings.Value.MaxOutputChars;
         _processorFactory = processorFactory ?? new ToolOutputProcessorFactory();
@@ -129,7 +129,7 @@ public class ToolOutputProcessService : IToolOutputProcessService
         {
             ThreadId = threadId,
             ToolName = toolName,
-            SaveOutput = _threadFileStorageService.SaveToolOutputAsync
+            SaveOutput = _agentFileStorageService.SaveToolOutputAsync
         };
 
         // First, try to get a type-specific processor

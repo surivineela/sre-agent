@@ -93,7 +93,13 @@ const Basics = () => {
             setAppInsightsResourceId(response);
         }
         setAppInsightsLoading(false);
-    }, [agent?.tags, agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.applicationInsightsResourceId, agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.appId, subscriptionGuid, resourceGroup]);
+    }, [
+        agent?.tags,
+        agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.applicationInsightsResourceId,
+        agent?.properties?.logConfiguration?.applicationInsightsConfiguration?.appId,
+        subscriptionGuid,
+        resourceGroup,
+    ]);
 
     useEffect(() => {
         if (agent) {

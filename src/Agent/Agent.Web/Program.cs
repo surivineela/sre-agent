@@ -593,7 +593,8 @@ public class Program
                     return new NullRemoteFileStorage();
                 }
             })
-            .AddSingleton<IThreadFileStorageService, ThreadFileStorageService>()
+            .AddSingleton<IAgentFileStorageService, AgentFileStorageService>()
+            .AddHostedService<WorkspaceSyncService>()
             .AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>()
             .AddTransient<ToolOutputRetrieverPluginDefinition>()
             .AddSingleton<IToolOutputProcessService, ToolOutputProcessService>()

@@ -32,7 +32,8 @@ variants:
             - GetIncidentDetails
             - GetIncidentAlertDetails
             - SearchIncidents
-            # - GetSimilarIncidents
+            - RunAzCliWriteCommands
+            - RunAzCliReadCommands
             - kusto-mcp_kusto_cluster_get
             - kusto-mcp_kusto_cluster_list
             - kusto-mcp_kusto_database_list
@@ -40,8 +41,6 @@ variants:
             - kusto-mcp_kusto_sample
             - kusto-mcp_kusto_table_list
             - kusto-mcp_kusto_table_schema
-            # - ado-mcp_repo_create_pull_request
-            # - ado-mcp_repo_get_repo_by_name_or_id
       handoffs:
         - agent_names:
             - meta_agent

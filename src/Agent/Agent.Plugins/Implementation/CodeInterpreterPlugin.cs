@@ -26,7 +26,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
     private readonly ILogger<CodeInterpreterPlugin> _logger;
     private readonly ISessionPoolService _sessionPoolService;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly IThreadFileStorageService _threadFileStorageService;
+    private readonly IAgentFileStorageService _agentFileStorageService;
 
     public Guid? ThreadId { get; set; }
 
@@ -34,12 +34,12 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         ILogger<CodeInterpreterPlugin> logger,
         ISessionPoolService sessionPoolService,
         IHostEnvironment hostEnvironment,
-        IThreadFileStorageService threadFileStorageService)
+        IAgentFileStorageService agentFileStorageService)
     {
         _logger = logger;
         _sessionPoolService = sessionPoolService;
         _hostEnvironment = hostEnvironment;
-        _threadFileStorageService = threadFileStorageService;
+        _agentFileStorageService = agentFileStorageService;
     }
 
     public async Task<CodeExecutionResponse> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds)
@@ -65,7 +65,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
             _sessionPoolService,
             identifier,
             threadId,
-            _threadFileStorageService,
+            _agentFileStorageService,
             _logger);
 
         return execResp;
@@ -149,7 +149,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         try
         {
             // Save to ThreadFileStorage for persistence
-            await SessionFileHelper.SaveToThreadFileStorageAsync(threadId, fileBytes, saveAsFilename, _threadFileStorageService, _logger);
+            await SessionFileHelper.SaveToThreadFileStorageAsync(threadId, fileBytes, saveAsFilename, _agentFileStorageService, _logger);
 
             var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
             return $"✅ PDF report generated successfully. Download: [Download {saveAsFilename}]({relativeLink})";
@@ -286,7 +286,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         try
         {
             // Save to ThreadFileStorage for persistence
-            await SessionFileHelper.SaveToThreadFileStorageAsync(threadId, fileBytes, saveAsFilename, _threadFileStorageService, _logger);
+            await SessionFileHelper.SaveToThreadFileStorageAsync(threadId, fileBytes, saveAsFilename, _agentFileStorageService, _logger);
 
             var extension = Path.GetExtension(saveAsFilename).ToLowerInvariant();
             var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
@@ -487,10 +487,10 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         string? tempFilePath;
         try
         {
-            tempFilePath = await _threadFileStorageService.DownloadThreadFileAsync(threadId, fileKey);
+            tempFilePath = await _agentFileStorageService.DownloadThreadFileAsync(threadId, fileKey);
             if (tempFilePath == null)
             {
-                tempFilePath = await _threadFileStorageService.GetToolOutputAsync(fileKey, threadId.ToString());
+                tempFilePath = await _agentFileStorageService.GetToolOutputAsync(fileKey, threadId.ToString());
             }
             if (tempFilePath == null)
             {
