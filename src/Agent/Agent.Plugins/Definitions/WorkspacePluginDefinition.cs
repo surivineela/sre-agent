@@ -32,7 +32,7 @@ public class WorkspacePluginDefinition
     #region File Operations
 
     [Description("Read the contents of a file.\n\nYou must specify the line range you're interested in. Line numbers are 1-indexed. If the file contents returned are insufficient for your task, you may call this tool again to retrieve more content. Prefer reading larger ranges over doing many small reads.")]
-    [AgentTool(ToolMode.Auto)]
+    [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public async Task<string> ReadFile(
         [Description("The absolute path of the file to read.")] string filePath,
         [Description("The line number to start reading from, 1-based.")] int startLine,
@@ -322,7 +322,7 @@ public class WorkspacePluginDefinition
     #region Task Management
 
     [Description("Manage a structured todo list to track progress and plan tasks throughout your coding session. Use this tool VERY frequently to ensure task visibility and proper planning.\n\nWhen to use this tool:\n- Complex multi-step work requiring planning and tracking\n- When user provides multiple tasks or requests (numbered/comma-separated)\n- After receiving new instructions that require multiple steps\n- BEFORE starting work on any todo (mark as in-progress)\n- IMMEDIATELY after completing each todo (mark completed individually)\n- When breaking down larger tasks into smaller actionable steps\n- To give users visibility into your progress and planning\n\nWhen NOT to use:\n- Single, trivial tasks that can be completed in one step\n- Purely conversational/informational requests\n- When just reading files or performing simple searches\n\nCRITICAL workflow:\n1. Plan tasks by writing todo list with specific, actionable items\n2. Mark ONE todo as in-progress before starting work\n3. Complete the work for that specific todo\n4. Mark that todo as completed IMMEDIATELY\n5. Move to next todo and repeat\n\nTodo states:\n- not-started: Todo not yet begun\n- in-progress: Currently working (limit ONE at a time)\n- completed: Finished successfully\n\nIMPORTANT: Mark todos completed as soon as they are done. Do not batch completions.")]
-    [AgentTool(ToolMode.Auto)]
+    [AgentTool(ToolMode.Auto, DisableOutputTruncation = true)]
     public async Task<string> ManageTodoList(
         [Description("write: Replace entire todo list with new content. read: Retrieve current todo list. ALWAYS provide complete list when writing - partial updates not supported.")] string operation,
         [Description("Complete array of all todo items (required for write operation, ignored for read). Must include ALL items - both existing and new.")] WorkspaceTodoItem[]? todoList = null)

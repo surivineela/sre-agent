@@ -35,7 +35,6 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "AGENT_ENDPOINT": "https://localhost:7023/",
-        "FORCE_EXPERIMENT_VARIANTS": "workspace=workspace_agent",
         "AppSettings__Core__Experimental__EnableWorkspaceTools": "true"
       },
       "dotnetRunMessages": true,

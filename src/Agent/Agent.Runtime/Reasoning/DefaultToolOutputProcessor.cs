@@ -50,6 +50,12 @@ public class DefaultToolOutputProcessor : IToolOutputProcessor
         {
             outputString = str;
         }
+        else if (output is JsonElement jsonElement
+            && jsonElement.ValueKind == JsonValueKind.String)
+        {
+            // Handle JsonElement specifically to avoid double serialization
+            outputString = jsonElement.GetString()!;
+        }
         else
         {
             // Serialize object to JSON
