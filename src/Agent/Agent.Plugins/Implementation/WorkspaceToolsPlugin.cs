@@ -4,16 +4,15 @@
 
 using System.Collections.Concurrent;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Common.Services;
 using Agent.Core;
 using Agent.Core.Configuration;
-using Agent.Core.Models.Api.v1;
+using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Framework;
 using Agent.Plugins.Interface;
-using Agent.Plugins.Models.WorkspaceTools;
 using Agent.Plugins.Services;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
@@ -136,23 +135,14 @@ public partial class WorkspaceToolsPlugin : IWorkspaceToolsPlugin, IAmbientConte
     public Task<string> ReplaceStringInFileAsync(string filePath, string oldString, string newString)
         => _fileTool.ReplaceStringInFileAsync(filePath, oldString, newString);
 
-    public async Task<string> MultiReplaceStringInFileAsync(string explanation, Models.WorkspaceTools.ReplaceOperation[] replacements)
+    public async Task<string> MultiReplaceStringInFileAsync(string explanation, ReplaceOperation[] replacements)
     {
         if (replacements == null || replacements.Length == 0)
         {
             return "Tool call failed: No replacement operations provided";
         }
 
-        // Convert to Common.Services.ReplaceOperation for IFileTool
-        var commonReplacements = replacements.Select(r => new Common.Services.ReplaceOperation
-        {
-            Explanation = r.Explanation,
-            FilePath = r.FilePath,
-            OldString = r.OldString,
-            NewString = r.NewString
-        }).ToArray();
-
-        return await _fileTool.MultiReplaceStringInFileAsync(explanation, commonReplacements);
+        return await _fileTool.MultiReplaceStringInFileAsync(explanation, replacements);
     }
 
     #endregion

@@ -2,9 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Plugins.Models.WorkspaceTools;
+using Agent.Common.Services;
+using Agent.Core.Models;
 
-namespace Agent.Plugins.Interface;
+namespace Agent.Core.Interfaces;
 
 /// <summary>
 /// Interface for VS Code-like agent tools implementation.

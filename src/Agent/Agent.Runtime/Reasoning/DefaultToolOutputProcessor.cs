@@ -79,6 +79,7 @@ public class DefaultToolOutputProcessor : IToolOutputProcessor
             var fileKey = await context.SaveOutput(
                 context.ThreadId,
                 context.ToolName,
+                context.CallId,
                 outputString,
                 contentType,
                 cancellationToken);

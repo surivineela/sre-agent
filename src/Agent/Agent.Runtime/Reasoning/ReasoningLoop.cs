@@ -627,6 +627,7 @@ public class ReasoningLoop : IDisposable
                                         var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                             _context.ThreadId,
                                             funcCallName,
+                                            functionResult.CallId,
                                             functionResult.Result?.ToString() ?? "",
                                             cancellationToken);
 
@@ -1077,6 +1078,7 @@ public class ReasoningLoop : IDisposable
                                             var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                                 _context.ThreadId,
                                                 toolCall.Tool,
+                                                toolCall.FunctionCall.CallId,
                                                 result,
                                                 cancellationToken);
 
@@ -2185,7 +2187,7 @@ public class ReasoningLoop : IDisposable
             FunctionResultContent result;
             if (_featureConfig.PartialOutputEnabled)
             {
-                var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(_context.ThreadId, aiTool, functionResult, cancellationToken);
+                var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(_context.ThreadId, aiTool, functionCall.CallId, functionResult, cancellationToken);
                 result = new FunctionResultContent(functionCall.CallId, processedOutput);
             }
             else
@@ -2956,6 +2958,7 @@ public class ReasoningLoop : IDisposable
                 chatHistoryFileKey = await _agentFileStorageService.SaveToolOutputAsync(
                     threadId: _context.ThreadId,
                     toolName: "compaction_history",
+                    callId: DateTime.UtcNow.ToString("yyyyMMddHHmmssfff"),
                     content: fullChatTranscript,
                     extension: "txt",
                     cancellationToken: cancellationToken);
@@ -3606,6 +3609,7 @@ public class ReasoningLoop : IDisposable
                             var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                 _context.ThreadId,
                                 toolCall.Tool,
+                                toolCall.FunctionCall.CallId,
                                 functionResult?.ToString(),
                                 cancellationToken);
 

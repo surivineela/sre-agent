@@ -43,6 +43,7 @@ public interface IAgentFileStorageService
     /// </summary>
     /// <param name="threadId">The thread ID associated with this output</param>
     /// <param name="toolName">The name of the tool that produced this output</param>
+    /// <param name="callId">The unique call ID for this tool invocation</param>
     /// <param name="content">The full content to store</param>
     /// <param name="extension">The file extension for the output (e.g., json, yaml, txt)</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -50,6 +51,7 @@ public interface IAgentFileStorageService
     Task<string> SaveToolOutputAsync(
         Guid threadId,
         string toolName,
+        string callId,
         string content,
         string extension,
         CancellationToken cancellationToken = default);

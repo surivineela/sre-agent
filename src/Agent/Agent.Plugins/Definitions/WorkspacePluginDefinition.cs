@@ -4,12 +4,12 @@
 
 using System.ComponentModel;
 using System.Text.Json;
+using Agent.Common.Services;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
 using Agent.Plugins.Interface;
-using Agent.Plugins.Models.WorkspaceTools;
 
 namespace Agent.Plugins.Definitions;
 
@@ -185,7 +185,7 @@ public class WorkspacePluginDefinition
         var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
         try
         {
-            var grepResult = JsonSerializer.Deserialize<GrepSearchResult>(jsonResult, new JsonSerializerOptions
+            var grepResult = JsonSerializer.Deserialize<Agent.Core.Models.Api.v1.GrepSearchResult>(jsonResult, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });

@@ -4,12 +4,11 @@
 
 using System.Text.RegularExpressions;
 using Agent.Common.Services;
-using Agent.Core;
-using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
-using Agent.Framework;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Services;
 
 namespace Agent.Web.Services;
@@ -51,8 +50,7 @@ public class TsgConnectorCloneService : BackgroundService
     public TsgConnectorCloneService(
         ITsgConnectorRepository repository,
         ILogger<TsgConnectorCloneService> logger,
-        ExperimentalSettings experimentalSettings,
-        IExperimentLoader experimentLoader)
+        IWorkspaceToolsPlugin workspaceToolsPlugin)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         var sandboxPaths = new LocalSandboxPaths();
@@ -60,8 +58,7 @@ public class TsgConnectorCloneService : BackgroundService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         // Cache enabled state once - same pattern as WorkspaceToolsPlugin
-        Enabled = experimentalSettings.EnableWorkspaceTools
-            || experimentLoader.IsFeatureFlagEnabled(Constants.FeatureFlags.EnableWorkspaceTools);
+        Enabled = workspaceToolsPlugin.Enabled;
     }
 
     /// <summary>

@@ -4,7 +4,7 @@
 
 using System.ComponentModel;
 
-namespace Agent.Plugins.Models.WorkspaceTools;
+namespace Agent.Core.Models;
 
 /// <summary>
 /// Represents a todo item in the manage_todo_list tool.

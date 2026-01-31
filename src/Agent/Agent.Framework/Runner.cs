@@ -1069,7 +1069,7 @@ public static class Runner
                             // Process tool output for potential truncation
                             if (runConfig.EnablePartialToolOutput && toolOutputProcessService != null)
                             {
-                                toolResult = await toolOutputProcessService.ProcessToolOutputAsync(contextWrapper.Context, tool, toolResult, cancellationToken);
+                                toolResult = await toolOutputProcessService.ProcessToolOutputAsync(contextWrapper.Context, tool, functionCall.CallId, toolResult, cancellationToken);
                             }
                         }
                         catch (Exception e)

@@ -36,18 +36,23 @@ public class AgentFileStorageService : IAgentFileStorageService
     public AgentFileStorageService(
         IOptions<ToolOutputSettings> settings,
         ILogger<AgentFileStorageService> logger,
-        IRemoteFileStorage remoteStorage)
+        IRemoteFileStorage remoteStorage,
+        IWorkspaceToolsPlugin workspaceToolsPlugin)
     {
         _remoteStorage = remoteStorage;
         _settings = settings.Value;
         _logger = logger;
 
-        // Use configured path if available, otherwise fall back to temp directory
-        var basePath = !string.IsNullOrEmpty(_settings.StoragePath)
-            ? _settings.StoragePath
-            : Path.Combine(Path.GetTempPath(), "SREAgent");
+        // Determine base path for tool outputs and thread files
+        var basePath = workspaceToolsPlugin.Enabled
+            // When workspace tools are enabled, use sandbox tmp path
+            ? new LocalSandboxPaths().SandboxPaths.TmpPath
+            // Use configured path if available, otherwise fall back to temp directory
+            : !string.IsNullOrEmpty(_settings.StoragePath)
+                ? _settings.StoragePath
+                : Path.Combine(Path.GetTempPath(), "SREAgent");
 
-        _localToolOutputPath = Path.Combine(basePath, "ToolOutput");
+        _localToolOutputPath = Path.Combine(basePath, "ToolOutputs");
         _localThreadFilesPath = Path.Combine(basePath, "ThreadFiles");
         _localSandboxMemoryPath = new LocalSandboxPaths().SandboxPaths.MemoriesPath;
 
@@ -186,6 +191,7 @@ public class AgentFileStorageService : IAgentFileStorageService
     public async Task<string> SaveToolOutputAsync(
         Guid threadId,
         string toolName,
+        string callId,
         string content,
         string extension,
         CancellationToken cancellationToken = default)
@@ -201,14 +207,18 @@ public class AgentFileStorageService : IAgentFileStorageService
             extension = $".{extension}";
         }
 
-        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
-        var fileKey = $"{threadId}-{timestamp}{extension}";
+        // Use callId-based naming: {threadId}/{toolName}_{callId}{extension}
+        var fileKey = $"{threadId}/{toolName}_{callId}{extension}";
         var lineCount = content.Split('\n').Length;
         var contentLength = content.Length;
 
         _logger.LogInternalInformation(
-            "Saving tool output for thread {ThreadId}, tool {ToolName}, fileKey {FileKey}, lines {LineCount}, length {Length}, extension {Extension}",
-            threadId, toolName, fileKey, lineCount, contentLength, extension);
+            "Saving tool output for thread {ThreadId}, tool {ToolName}, callId {CallId}, fileKey {FileKey}, lines {LineCount}, length {Length}, extension {Extension}",
+            threadId, toolName, callId, fileKey, lineCount, contentLength, extension);
+
+        // Ensure thread directory exists
+        var threadDir = Path.Combine(_localToolOutputPath, threadId.ToString());
+        Directory.CreateDirectory(threadDir);
 
         // Always save locally first
         var localFilePath = Path.Combine(_localToolOutputPath, fileKey);
@@ -219,7 +229,7 @@ public class AgentFileStorageService : IAgentFileStorageService
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Failed to save tool output locally for thread {ThreadId}, tool {ToolName}", threadId, toolName);
+            _logger.LogInternalError(ex, "Failed to save tool output locally for thread {ThreadId}, tool {ToolName}, callId {CallId}", threadId, toolName, callId);
             throw;
         }
 
@@ -251,19 +261,21 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         try
         {
-            // Sanitize fileKey to prevent path traversal and glob pattern injection
-            var sanitizedFileKey = Path.GetFileName(fileKey);
-
-            if (string.IsNullOrWhiteSpace(sanitizedFileKey) ||
-                sanitizedFileKey.Contains("..") ||
-                sanitizedFileKey.IndexOfAny(new[] { '*', '?' }) >= 0)
+            // File key format: {threadId}/{toolName}_{callId}{extension}
+            // Validate that the key doesn't contain path traversal attempts
+            if (fileKey.Contains("..") ||
+                fileKey.IndexOfAny(new[] { '*', '?' }) >= 0)
             {
                 _logger.LogInternalWarning("Invalid fileKey detected: {FileKey}", fileKey);
                 return null;
             }
 
+            // Normalize path separators and construct full local path
+            var normalizedFileKey = fileKey.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+
             // Validate path security (prevents path traversal and symlink attacks)
-            if (!PathSecurityHelper.TryGetSafeFilePath(_localToolOutputPath, sanitizedFileKey, out var toolOutputFilePath) || toolOutputFilePath == null)
+            if (!PathSecurityHelper.TryGetSafeFilePath(_localToolOutputPath, normalizedFileKey, out var toolOutputFilePath)
+                || toolOutputFilePath == null)
             {
                 _logger.LogInternalWarning("Path traversal or symlink attack detected for {FileKey}", fileKey);
                 return null;
@@ -276,10 +288,17 @@ public class AgentFileStorageService : IAgentFileStorageService
                 return toolOutputFilePath;
             }
 
+            // Ensure the thread directory exists for remote download
+            var threadDir = Path.GetDirectoryName(toolOutputFilePath);
+            if (!string.IsNullOrEmpty(threadDir))
+            {
+                Directory.CreateDirectory(threadDir);
+            }
+
             // Try to download from remote storage (no-op returns false if not configured)
             var downloaded = await _remoteStorage.DownloadAsync(
                 _settings.BlobStorageContainerName,
-                sanitizedFileKey,
+                fileKey,
                 toolOutputFilePath,
                 cancellationToken);
 
@@ -342,28 +361,41 @@ public class AgentFileStorageService : IAgentFileStorageService
             }
         }
 
-        // Clean up local tool output files with thread prefix
-        try
+        // Clean up local tool output files - stored in {threadId}/ subdirectory
+        var toolOutputDir = Path.Combine(_localToolOutputPath, threadId.ToString());
+        if (Directory.Exists(toolOutputDir))
         {
-            var threadPrefix = $"{threadId}-";
-            var toolOutputFiles = Directory.EnumerateFiles(_localToolOutputPath, $"{threadId}-*.*", SearchOption.TopDirectoryOnly);
-            foreach (var file in toolOutputFiles)
+            try
             {
+                var files = Directory.GetFiles(toolOutputDir);
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        File.Delete(file);
+                        deletedCount++;
+                        _logger.LogInternalDebug("Deleted local tool output file for thread {ThreadId}: {FilePath}", threadId, file);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalWarning(ex, "Failed to delete local tool output file: {FilePath}", file);
+                    }
+                }
+
+                // Try to remove the directory
                 try
                 {
-                    File.Delete(file);
-                    deletedCount++;
-                    _logger.LogInternalDebug("Deleted local tool output file for thread {ThreadId}: {FilePath}", threadId, file);
+                    Directory.Delete(toolOutputDir);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    _logger.LogInternalWarning(ex, "Failed to delete local tool output file: {FilePath}", file);
+                    // Ignore - directory might not be empty due to timing
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error cleaning up local tool output files for thread {ThreadId}", threadId);
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error cleaning up local tool output files for thread {ThreadId}", threadId);
+            }
         }
 
         // Clean up remote storage (no-op returns 0 if not configured)
@@ -376,12 +408,19 @@ public class AgentFileStorageService : IAgentFileStorageService
                 cancellationToken);
             deletedCount += threadFilesDeleted;
 
-            // Clean up tool outputs in remote storage
+            // Clean up tool outputs in remote storage (new format: {threadId}/ prefix)
             var toolOutputsDeleted = await _remoteStorage.DeleteByPrefixAsync(
+                _settings.BlobStorageContainerName,
+                $"{threadId}/",
+                cancellationToken);
+            deletedCount += toolOutputsDeleted;
+
+            // BACKCOMPAT: Clean up tool outputs in remote storage (old format: {threadId}-{timestamp}.{ext})
+            var toolOutputsDeletedCompat = await _remoteStorage.DeleteByPrefixAsync(
                 _settings.BlobStorageContainerName,
                 $"{threadId}-",
                 cancellationToken);
-            deletedCount += toolOutputsDeleted;
+            deletedCount += toolOutputsDeletedCompat;
         }
         catch (Exception ex)
         {

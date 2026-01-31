@@ -16,6 +16,7 @@ public interface IToolOutputProcessService
     /// </summary>
     /// <param name="threadId">The thread ID for this execution</param>
     /// <param name="tool">The AIFunction that produced this output</param>
+    /// <param name="callId">The unique call ID for this tool invocation</param>
     /// <param name="output">The original tool output (string or object that will be serialized to JSON)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>
@@ -25,6 +26,7 @@ public interface IToolOutputProcessService
     Task<object?> ProcessToolOutputAsync(
         Guid threadId,
         AIFunction tool,
+        string callId,
         object? output,
         CancellationToken cancellationToken = default);
 
@@ -34,6 +36,7 @@ public interface IToolOutputProcessService
     /// <typeparam name="TContext">The context type that contains a ThreadId property</typeparam>
     /// <param name="context">The context containing thread information</param>
     /// <param name="tool">The AIFunction that produced this output</param>
+    /// <param name="callId">The unique call ID for this tool invocation</param>
     /// <param name="output">The original tool output (string or object that will be serialized to JSON)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>
@@ -43,6 +46,7 @@ public interface IToolOutputProcessService
     Task<object?> ProcessToolOutputAsync<TContext>(
         TContext? context,
         AIFunction tool,
+        string callId,
         object? output,
         CancellationToken cancellationToken = default) where TContext : class;
 
@@ -51,6 +55,7 @@ public interface IToolOutputProcessService
     /// </summary>
     /// <param name="threadId">The thread ID for this execution</param>
     /// <param name="toolName">The name of the tool that produced this output</param>
+    /// <param name="callId">The unique call ID for this tool invocation</param>
     /// <param name="output">The original tool output (string or object that will be serialized to JSON)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>
@@ -60,6 +65,7 @@ public interface IToolOutputProcessService
     Task<object?> ProcessToolOutputAsync(
         Guid threadId,
         string toolName,
+        string callId,
         object? output,
         CancellationToken cancellationToken = default);
 }
