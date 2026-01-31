@@ -668,15 +668,18 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             .ToHashSet();
 
         // Create threads for handling agents that don't have threads yet
-        // Note: When handlingAgents contains empty string (""), we need to check against filter.Id
-        // because thread creation sets HandlerId = filter.Id when HandlingAgent is empty
+        // Note: When handlingAgents contains empty string (""), check by FilterId since
+        // HandlerId may be either filter.Id (MetaAgent path) or incidentHandler.Id (Handler path)
         var agentsNeedingThreads = handlingAgents
             .Where(agent =>
             {
                 if (string.IsNullOrEmpty(agent))
                 {
-                    // Empty agent maps to filter.Id in thread creation
-                    return !existingHandlerIds.Contains(filter.Id ?? string.Empty);
+                    // When HandlingAgent is empty, check if any thread exists for this filter
+                    // (HandlerId may be filter.Id or incidentHandler.Id depending on path)
+                    var hasThreadForFilter = existingThreads.Any(t =>
+                        t.IncidentDetails?.FilterId == filter.Id);
+                    return !hasThreadForFilter;
                 }
                 return !existingHandlerIds.Contains(agent);
             })
@@ -699,7 +702,8 @@ public class IcmScanner(ILogger<IcmScanner> logger,
 
         // Filter threads to only those whose handler is in the current trigger's handling agents list
         // This ensures we only send events to threads that belong to handlers for this trigger
-        // Note: When handlingAgents contains empty string, we also match threads with HandlerId = filter.Id
+        // Note: When handlingAgents contains empty string, match by FilterId since HandlerId
+        // may be either filter.Id (MetaAgent path) or incidentHandler.Id (Handler path)
         var threadsToProcess = existingThreads
             .Where(t =>
             {
@@ -714,8 +718,9 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     return true;
 
                 // Indirect match: If handlingAgents has empty string (meta_agent fallback),
-                // also match threads where HandlerId = filter.Id (since that's what thread creation sets)
-                if (handlingAgents.Contains(string.Empty) && threadHandlerId == filter.Id)
+                // match threads belonging to this filter (by FilterId, not HandlerId)
+                if (handlingAgents.Contains(string.Empty) &&
+                    t.IncidentDetails?.FilterId == filter.Id)
                     return true;
 
                 return false;
