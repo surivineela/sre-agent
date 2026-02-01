@@ -935,6 +935,8 @@ export const SreAgentResources = defineMessages({
     },
     dismiss: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
     openMenu: { defaultMessage: 'Agent configuration and more', id: 'qTuUKM' },
+    toolCalls: { defaultMessage: 'Tool calls', id: '/ZNQCX' },
+    otherToolCalls: { defaultMessage: '+{count} other tool calls', id: 'xWArib' },
 });
 
 export const SreAgentTabResources = defineMessages({

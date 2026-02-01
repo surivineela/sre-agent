@@ -1251,4 +1251,35 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         if (context == null) return null;
         return context.AgentHandoffChain?.LastOrDefault() ?? context.CurrentAgent;
     }
+
+    public async Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        try
+        {
+            // If no cancellation token provided, try to get it from AsyncLocal (set during tool execution)
+            if (cancellationToken == default && ToolStatic.AsyncLocalCancellationToken.Value != default)
+            {
+                cancellationToken = ToolStatic.AsyncLocalCancellationToken.Value;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await _streamingService.StreamTaskToolExecutionUpdateAsync(threadId, executionData, messageType, messageId, recordedDateTime: recordedDateTime, cancellationToken: cancellationToken);
+
+            _logger.LogExternalInformation("Successfully sent Task tool execution update for thread {ThreadId} with type {MessageType}", threadId, messageType);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Task tool execution update streaming cancelled for thread {ThreadId}", threadId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream Task tool execution update for thread {ThreadId}", threadId);
+        }
+    }
 }

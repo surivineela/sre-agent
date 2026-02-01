@@ -156,6 +156,25 @@ namespace Agent.Tests.Common.Mocks
 
             return Task.CompletedTask;
         }
+
+        public Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+        {
+            var streamedMessage = new StreamedMessage
+            {
+                ThreadId = threadId,
+                Message = executionData,
+                Type = messageType,
+                Timestamp = DateTime.UtcNow,
+                MessageId = messageId ?? Guid.NewGuid()
+            };
+
+            StreamedMessages.Add(streamedMessage);
+
+            _logger.LogInternalInformation("Mock: Streamed task tool execution update for thread {ThreadId} with type {Type}: {ExecutionData}",
+                threadId, messageType, executionData);
+
+            return Task.CompletedTask;
+        }
     }
 
     public class StreamedMessage

@@ -454,7 +454,34 @@ export type AppEvent =
   | { type: 'tool_error'; tool: ToolCall; error: Error }
   | { type: 'tool_denied'; tool: ToolCall }
   | { type: 'stream_chunk'; chunk: string }
-  | { type: 'error'; error: Error };
+  | { type: 'error'; error: Error }
+  | { type: 'subagent_start'; execution: SubAgentExecution }
+  | { type: 'subagent_progress'; execution: SubAgentExecution }
+  | { type: 'subagent_complete'; execution: SubAgentExecution };
+
+// ============================================================================
+// SubAgent Types (Task Tool)
+// ============================================================================
+
+export type SubAgentType = 'Explore' | 'Plan' | 'CodeReview' | 'KustoQuery';
+export type SubAgentStatus = 'pending' | 'running' | 'complete' | 'error';
+
+export interface SubAgentToolInvocation {
+  toolName: string;
+  description?: string;
+  status: 'running' | 'complete' | 'error';
+}
+
+export interface SubAgentExecution {
+  id: string;
+  description: string;
+  subagentType: SubAgentType;
+  prompt: string;
+  status: SubAgentStatus;
+  result?: string;
+  error?: string;
+  toolInvocations?: SubAgentToolInvocation[];
+}
 
 // ============================================================================
 // System Message Types (for formatted system notifications)

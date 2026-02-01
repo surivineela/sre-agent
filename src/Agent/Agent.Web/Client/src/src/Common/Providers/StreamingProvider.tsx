@@ -55,6 +55,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
     const threadUpdateHandlersRef = useRef<Set<(...args: any[]) => void>>(new Set());
     const taskUpdateHandlersRef = useRef<Set<(...args: any[]) => void>>(new Set());
     const todoPlanUpdateHandlersRef = useRef<Set<(...args: any[]) => void>>(new Set());
+    const subagentUpdateHandlersRef = useRef<Set<(...args: any[]) => void>>(new Set());
 
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
     const proxy = useContext(AzPortalContext);
@@ -106,6 +107,14 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         };
     }, []);
 
+    const subscribeSubagentUpdateEvent = useCallback((handler: (message: StreamingMessage) => void) => {
+        subagentUpdateHandlersRef.current.add(handler);
+
+        return () => {
+            subagentUpdateHandlersRef.current.delete(handler);
+        };
+    }, []);
+
     const configureEventListeners = () => {
         connectionRef.current?.on(MessageResponseType.MessageUpdate, (message: StreamingMessage) => {
             latestMessageUpdateCallback(message);
@@ -120,6 +129,9 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         connectionRef.current?.on(MessageResponseType.TodoPlanUpdate, (message: StreamingMessage) => {
             todoPlanUpdateHandlersRef.current.forEach(handler => handler(message));
         });
+        connectionRef.current?.on(MessageResponseType.SubagentUpdate, (message: StreamingMessage) => {
+            subagentUpdateHandlersRef.current.forEach(handler => handler(message));
+        });
     };
 
     const cleanupEventListeners = () => {
@@ -127,6 +139,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         connectionRef.current?.off(MessageResponseType.ThreadUpdate);
         connectionRef.current?.off(MessageResponseType.TaskUpdate);
         connectionRef.current?.off(MessageResponseType.TodoPlanUpdate);
+        connectionRef.current?.off(MessageResponseType.SubagentUpdate);
     };
 
     const cleanupHandlers = () => {
@@ -134,6 +147,7 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
         threadUpdateHandlersRef.current.clear();
         taskUpdateHandlersRef.current.clear();
         todoPlanUpdateHandlersRef.current.clear();
+        subagentUpdateHandlersRef.current.clear();
     };
 
     const sendMessage = (method: MessageRequestType, ...args: any[]) => {
@@ -157,6 +171,10 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
 
     const cancelMessageStreaming = useCallback((threadId: string) => {
         sendMessage(MessageRequestType.CancelThread, threadId);
+    }, []);
+
+    const cancelTaskExecution = useCallback((executionId: string) => {
+        sendMessage(MessageRequestType.CancelTaskExecution, executionId);
     }, []);
 
     const submitUserQuestionResponse = useCallback(
@@ -332,11 +350,13 @@ export const StreamingProvider = ({ children }: { children?: ReactNode }) => {
                 startMessageStreamingOnNewThread,
                 startMessageStreamingOnExistingThread,
                 cancelMessageStreaming,
+                cancelTaskExecution,
                 submitUserQuestionResponse,
                 subscribeMessageUpdateEvent,
                 subscribeThreadUpdateEvent,
                 subscribeTaskUpdateEvent,
                 subscribeTodoPlanUpdateEvent,
+                subscribeSubagentUpdateEvent,
                 isConnecting,
                 isConnected,
                 isReconnecting,

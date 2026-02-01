@@ -18,3 +18,6 @@ export type { ToolInvocationProps, ToolStatus } from './ToolInvocation';
 
 export { SystemMessage } from './SystemMessage';
 export type { SystemMessageProps } from './SystemMessage';
+
+export { SubAgentInvocation, SubAgentGroup, SubAgentStatusLine } from './SubAgentInvocation';
+export type { SubAgentInvocationProps, SubAgentGroupProps } from './SubAgentInvocation';

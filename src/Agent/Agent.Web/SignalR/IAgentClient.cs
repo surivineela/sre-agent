@@ -55,5 +55,10 @@ namespace Agent.Web.SignalR
         /// Responds to a ping with the current timestamp
         /// </summary>
         Task Pong(DateTime timestamp);
+
+        /// <summary>
+        /// Sends a Task tool (subagent) execution update to the client
+        /// </summary>
+        Task SubagentUpdate(ChatResponseUpdate update);
     }
 }

@@ -81,6 +81,31 @@ namespace Agent.Web.SignalR
             }
         }
 
+        /// <summary>
+        /// Cancels a running Task tool execution by its execution ID.
+        /// </summary>
+        /// <param name="executionId">The unique execution ID of the task to cancel</param>
+        /// <returns>True if the task was found and cancelled, false if not found</returns>
+        [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
+        public Task<bool> CancelTaskExecution(string executionId)
+        {
+            var connectionId = Context.ConnectionId;
+            _logger.LogInternalInformation($"SignalR CancelTaskExecution request from {connectionId} for execution {executionId}");
+
+            var result = Agent.Framework.TaskTool.TaskToolCancellationRegistry.CancelExecution(executionId);
+
+            if (result)
+            {
+                _logger.LogInternalInformation($"Successfully cancelled task execution {executionId}");
+            }
+            else
+            {
+                _logger.LogInternalWarning($"Task execution {executionId} not found or already completed");
+            }
+
+            return Task.FromResult(result);
+        }
+
         [AuthorizeArmOperation(ArmOperations.AgentThreadWriteActionId)]
         public Task CreateThread(Guid userDefinedThreadId, CreateThreadRequest request, bool textOnly = false)
         {

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Framework.TaskTool;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Framework;
@@ -24,6 +25,12 @@ public class RunHooks<TContext> where TContext : class
     public delegate Task InputInjectionDelegate(RunContextWrapper<TContext> context, ChatMessage injectedMessage, string injectionSource);
     public delegate Task CompactionStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
     public delegate Task CompactionEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent);
+    public delegate Task TaskToolGroupStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecutionGroup group);
+    public delegate Task TaskToolGroupEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecutionGroup group);
+    public delegate Task TaskToolExecutionStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecution execution);
+    public delegate Task TaskToolExecutionEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecution execution);
+    public delegate Task TaskToolInvocationStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, string? description);
+    public delegate Task TaskToolInvocationEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, bool success);
     public event AgentStartDelegate? AgentStart;
     public event AgentEndDelegate? AgentEnd;
     public event ToolStartDelegate? ToolStart;
@@ -40,6 +47,12 @@ public class RunHooks<TContext> where TContext : class
     public event InputInjectionDelegate? InputInjection;
     public event CompactionStartDelegate? CompactionStart;
     public event CompactionEndDelegate? CompactionEnd;
+    public event TaskToolGroupStartDelegate? TaskToolGroupStart;
+    public event TaskToolGroupEndDelegate? TaskToolGroupEnd;
+    public event TaskToolExecutionStartDelegate? TaskToolExecutionStart;
+    public event TaskToolExecutionEndDelegate? TaskToolExecutionEnd;
+    public event TaskToolInvocationStartDelegate? TaskToolInvocationStart;
+    public event TaskToolInvocationEndDelegate? TaskToolInvocationEnd;
     public Task OnAgentStart(RunContextWrapper<TContext> context, Agent<TContext> agent) => AgentStart?.Invoke(context, agent) ?? Task.CompletedTask;
     public Task OnAgentEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, object? result) => AgentEnd?.Invoke(context, agent, result) ?? Task.CompletedTask;
     public Task OnToolStart(RunContextWrapper<TContext> context, Agent<TContext> agent, FunctionCallContent functionCallContent, AIFunction tool, IEnumerable<KeyValuePair<string, object?>>? arguments) => ToolStart?.Invoke(context, agent, functionCallContent, tool, arguments) ?? Task.CompletedTask;
@@ -56,4 +69,10 @@ public class RunHooks<TContext> where TContext : class
     public Task OnInputInjection(RunContextWrapper<TContext> context, ChatMessage injectedMessage, string injectionSource) => InputInjection?.Invoke(context, injectedMessage, injectionSource) ?? Task.CompletedTask;
     public Task OnCompactionStart(RunContextWrapper<TContext> context, Agent<TContext> agent) => CompactionStart?.Invoke(context, agent) ?? Task.CompletedTask;
     public Task OnCompactionEnd(RunContextWrapper<TContext> context, Agent<TContext> agent) => CompactionEnd?.Invoke(context, agent) ?? Task.CompletedTask;
+    public Task OnTaskToolGroupStart(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecutionGroup group) => TaskToolGroupStart?.Invoke(context, agent, group) ?? Task.CompletedTask;
+    public Task OnTaskToolGroupEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecutionGroup group) => TaskToolGroupEnd?.Invoke(context, agent, group) ?? Task.CompletedTask;
+    public Task OnTaskToolExecutionStart(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecution execution) => TaskToolExecutionStart?.Invoke(context, agent, execution) ?? Task.CompletedTask;
+    public Task OnTaskToolExecutionEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecution execution) => TaskToolExecutionEnd?.Invoke(context, agent, execution) ?? Task.CompletedTask;
+    public Task OnTaskToolInvocationStart(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, string? description) => TaskToolInvocationStart?.Invoke(context, agent, executionId, toolName, description) ?? Task.CompletedTask;
+    public Task OnTaskToolInvocationEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, bool success) => TaskToolInvocationEnd?.Invoke(context, agent, executionId, toolName, success) ?? Task.CompletedTask;
 }

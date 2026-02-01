@@ -28,6 +28,7 @@ variants:
             - FetchWebpage
             - AskUserQuestion
             - read_skill_file
+            - Task
             - GetTopDiscussionEntries
             - GetIncidentDetails
             - GetIncidentAlertDetails

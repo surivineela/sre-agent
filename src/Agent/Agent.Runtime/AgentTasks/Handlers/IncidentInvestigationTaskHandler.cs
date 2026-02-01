@@ -301,6 +301,10 @@ public sealed class IncidentInvestigationTaskHandler(
             // Register the step completion hook once at the beginning
             runHooks.ToolStart += HandleReportStepCompletionToolCallAsync;
 
+            // Subscribe Task tool streaming hooks for real-time subagent execution updates
+            var taskToolStreamingHelper = new TaskToolStreamingHelper(outboundCommunicationService, agentTask.ThreadId);
+            taskToolStreamingHelper.SubscribeTo(runHooks);
+
             runHooks.ResolveFactoryTools += (runContext, agent, additionalToolNames) =>
             {
                 List<AIFunction> tools = [];

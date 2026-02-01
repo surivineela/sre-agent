@@ -252,5 +252,13 @@ public class MockCommunicationService : IAgentOutboundCommunicationService
         Messages.Add(terminalResult?.Command ?? string.Empty);
         return Task.FromResult(Guid.NewGuid());
     }
+
+    public Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _logger?.LogInternalInformation($"Mock: Task tool execution update for thread {threadId} with type {messageType}: {executionData}");
+        Messages.Add(executionData);
+        return Task.CompletedTask;
+    }
 }
 

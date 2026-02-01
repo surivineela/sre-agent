@@ -162,4 +162,10 @@ public interface IAgentOutboundCommunicationService
     /// Streams the execution details to the frontend for display.
     /// </summary>
     Task NotifyMcpToolExecution(Guid threadId, McpToolExecution execution, Guid messageId = default);
+
+    /// <summary>
+    /// Streams a Task tool (subagent) execution update to clients.
+    /// Used for real-time progress display of parallel subagent executions.
+    /// </summary>
+    Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
 }

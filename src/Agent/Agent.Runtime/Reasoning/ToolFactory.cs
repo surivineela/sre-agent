@@ -8,6 +8,7 @@ using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Framework;
 using Agent.Framework.Skills;
+using Agent.Framework.TaskTool;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Tools;
@@ -377,6 +378,12 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         RegisterTool(
             ReadSkillFileTool<TContext>.ToolName,
             new AIDynamicTool<TContext>((threadId, agentMode, agent) => new ReadSkillFileTool<TContext>(_skillRegistry, agent)),
+            onNameConflict);
+
+        // Register the Task tool for spawning subagents (e.g., Explore agent)
+        RegisterTool(
+            "Task",
+            new AIDynamicTool<TContext>((threadId, agentMode, agent) => TaskTool<TContext>.Create()),
             onNameConflict);
 
         if (_mcpToolsRepository != null)

@@ -154,6 +154,12 @@ class MockStreamingService : IStreamingService
         _logger.LogInternalInformation("Mock: Todo plan update for thread {ThreadId}: {TodoPlanData}", threadId, todoPlanData);
         return Task.CompletedTask;
     }
+
+    public Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Mock: Task tool execution update for thread {ThreadId} with type {Type}: {ExecutionData}", threadId, messageType, executionData);
+        return Task.CompletedTask;
+    }
 }
 
 class Program

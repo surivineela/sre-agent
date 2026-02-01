@@ -89,5 +89,17 @@ namespace Agent.Core.Interfaces
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task StreamChatResponseUpdateAsync(Guid threadId, ChatResponseUpdate update, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Streams a Task tool execution update directly to clients for the specified thread
+        /// </summary>
+        /// <param name="threadId">The thread ID to stream the update to</param>
+        /// <param name="executionData">JSON serialized Task tool execution data</param>
+        /// <param name="messageType">The type of Task tool event (start, end, group start, group end)</param>
+        /// <param name="messageId">Optional message ID for the update</param>
+        /// <param name="recordedDateTime">Optional recorded date time</param>
+        /// <param name="cancellationToken">Cancellation token to cancel the streaming operation</param>
+        /// <returns>Task representing the async operation</returns>
+        Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
     }
 }

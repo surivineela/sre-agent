@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Framework.TaskTool;
 using Microsoft.Extensions.AI;
 using ModelContextProtocol.Client;
 
@@ -60,6 +61,11 @@ public static class AIFunctionExtensions
     public static bool IsAgentAsTool(this AIFunction tool)
     {
         return tool.GetType().IsGenericType && tool.GetType().GetGenericTypeDefinition() == typeof(AgentAsTool<>);
+    }
+
+    public static bool IsTaskTool(this AIFunction tool)
+    {
+        return tool.GetType().IsGenericType && tool.GetType().GetGenericTypeDefinition() == typeof(TaskTool<>);
     }
 
     public static bool IsHandoff(this AIFunction tool)

@@ -14,6 +14,7 @@ import {
     MessageAuthor,
     MessageType,
     PsqlExecution,
+    StreamMessageType,
 } from '../../Common/Contracts/DataPlane/Message';
 import { ReadFileResult } from '../../Common/Contracts/DataPlane/ReadFileResult';
 import { StreamingMessage } from '../../Common/Contracts/DataPlane/Streaming';
@@ -26,6 +27,26 @@ import { Guid } from '../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { GenericErrorResources } from '../../Strings/SREAgentResources';
 import { ChatMessage, ChatMessageGroup, Reasoning, ThreadListsState, ThreadListState } from '../Contracts/Activities';
+
+// TaskTool streaming types that are not valid MessageTypes
+const TASK_TOOL_STREAM_TYPES = new Set([
+    'TaskToolGroupStart',
+    'TaskToolGroupEnd',
+    'TaskToolExecutionStart',
+    'TaskToolExecutionEnd',
+    'TaskToolInvocationStart',
+    'TaskToolInvocationEnd',
+]);
+
+/**
+ * Converts a StreamMessageType to a MessageType, filtering out TaskTool-specific types.
+ */
+const getMessageTypeFromStreamType = (streamType: StreamMessageType | undefined): MessageType => {
+    if (!streamType || TASK_TOOL_STREAM_TYPES.has(streamType)) {
+        return null;
+    }
+    return streamType as MessageType;
+};
 
 /**
  * Use this when your thread list does not have favorite section or any addition section.
@@ -606,7 +627,7 @@ export const createChatMessageFromStreamingMessage = (streamingMessage: Streamin
         isDailyReport: false,
         isComplete: true,
         isImageContent: isImage,
-        messageType: streamingMessage.additionalProperties?.streamMessageType || null,
+        messageType: getMessageTypeFromStreamType(streamingMessage.additionalProperties?.streamMessageType),
         reasoning: reasoning,
     };
 

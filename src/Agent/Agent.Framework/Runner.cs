@@ -5,6 +5,7 @@
 using System.Text;
 using System.Text.Json;
 using Agent.Framework.Skills;
+using Agent.Framework.TaskTool;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -853,10 +854,81 @@ public static class Runner
         // assume no parallel tool calling, so if a regular tool is called, we are not handing off to another agent
         foreach (var modelResponseMessage in modelResponse.Messages)
         {
-            var functionCalls = modelResponseMessage.Contents.OfType<FunctionCallContent>();
+            var functionCalls = modelResponseMessage.Contents.OfType<FunctionCallContent>().ToList();
+
+            // Process Task tool calls in parallel if there are multiple
+            var taskToolCalls = functionCalls
+                .Where(fc => tools.FirstOrDefault(t => t.Name == fc.Name)?.IsTaskTool() == true)
+                .ToList();
+
+            var processedTaskToolCallIds = new HashSet<string>();
+
+            if (taskToolCalls.Count > 0)
+            {
+                // Group Task tool calls for parallel execution
+                var taskToolGroup = new TaskToolExecutionGroup();
+
+                foreach (var taskToolCall in taskToolCalls)
+                {
+                    // Parse arguments to get subagent type and description
+                    var subagentTypeStr = taskToolCall.Arguments?.TryGetValue("subagent_type", out var typeObj) == true
+                        ? typeObj?.ToString()
+                        : null;
+                    var description = taskToolCall.Arguments?.TryGetValue("description", out var descObj) == true
+                        ? descObj?.ToString()
+                        : null;
+                    var prompt = taskToolCall.Arguments?.TryGetValue("prompt", out var promptObj) == true
+                        ? promptObj?.ToString()
+                        : null;
+
+                    var subagentType = Enum.TryParse<SubAgentType>(subagentTypeStr, ignoreCase: true, out var parsedType)
+                        ? parsedType
+                        : SubAgentType.Explore;
+
+                    taskToolGroup.AddExecution(taskToolCall, subagentType, description, prompt);
+                }
+
+                // Fire group start hook
+                await hooks.OnTaskToolGroupStart(contextWrapper, agent, taskToolGroup);
+
+                // Execute all Task tool calls in parallel
+                var taskToolTasks = new List<Task<(FunctionCallContent call, object? result, TaskToolExecution execution)>>();
+
+                foreach (var taskToolCall in taskToolCalls)
+                {
+                    var tool = tools.First(t => t.Name == taskToolCall.Name);
+                    var taskTool = (TaskTool.TaskTool<TContext>)tool;
+                    var execution = taskToolGroup.Executions.First(e => e.ExecutionId == taskToolCall.CallId);
+
+                    taskToolTasks.Add(ExecuteTaskToolAsync(
+                        contextWrapper, agent, hooks, taskTool, taskToolCall, execution,
+                        runConfig, config, displayModelOutput, trajectory, cancellationToken));
+                }
+
+                // Wait for all Task tool calls to complete
+                var taskToolResults = await Task.WhenAll(taskToolTasks);
+
+                // Add results to function results
+                foreach (var (call, result, execution) in taskToolResults)
+                {
+                    var functionResult = new FunctionResultContent(call.CallId, result);
+                    functionResults.Add(functionResult);
+                    trajectory.Append(functionResult);
+                    processedTaskToolCallIds.Add(call.CallId);
+                }
+
+                // Fire group end hook
+                await hooks.OnTaskToolGroupEnd(contextWrapper, agent, taskToolGroup);
+            }
 
             foreach (var functionCall in functionCalls)
             {
+                // Skip Task tool calls that were already processed in parallel
+                if (processedTaskToolCallIds.Contains(functionCall.CallId))
+                {
+                    continue;
+                }
+
                 var tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
 
                 // check for cached function call result
@@ -1052,6 +1124,8 @@ public static class Runner
 
                         continue;
                     }
+                    // Note: Task tool calls are processed in parallel above (see taskToolCalls section)
+                    // and skipped here via processedTaskToolCallIds
                     else if (tool.GetToolMode() == ToolMode.Auto || tool.IsMcpTool())
                     {
                         // Store CallId for streaming correlation
@@ -1258,6 +1332,67 @@ public static class Runner
         }
 
         return message;
+    }
+
+    private static async Task<(FunctionCallContent call, object? result, TaskToolExecution execution)> ExecuteTaskToolAsync<TContext>(
+        RunContextWrapper<TContext> contextWrapper,
+        Agent<TContext> agent,
+        RunHooks<TContext> hooks,
+        TaskTool.TaskTool<TContext> taskTool,
+        FunctionCallContent functionCall,
+        TaskToolExecution execution,
+        RunConfig runConfig,
+        RunConfig config,
+        IDisplayModelOutput? displayModelOutput,
+        Trajectory trajectory,
+        CancellationToken cancellationToken) where TContext : class
+    {
+        taskTool.RunConfig = runConfig;
+        taskTool.RunHooks = hooks;
+        taskTool.ExecutionId = functionCall.CallId;
+
+        // Store CallId for streaming
+        ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;
+
+        // Update execution status to Running
+        execution.Status = TaskToolExecutionStatus.Running;
+        await hooks.OnTaskToolExecutionStart(contextWrapper, agent, execution);
+        await hooks.OnToolStart(contextWrapper, agent, functionCall, taskTool, functionCall.Arguments);
+
+        object? toolResult;
+
+        try
+        {
+            toolResult = await taskTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
+
+            // Update execution status to Completed
+            execution.Status = TaskToolExecutionStatus.Completed;
+            execution.CompletedAt = DateTime.UtcNow;
+            execution.Result = toolResult?.ToString();
+        }
+        catch (OperationCanceledException)
+        {
+            execution.Status = TaskToolExecutionStatus.Cancelled;
+            execution.CompletedAt = DateTime.UtcNow;
+            toolResult = $"[{execution.Description}] Task was cancelled.";
+        }
+        catch (Exception ex)
+        {
+            execution.Status = TaskToolExecutionStatus.Failed;
+            execution.CompletedAt = DateTime.UtcNow;
+            execution.Error = ex.Message;
+            toolResult = GetToolErrorMessage(functionCall, ex);
+        }
+
+        await hooks.OnToolEnd(contextWrapper, agent, functionCall, taskTool, toolResult);
+        await hooks.OnTaskToolExecutionEnd(contextWrapper, agent, execution);
+
+        if (config.EnableDebugOutput && displayModelOutput is not null)
+        {
+            await displayModelOutput.OnComplete($"[DEBUG]\n\nCompleted Task Tool Invocation: {taskTool.Name} ({execution.Description})");
+        }
+
+        return (functionCall, toolResult, execution);
     }
 
     private static bool IsAllowedHandOff<TContext>(
