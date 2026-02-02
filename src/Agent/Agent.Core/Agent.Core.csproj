@@ -16,6 +16,7 @@
     <PackageReference Include="Azure.ResourceManager" />
     <PackageReference Include="Azure.ResourceManager.AlertsManagement" />
     <PackageReference Include="Azure.ResourceManager.AppService" />
+    <PackageReference Include="Azure.ResourceManager.Authorization" />
     <PackageReference Include="Azure.ResourceManager.Compute" />
     <PackageReference Include="Azure.ResourceManager.ContainerService" />
     <PackageReference Include="Azure.ResourceManager.CosmosDB" />

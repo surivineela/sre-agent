@@ -109,7 +109,18 @@ public static class IncidentServiceCollectionExtensions
                 break;
 
             case IncidentManagementType.ServiceNow:
-                services.AddSingleton<IServiceNowAPIClient, ServiceNowAPIClient>();
+                // Register ServiceNowAPIClient based on OAuth configuration
+                // OAuth uses the new ServiceNowOAuthClient via ARM API (when ApiConnectionName is set)
+                // Legacy Basic Auth uses the original ServiceNowAPIClient
+                // Note: ApiConnectionName getter now automatically parses from ConnectionKey JSON for backward compatibility
+                if (!string.IsNullOrEmpty(incidentManagementSettings.ApiConnectionName))
+                {
+                    services.AddSingleton<IServiceNowAPIClient, ServiceNowOAuthClient>();
+                }
+                else
+                {
+                    services.AddSingleton<IServiceNowAPIClient, ServiceNowAPIClient>();
+                }
                 services.AddSingleton<IIncidentScanner, ServiceNowScanner>();
 
                 services.AddSingleton<IIncidentHandlingService<ServiceNowIncidentFilterDocumentPayload>, ServiceNowIncidentHandlingService>();

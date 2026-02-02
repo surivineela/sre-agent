@@ -79,6 +79,7 @@ export interface IncidentManagementConfiguration {
     connectionName?: string;
     connectionUrl?: string;
     connectionKey?: string;
+    apiConnectionName?: string;
 }
 
 export interface DashboardConfiguration {

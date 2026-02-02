@@ -70,6 +70,8 @@ using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Services;
 using Agent.Web.Validation;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -546,6 +548,14 @@ public class Program
             .AddTransient<ICMPluginDefinition>()
             .AddTransient<AzureAlertingPluginDefinition>()
             .AddTransient<WebAppPluginDefinition>()
+            // ServiceNow API Connection services
+            .AddSingleton<TokenCredential>(sp =>
+            {
+                var authService = sp.GetRequiredService<IAuthenticationService>();
+                return authService.GetArmOperationCredential().GetAwaiter().GetResult();
+            })
+            .AddSingleton<IApiConnectionService, ApiConnectionService>()
+            .AddSingleton<IAgentContextProvider, AgentContextProvider>()
             .AddTransient<IServiceNowPlugin, ServiceNowPlugin>()
             .AddTransient<ServiceNowPluginDefinition>()
             .AddTransient<ScheduledTaskPluginDefinition>()

@@ -537,6 +537,7 @@ export const SreAgentResources = defineMessages({
     resourceType: { defaultMessage: 'Resource type', id: 'WHleoJ' },
     restart: { defaultMessage: 'Restart', id: '5kK+j9' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
+    authorizing: { defaultMessage: 'Authorizing...', id: 'JpzGP3' },
     scope: { defaultMessage: 'Scope', id: 'nso3Mj' },
     selectResourceGroups: { defaultMessage: 'Select resource groups', id: 'ftfFhS' },
     selectResourceGroupsToMonitor: { defaultMessage: 'Select resource groups to monitor', id: 'CfGC/2' },
@@ -2367,6 +2368,13 @@ export const IncidentManagementValidationResources = defineMessages({
     serviceNowUsernameRequired: { defaultMessage: 'Username is required.', id: 'aAADUG' },
     serviceNowPasswordRequired: { defaultMessage: 'Password is required.', id: 'pRvgsc' },
     serviceNowInvalidCredentials: { defaultMessage: 'Invalid username or password. Please check your credentials.', id: '1YN49J' },
+    // OAuth validation strings
+    serviceNowClientIdRequired: { defaultMessage: 'OAuth Client ID is required.', id: 'XpZGkx' },
+    serviceNowClientSecretRequired: { defaultMessage: 'OAuth Client Secret is required.', id: 'kFA81d' },
+    serviceNowInvalidOAuthCredentials: {
+        defaultMessage: 'Invalid OAuth credentials. Please verify your Client ID and Client Secret.',
+        id: 'Q/gg5s',
+    },
     serviceNowConnectionError: {
         defaultMessage: 'Unable to connect to ServiceNow endpoint. Please verify the endpoint URL.',
         id: 'GUx4Ld',
@@ -3088,6 +3096,7 @@ export const GenericErrorResources = defineMessages({
     moreOptions: { defaultMessage: 'More options', id: 'IzCVhG' },
     dismissNotification: { defaultMessage: 'Dismiss notification', id: 'pe7UAe' },
     unknownError: { defaultMessage: 'Unknown error', id: 'qDwvZ4' },
+    windowWillClose: { defaultMessage: 'This window will close automatically.', id: 'i3DwMh' },
 });
 
 export const ServiceNowResources = defineMessages({
@@ -3095,6 +3104,20 @@ export const ServiceNowResources = defineMessages({
     serviceNowUsername: { defaultMessage: 'Username', id: 'JCIgkj' },
     serviceNowPassword: { defaultMessage: 'Password', id: '5sg7KC' },
     serviceNowInstanceName: { defaultMessage: 'Instance name', id: 'fblXmJ' },
+    // OAuth fields
+    serviceNowClientId: { defaultMessage: 'OAuth Client ID', id: 'hyI5pp' },
+    serviceNowClientSecret: { defaultMessage: 'OAuth Client Secret', id: 'bDGyh6' },
+    oauthSetupTitle: { defaultMessage: 'Required: Configure ServiceNow first', id: 'A0MX17' },
+    oauthSetupInstructions: {
+        defaultMessage:
+            'Add this Redirect URL to your ServiceNow OAuth application before continuing (System OAuth → Application Registry):',
+        id: 'wqP9TB',
+    },
+    oauthDescription: {
+        defaultMessage:
+            'Connect to ServiceNow using OAuth 2.0. To get OAuth credentials, navigate to System OAuth → Application Registry in ServiceNow and create an OAuth API endpoint for external clients.',
+        id: 'WMy08p',
+    },
     changeKey: { defaultMessage: 'Change credentials', id: '0q6E9l' },
     description: {
         defaultMessage:
@@ -3133,6 +3156,45 @@ export const ServiceNowResources = defineMessages({
     priorityModerate: { defaultMessage: 'Moderate', id: 'OlIql8' },
     priorityLow: { defaultMessage: 'Low', id: '477I0g' },
     priorityPlanning: { defaultMessage: 'Planning', id: '99OdS3' },
+    // OAuth callback messages
+    oauthProcessing: { defaultMessage: 'Processing authorization...', id: 'YI6ota' },
+    oauthSuccessTitle: { defaultMessage: 'Authorization Successful', id: 'vNp3+n' },
+    oauthSuccessMessage: { defaultMessage: 'You can close this window now.', id: '/k3XWh' },
+    oauthErrorTitle: { defaultMessage: 'Authorization Failed', id: 'FyN1Ey' },
+    // OAuth wizard step labels
+    oauthStepEnterCredentials: { defaultMessage: 'Enter Credentials', id: '6FJ9/p' },
+    oauthStepAuthorize: { defaultMessage: 'Authorize', id: 'QwnGVY' },
+    oauthStepComplete: { defaultMessage: 'Complete', id: 'U78NhE' },
+    oauthSetupFailed: { defaultMessage: 'Setup Failed', id: 'xccGj5' },
+    oauthStep1Title: { defaultMessage: 'Step 1: Enter ServiceNow OAuth Credentials', id: 'mQJrBv' },
+    oauthStep1Description: {
+        defaultMessage:
+            'Enter your ServiceNow instance details and OAuth application credentials. You will authorize the connection in the next step.',
+        id: 'KD82xw',
+    },
+    oauthCancel: { defaultMessage: 'Cancel', id: '47FYwb' },
+    oauthNextAuthorize: { defaultMessage: 'Next: Authorize', id: 'fKqbHu' },
+    oauthAuthorizingTitle: { defaultMessage: 'Authorizing ServiceNow Connection', id: 'Its1DI' },
+    oauthAuthorizingPopupMessage: {
+        defaultMessage: 'A popup window will open for you to sign in to ServiceNow and authorize this connection.',
+        id: 'SwQUuh',
+    },
+    oauthAuthorizingWaitMessage: { defaultMessage: 'Please complete the authorization in the popup window...', id: 'AxPl/7' },
+    oauthConnectionAuthorized: { defaultMessage: 'ServiceNow Connection Authorized!', id: 'yRq/Tc' },
+    oauthConnectionSuccessMessage: {
+        defaultMessage: 'Your ServiceNow OAuth connection has been successfully configured and authorized.',
+        id: 'aojY47',
+    },
+    oauthConnectionReadyMessage: {
+        defaultMessage: 'The connection is now ready to use. You can close this dialog and start managing incidents through ServiceNow.',
+        id: 'kHFW0Y',
+    },
+    oauthDone: { defaultMessage: 'Done', id: 'JXdbo8' },
+    // Authentication type dropdown strings
+    authenticationType: { defaultMessage: 'Authentication Type', id: 'hWxQGa' },
+    basicAuthentication: { defaultMessage: 'Basic Authentication', id: 't16LQI' },
+    oauth2: { defaultMessage: 'OAuth 2.0', id: 'TNEnEi' },
+    authorize: { defaultMessage: 'Authorize', id: 'QwnGVY' },
 });
 
 export const KnowledgeBaseResources = defineMessages({

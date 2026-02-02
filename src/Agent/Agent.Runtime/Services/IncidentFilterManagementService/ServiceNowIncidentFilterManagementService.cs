@@ -38,7 +38,20 @@ public class ServiceNowIncidentFilterManagementService : IncidentFilterManagemen
     {
         try
         {
-            await _serviceNowAPIClient.GetIncidentsAsync(1, 0, null, null, null);
+            _logger.LogInternalInformation("CheckConnectivity: Checking ServiceNow connection health...");
+
+            var healthResult = await _serviceNowAPIClient.CheckConnectionHealthAsync();
+
+            if (!healthResult.IsHealthy)
+            {
+                _logger.LogInternalWarning(
+                    "CheckConnectivity: ServiceNow connection is not healthy. Status: {Status}, Error: {Error}",
+                    healthResult.Status,
+                    healthResult.ErrorMessage);
+                return new ConnectivityResult(false, $"ServiceNow connection unhealthy. Status: {healthResult.Status}, Error: {healthResult.ErrorMessage}");
+            }
+
+            _logger.LogInternalInformation("CheckConnectivity: ServiceNow connection is healthy.");
             return new ConnectivityResult(true, null);
         }
         catch (Exception ex)

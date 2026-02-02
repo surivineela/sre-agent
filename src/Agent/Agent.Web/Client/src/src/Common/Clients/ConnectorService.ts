@@ -268,6 +268,21 @@ export interface PutConnectorAccessPoliciesOptions {
     apiVersion?: string;
 }
 
+export interface PutServiceNowOAuthConnectorOptions {
+    subscriptionId: string;
+    resourceGroup: string;
+    /** Full connection name (including agent prefix if needed) */
+    connectionName: string;
+    location: string;
+    /** ServiceNow instance name (e.g., "dev272654" from "https://dev272654.service-now.com") */
+    instanceName: string;
+    clientId: string;
+    clientSecret: string;
+    /** Optional: Agent resource ID for tagging */
+    agentResourceId?: string;
+    apiVersion?: string;
+}
+
 export class ConnectorService {
     public static async getConnector(options: GetConnectorOptions): Promise<HttpResponseObject<Connector>> {
         const { subscriptionId, resourceGroup, agentName, connectionName, apiVersion = '2018-07-01-preview' } = options;
@@ -359,6 +374,68 @@ export class ConnectorService {
 
         return MakeArmCall({
             commandName: 'putConnectorAccessPolicies',
+            method: 'PUT',
+            body: content,
+            url,
+            apiVersion,
+        });
+    }
+
+    /**
+     * Creates a ServiceNow API Connection with OAuth2 authentication.
+     */
+    public static async putServiceNowOAuthConnector(options: PutServiceNowOAuthConnectorOptions): Promise<HttpResponseObject<Connector>> {
+        const {
+            subscriptionId,
+            resourceGroup,
+            connectionName,
+            location,
+            instanceName,
+            clientId,
+            clientSecret,
+            agentResourceId,
+            apiVersion = '2018-07-01-preview',
+        } = options;
+
+        const url = `/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}/providers/Microsoft.Web/connections/${connectionName}?api-version=${apiVersion}`;
+
+        // ServiceNow connector API reference
+        const connectorId = `/subscriptions/${subscriptionId}/providers/Microsoft.Web/locations/${location}/managedApis/service-now`;
+
+        // Create connection using parameterValueSet for OAuth2 authentication
+        // The oauth2ServiceNow parameter set requires:
+        // - token:InstanceName: ServiceNow instance name
+        // - token:ClientId: OAuth client ID
+        // - token:ClientSecret: OAuth client secret
+        // - token: OAuth setting (populated via consent flow)
+        const content = {
+            kind: 'V1',
+            name: connectionName,
+            location,
+            properties: {
+                displayName: agentResourceId ? `ServiceNow Connection for ${agentResourceId}` : `ServiceNow Connection - ${connectionName}`,
+                api: {
+                    id: connectorId,
+                },
+                parameterValueSet: {
+                    name: 'oauth2ServiceNow',
+                    values: {
+                        'token:InstanceName': { value: instanceName },
+                        'token:ClientId': { value: clientId },
+                        'token:ClientSecret': { value: clientSecret },
+                    },
+                },
+            },
+            tags: agentResourceId
+                ? {
+                      CreatedBy: 'SREAgent',
+                      AgentResourceId: agentResourceId,
+                  }
+                : undefined,
+        };
+
+        return MakeArmCall({
+            commandName: 'putServiceNowOAuthConnector',
             method: 'PUT',
             body: content,
             url,

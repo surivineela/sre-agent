@@ -1,8 +1,9 @@
 import { Formik } from 'formik';
-import { FC, useContext, useEffect, useState } from 'react';
+import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { IncidentHandlerClient } from '../../Common/Clients/IncidentHandlerClient';
 import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
+import { SreAgentContext } from '../Contracts/Context';
 import { IncidentManagementFormValues, IncidentManagementSettingsProps } from '../Contracts/IncidentManagement';
 import { useIncidentManagementStyles } from '../Styles/IncidentManagement.styles';
 import { useIncidentManagementSettings } from './Hooks/useIncidentManagementSettings';
@@ -10,11 +11,35 @@ import IncidentManagementForm from './IncidentManagementForm';
 
 const IncidentManagementSettings: FC<IncidentManagementSettingsProps> = ({ integrated, close, keepOpen }) => {
     const styles = useIncidentManagementStyles();
-    const { loading, loaded, loadFailure, saving, saveFailure, initialValues, save, disconnect, validate, agent } =
-        useIncidentManagementSettings(close);
+    const {
+        loading,
+        loaded,
+        loadFailure,
+        saving,
+        saveFailure,
+        initialValues,
+        save,
+        disconnect,
+        validate,
+        agent,
+        setupServiceNowOAuth,
+        cleanupPendingOAuthConnection,
+    } = useIncidentManagementSettings(close);
     const { sreAgentEndpoint } = useContext(EnvironmentContext);
+    const {
+        incidentManagement: { incidentManagementConnectionState },
+    } = useContext(SreAgentContext);
     const [effectiveManagedIdentity, setEffectiveManagedIdentity] = useState<string>('');
     const [isUsingAgentSpaceIdentity, setIsUsingAgentSpaceIdentity] = useState<boolean>(false);
+
+    // Check if ServiceNow OAuth is configured (apiConnectionName is set)
+    const isServiceNowOAuthConfigured = useMemo(() => {
+        const config = agent?.properties?.incidentManagementConfiguration;
+        return config?.type === IncidentManagementType.ServiceNow && !!config.apiConnectionName;
+    }, [agent?.properties?.incidentManagementConfiguration]);
+
+    // Check if ServiceNow OAuth is fully connected (OAuth configured AND connection is verified)
+    const isServiceNowOAuthConnected = isServiceNowOAuthConfigured && incidentManagementConnectionState === 'connected';
 
     // Get effective managed identity (Agent Space if available, otherwise agent identity)
     // currently only for ICM platform
@@ -106,6 +131,10 @@ const IncidentManagementSettings: FC<IncidentManagementSettingsProps> = ({ integ
                                     close={close}
                                     keepOpen={keepOpen}
                                     isUsingAgentSpaceIdentity={isUsingAgentSpaceIdentity}
+                                    agent={agent}
+                                    setupServiceNowOAuth={setupServiceNowOAuth}
+                                    isServiceNowOAuthConnected={isServiceNowOAuthConnected}
+                                    cleanupPendingOAuthConnection={cleanupPendingOAuthConnection}
                                 />
                             );
                         }}

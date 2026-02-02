@@ -129,6 +129,8 @@ export interface IncidentManagementConfiguration {
     connectionName?: string;
     connectionUrl?: string;
     connectionKey?: string;
+    // ServiceNow OAuth - apiConnectionName indicates OAuth was used
+    apiConnectionName?: string;
 }
 
 export enum IncidentManagementType {

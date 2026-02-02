@@ -39,6 +39,15 @@ namespace Agent.Core.Services
                 _logger.LogInternalWarning("ServiceNowAPIClient: ServiceNow is not configured, should use NullableServiceNowAPIClient instead.");
                 return;
             }
+
+            // This client is for basic auth only - OAuth uses ServiceNowOAuthClient
+            if (!string.IsNullOrEmpty(settings.ApiConnectionName))
+            {
+                isEnabled = false;
+                _logger.LogInternalWarning("ServiceNowAPIClient: OAuth is enabled (ApiConnectionName is set), should use ServiceNowOAuthClient instead.");
+                return;
+            }
+
             try
             {
                 if (string.IsNullOrEmpty(settings.ConnectionKey))
@@ -69,6 +78,33 @@ namespace Agent.Core.Services
             if (!isEnabled)
             {
                 throw new InvalidOperationException("ServiceNowAPIClient is not enabled. Check the configuration or use NullableServiceNowAPIClient instead.");
+            }
+        }
+
+        /// <summary>
+        /// Checks connection health by attempting to fetch an incident from ServiceNow.
+        /// </summary>
+        public async Task<ConnectionHealthResult> CheckConnectionHealthAsync()
+        {
+            if (!isEnabled)
+            {
+                return new ConnectionHealthResult(false, "NotConfigured", "ServiceNow basic auth is not configured.");
+            }
+
+            try
+            {
+                _logger.LogInternalInformation("CheckConnectionHealthAsync: Testing ServiceNow connectivity...");
+
+                // Try to fetch 1 incident to verify credentials and connectivity
+                var incidents = await GetIncidentsAsync(1, 0, null, null, null);
+
+                _logger.LogInternalInformation("CheckConnectionHealthAsync: ServiceNow connection is healthy.");
+                return new ConnectionHealthResult(true, "Connected");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "CheckConnectionHealthAsync: ServiceNow connection check failed.");
+                return new ConnectionHealthResult(false, "Error", ex.Message);
             }
         }
 
@@ -344,6 +380,9 @@ namespace Agent.Core.Services
     // Null implementation for when ServiceNow is not configured
     public class NullableServiceNowAPIClient : IServiceNowAPIClient
     {
+        public Task<ConnectionHealthResult> CheckConnectionHealthAsync() =>
+            Task.FromResult(new ConnectionHealthResult(false, "NotConfigured", "ServiceNow is not configured."));
+
         public Task<ServiceNowIncident> GetIncidentAsync(string incidentId) =>
             Task.FromResult(new ServiceNowIncident());
 

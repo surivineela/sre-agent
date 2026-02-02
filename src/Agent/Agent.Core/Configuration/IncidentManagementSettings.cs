@@ -45,6 +45,14 @@ namespace Agent.Core.Configuration
         /// the agent will ask the user for additional context after this many attempts.
         /// </summary>
         public int MaxAutomatedInvestigationAttempts { get; set; } = 3;
+
+        /// <summary>
+        /// Name of the Azure API Connection resource for ServiceNow OAuth.
+        /// This is set during OAuth setup and used by ServiceNowOAuthClient.
+        /// When set, OAuth authentication is used instead of basic auth.
+        /// Example: "servicenow-myagent-20260112120000"
+        /// </summary>
+        public string? ApiConnectionName { get; set; }
     }
 
     public class AutomatedRCASettings

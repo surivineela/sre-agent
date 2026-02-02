@@ -28,7 +28,7 @@ public class FeatureControllerTests
         _mockPythonToolSettings = new Mock<IOptions<PythonToolSettings>>();
         _mockLogger = new Mock<ILogger<FeatureController>>();
 
-        // Set default value for PythonToolSettings
+        // Set default values
         _mockPythonToolSettings.Setup(x => x.Value).Returns(new PythonToolSettings { Enabled = false });
 
         _controller = new FeatureController(
