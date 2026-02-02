@@ -281,6 +281,8 @@ extends:
         - ${{ if and(eq(parameters.isNugetPublish, true), eq(parameters.isOfficialBuild, true)) }}:
           - task: DotNetCoreCLI@2
             displayName: '📦 Build and Pack Agent.Portal NuGet Package'
+            env:
+              SRE_AGENT_PORTAL_VERSION: $(Build.BuildNumber)
             inputs:
               command: 'pack'
               packagesToPack: '.\src\Agent\Agent.Portal\Agent.Portal.csproj'
