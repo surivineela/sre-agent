@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
+using Agent.Common.ApiModels;
 using Agent.Common.Services;
 using Agent.Core;
 using Agent.Core.Configuration;
@@ -12,7 +13,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Framework;
-using Agent.Plugins.Interface;
 using Agent.Plugins.Services;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;

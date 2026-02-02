@@ -1,4 +1,7 @@
-using System.Runtime.InteropServices;
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Adc.RemoteWorkspace.Protocol;
 using Agent.Common.Services;
 using Grpc.Core;
@@ -133,7 +136,7 @@ public class FileSystemService : FileSystem.FileSystemBase
             request.Explanation, request.Replacements.Count);
 
         var replacements = request.Replacements
-            .Select(r => new Common.Services.ReplaceOperation
+            .Select(r => new Common.ApiModels.ReplaceOperation
             {
                 Explanation = r.Explanation,
                 FilePath = r.FilePath,

@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Common.Services;
+using Agent.Common.ApiModels;
 using Agent.Core.Models;
 
 namespace Agent.Core.Interfaces;

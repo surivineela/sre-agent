@@ -45,9 +45,6 @@ public partial class ApiService : IDisposable
         [JsonPropertyName("repoType")]
         public string RepoType { get; init; } = "AzureDevOps";
 
-        [JsonPropertyName("hasCredentials")]
-        public bool HasCredentials { get; init; }
-
         [JsonPropertyName("status")]
         public string Status { get; init; } = "Healthy";
 

@@ -3,10 +3,10 @@
 // ------------------------------------------------------------
 
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Agent.Common.ApiModels;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -1182,29 +1182,6 @@ public class MatchRange
     /// 0-based end character index (exclusive).
     /// </summary>
     public int End { get; set; }
-}
-
-public class ReplaceOperation
-{
-    /// <summary>
-    /// Brief explanation of what this replacement accomplishes.
-    /// </summary>
-    public string Explanation { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Absolute path to the file to edit.
-    /// </summary>
-    public string FilePath { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The exact literal text to replace.
-    /// </summary>
-    public string OldString { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The replacement string.
-    /// </summary>
-    public string NewString { get; set; } = string.Empty;
 }
 
 

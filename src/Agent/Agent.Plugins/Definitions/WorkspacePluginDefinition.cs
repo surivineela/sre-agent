@@ -4,12 +4,11 @@
 
 using System.ComponentModel;
 using System.Text.Json;
-using Agent.Common.Services;
+using Agent.Common.ApiModels;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
-using Agent.Plugins.Interface;
 
 namespace Agent.Plugins.Definitions;
 

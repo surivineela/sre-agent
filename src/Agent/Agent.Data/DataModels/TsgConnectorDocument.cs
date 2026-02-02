@@ -64,7 +64,7 @@ public class TsgConnectorDocument : ICosmosDocument
     /// <summary>
     /// Personal Access Token (stored with Cosmos DB encryption at rest)
     /// </summary>
-    public string? Pat { get; set; }
+    public string Pat { get; set; } = string.Empty;
 
     /// <summary>
     /// When the connector was created

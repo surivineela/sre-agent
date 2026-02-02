@@ -8,7 +8,6 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
-using Agent.Plugins.Interface;
 using Agent.Plugins.Services;
 
 namespace Agent.Web.Services;
@@ -196,6 +195,7 @@ public class TsgConnectorCloneService : BackgroundService
         var toProcess = needsClone.Concat(stale).ToList();
         if (toProcess.Count == 0)
         {
+            _logger.LogInternalInformation($"No repository connectors found to clone. Skipping sync.");
             return;
         }
 
@@ -262,6 +262,9 @@ public class TsgConnectorCloneService : BackgroundService
         var localPath = Path.Combine(CodeRefsPath, SanitizeFolderName(connector.Name));
         var gitDirPath = Path.Combine(localPath, ".git");
         var isExisting = Directory.Exists(gitDirPath);
+
+        _logger.LogInternalInformation(
+            $"Processing connector: {connector.Name}, RepoType={connector.RepoType}, SyncTarget={localPath}, Existing={isExisting}");
 
         // Clean up corrupt/incomplete directory before clone
         if (Directory.Exists(localPath) && !isExisting)
@@ -351,6 +354,7 @@ public class TsgConnectorCloneService : BackgroundService
             ForceDeleteDirectory(localPath);
         }
 
+        _logger.LogInternalInformation($"Cloning repository {repoUrl} to {localPath}");
         var authUrl = BuildAuthenticatedUrl(repoUrl, pat);
         var cmd = $"git clone \"{authUrl}\" \"{localPath}\"";
         var (output, exitCode) = await _terminalManager.ExecuteCommandAsync(sessionId, cmd, ct);
@@ -366,6 +370,7 @@ public class TsgConnectorCloneService : BackgroundService
         // Update remote URL with current PAT before fetching
         if (!string.IsNullOrEmpty(pat))
         {
+            _logger.LogInternalInformation($"Updating remote URL with PAT for {localPath}");
             var (currentUrl, _) = await _terminalManager.ExecuteCommandAsync(sessionId,
                 $"git -C \"{localPath}\" config --get remote.origin.url", ct);
 
@@ -378,6 +383,7 @@ public class TsgConnectorCloneService : BackgroundService
         }
 
         // Fetch
+        _logger.LogInternalInformation($"Fetching latest changes for {localPath}");
         var (output, exitCode) = await _terminalManager.ExecuteCommandAsync(sessionId,
             $"git -C \"{localPath}\" fetch origin", ct);
         if (exitCode != 0)
@@ -386,11 +392,13 @@ public class TsgConnectorCloneService : BackgroundService
         }
 
         // Get default branch
+        _logger.LogInternalInformation($"Determining default branch for {localPath}");
         var (branchOut, _) = await _terminalManager.ExecuteCommandAsync(sessionId,
             $"git -C \"{localPath}\" symbolic-ref refs/remotes/origin/HEAD --short", ct);
         var branch = branchOut?.Trim().Replace("origin/", "") ?? "main";
 
         // Reset to origin
+        _logger.LogInternalInformation($"Resetting local branch to origin/{branch} for {localPath}");
         (output, exitCode) = await _terminalManager.ExecuteCommandAsync(sessionId,
             $"git -C \"{localPath}\" reset --hard origin/{branch}", ct);
 
@@ -405,25 +413,31 @@ public class TsgConnectorCloneService : BackgroundService
     }
 
     private async Task SetupGitCredentialsAsync(
-        Guid sessionId, string localPath, string cleanUrl, string? pat, CancellationToken ct)
+        Guid sessionId, string localPath, string cleanUrl, string pat, CancellationToken ct)
     {
-        if (string.IsNullOrEmpty(pat))
-        {
-            return;
-        }
-
         var credFile = Path.Combine(localPath, ".git", "git-credentials");
 
-        // Configure credential helper for this repo
-        await _terminalManager.ExecuteCommandAsync(sessionId,
-            $"git -C \"{localPath}\" config credential.helper \"store --file {credFile}\"", ct);
-        await _terminalManager.ExecuteCommandAsync(sessionId,
-            $"git -C \"{localPath}\" config credential.useHttpPath true", ct);
-
-        // Write credential entry
+        // Write credential entry FIRST
         var uri = new Uri(cleanUrl);
         var credLine = $"https://pat:{pat}@{uri.Host}{uri.AbsolutePath}";
         File.WriteAllText(credFile, credLine + Environment.NewLine);
+
+        // Clear any inherited credential helpers (e.g., system-level Git Credential Manager)
+        // then add our store helper. This ensures our helper is the only one used.
+        await _terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config credential.helper \"\"", ct);
+        await _terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config --add credential.helper \"store --file \\\"{credFile}\\\"\"", ct);
+        // Disable useHttpPath - each repo has its own credential file, so host-only matching is sufficient.
+        // Path matching with git-credential-store is unreliable and not needed for per-repo isolation.
+        await _terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config credential.useHttpPath false", ct);
+
+        // Configure git user identity for commits
+        await _terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config user.name \"Azure SRE Agent\"", ct);
+        await _terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config user.email \"noreply@microsoft.com\"", ct);
 
         // Set remote URL to clean URL (remove embedded PAT)
         await _terminalManager.ExecuteCommandAsync(sessionId,
@@ -601,8 +615,22 @@ public class TsgConnectorCloneService : BackgroundService
             return new FilesystemState(CloneStatus.NotStarted, null, null);
         }
 
-        // Get commit time from HEAD ref file
         var commitTime = GetCommitTime(localPath);
+
+        // Check credentials file - PAT is always required
+        var credFile = Path.Combine(gitDir, "git-credentials");
+        try
+        {
+            if (!File.Exists(credFile) || string.IsNullOrWhiteSpace(File.ReadAllText(credFile)))
+            {
+                return new FilesystemState(CloneStatus.PendingCredentialUpdate, commitHash, commitTime);
+            }
+        }
+        catch
+        {
+            // File read error (locked, permission) - treat as missing credentials
+            return new FilesystemState(CloneStatus.PendingCredentialUpdate, commitHash, commitTime);
+        }
 
         return new FilesystemState(CloneStatus.Ready, commitHash, commitTime);
     }

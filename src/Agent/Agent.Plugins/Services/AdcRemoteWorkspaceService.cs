@@ -1,11 +1,13 @@
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Collections.Concurrent;
 using System.Text;
 using Adc.RemoteWorkspace.Protocol;
 using Agent.Common.Services;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
-using Agent.Framework;
-using Agent.Plugins.Models.WorkspaceTools;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
 
@@ -214,7 +216,7 @@ public class AdcRemoteWorkspaceService : IFileTool, IBashTool, ISandboxPaths, IW
 
     public async Task<string> MultiReplaceStringInFileAsync(
         string explanation,
-        Common.Services.ReplaceOperation[] replacements)
+        Common.ApiModels.ReplaceOperation[] replacements)
     {
         var threadId = CurrentThreadId;
         _logger.LogInternalInformation("MultiReplaceStringInFileAsync called for thread {ThreadId}", threadId);

@@ -49,7 +49,6 @@ public class TsgConnectorController : ControllerBase
             Name = document.Name,
             DataSource = document.DataSource,
             RepoType = document.RepoType,
-            HasCredentials = !string.IsNullOrEmpty(document.Pat),
             Status = document.Status,
             LastValidated = document.LastValidated,
             ErrorMessage = document.ErrorMessage,

@@ -419,8 +419,6 @@ public static class RepoCommandHandlers
         ConsoleUI.WithColor(cloneStatusColor, () =>
             ConsoleUI.WriteKeyValue("Clone Status", connector.CloneStatus, 20));
 
-        ConsoleUI.WriteKeyValue("Has Credentials", connector.HasCredentials ? "Yes" : "No", 20);
-
         if (connector.LastSuccessfulSync.HasValue)
         {
             ConsoleUI.WriteKeyValue("Last Sync", connector.LastSuccessfulSync.Value.ToString("yyyy-MM-dd HH:mm:ss UTC"), 20);
@@ -440,7 +438,6 @@ public static class RepoCommandHandlers
         ConsoleUI.WriteKeyValue("Name", connector.Name, 20);
         ConsoleUI.WriteKeyValue("Type", connector.RepoType, 20);
         ConsoleUI.WriteKeyValue("URL", connector.DataSource, 20);
-        ConsoleUI.WriteKeyValue("Has Credentials", connector.HasCredentials ? "Yes" : "No", 20);
         ConsoleUI.WriteKeyValue("Status", connector.Status, 20);
         ConsoleUI.WriteKeyValue("Clone Status", connector.CloneStatus, 20);
 
