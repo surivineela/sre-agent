@@ -229,7 +229,7 @@ const ChatBoxFooter = ({
     const [extendedAgents, setExtendedAgents] = useState<ExtendedAgent[]>([]);
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
-    const { chatBoxFooterInner, chatBoxFooterInnerOverview, chatStatement } = useChatInputStyles();
+    const { chatBoxFooterInner, chatBoxFooterInnerOverview, chatInput, chatStatement } = useChatInputStyles();
 
     const { selectThread } = useContext(SreAgentSpaceContext);
     const { isConnected } = useContext(StreamingContext);
@@ -1190,6 +1190,7 @@ const ChatBoxFooter = ({
                             focusedExtendedAgent?.name ??
                             undefined
                         }
+                        className={chatInput}
                     >
                         <ImperativeControlPlugin ref={imperativeControlPluginRef} />
                         <LexicalEditorRefPlugin editorRef={editorRef} />

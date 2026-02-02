@@ -314,6 +314,11 @@ export const useChatInputStyles = makeStyles({
     chatBoxFooterInnerOverview: {
         flexShrink: 0,
     },
+    chatInput: {
+        '& .fai-ChatInput__inputWrapper': {
+            gridTemplateRows: 'auto 1fr auto',
+        },
+    },
     chatStatement: {
         color: tokens.colorNeutralForeground3,
         margin: 'auto',
