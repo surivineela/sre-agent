@@ -1618,10 +1618,11 @@ public class ReasoningLoop : IDisposable
             _currentCompactionSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
             _currentCompactionSpan.SetAttribute(TraceAttribute.OperationName, "Compaction");
 
-            // Stream compaction feedback to the frontend
-            await _outboundCommunicationService.NotifyIntermediateUpdate(
+            // Stream compaction feedback to the frontend with shimmer effect
+            var compactionFunctionCall = new FunctionCallContent(Guid.NewGuid().ToString(), "CompactConversation");
+            await _outboundCommunicationService.AppendAgentToolCallMessage(
                 _context.ThreadId,
-                "Compacting conversation...");
+                compactionFunctionCall);
         };
 
         hooks.CompactionEnd += (context, agent) =>
