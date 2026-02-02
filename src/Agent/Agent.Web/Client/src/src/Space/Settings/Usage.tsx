@@ -34,6 +34,7 @@ import SreAgentClient from '../../Common/Clients/SreAgentClient';
 import { LearnMoreLinks } from '../../Common/Constants/Links';
 import { DailyUsage } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { FirstPartyHelper } from '../../Common/Helpers/FirstPartyHelper';
 import { Guid } from '../../Common/Helpers/Guid';
 import { resolveResourceIcon } from '../../Common/Helpers/Resources';
 import { SettingsTabResources, SreAgentResources, UsageResources } from '../../Strings/SREAgentResources';
@@ -193,7 +194,7 @@ const Usage = () => {
     const intl = useIntl();
 
     const proxy = useContext(AzPortalContext);
-    const { resourceId } = useContext(EnvironmentContext);
+    const { resourceId, userInfo } = useContext(EnvironmentContext);
     const { onUsageUpdate } = useContext(AgentWarningContext);
 
     const settingStyles = useSettingsStyles();
@@ -426,7 +427,9 @@ const Usage = () => {
                 </div>
                 <div className={styles.sectionTitle}>
                     <Body2Strong block={true}>{currentDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</Body2Strong>
-                    <Caption1>{intl.formatMessage(UsageResources.activeFlowResetMessage, { days: daysLeftOfCurrentMonth })}</Caption1>
+                    {!FirstPartyHelper.isFirstPartyAgent(userInfo?.directoryId || '') && (
+                        <Caption1>{intl.formatMessage(UsageResources.activeFlowResetMessage, { days: daysLeftOfCurrentMonth })}</Caption1>
+                    )}
                 </div>
                 <div className={styles.section}>
                     {isLoadingMonthlyUsage ? (
