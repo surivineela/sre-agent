@@ -40,6 +40,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
     private readonly IScheduledTaskManagementService _scheduledTaskManagementService;
     private readonly IScheduledTaskRepository _scheduledTaskRepository;
+    private readonly IThreadRepository _threadRepository;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
@@ -56,7 +58,9 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         ITeamsPlugin teamsPlugin,
         IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin,
         IScheduledTaskManagementService scheduledTaskManagementService,
-        IScheduledTaskRepository scheduledTaskRepository)
+        IScheduledTaskRepository scheduledTaskRepository,
+        IThreadRepository threadRepository,
+        IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
@@ -73,6 +77,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         _azureDevOpsWorkItemPlugin = azureDevOpsWorkItemPlugin;
         _scheduledTaskManagementService = scheduledTaskManagementService;
         _scheduledTaskRepository = scheduledTaskRepository;
+        _threadRepository = threadRepository;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
@@ -1106,6 +1112,181 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             Details: details);
     }
 
+    // Helper: GitHub connector status with token validation and API accessibility check
+    private async Task<ConnectorStatusResponse> BuildGitHubConnectorStatusAsync(string connectorName)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        bool healthy = false;
+        string message;
+        object? details = null;
+        DateTime? tokenExpiration = null;
+
+        try
+        {
+            // Get token document from CosmosDB
+            var tokenDoc = await _threadRepository.GetGitHubAccessTokenAsync();
+            if (tokenDoc == null || string.IsNullOrEmpty(tokenDoc.AccessToken))
+            {
+                message = "GitHub access token not configured. Please authenticate.";
+                details = new { error = "Token not found" };
+            }
+            else
+            {
+                var token = tokenDoc.AccessToken;
+                tokenExpiration = tokenDoc.ExpiresOn;
+
+                if (tokenExpiration.HasValue && tokenExpiration < DateTime.UtcNow)
+                {
+                    message = $"Token expired on {tokenExpiration.Value:yyyy-MM-dd HH:mm:ss} UTC.";
+                    details = new { error = "Token expired", expiration = tokenExpiration };
+                }
+                else
+                {
+                    var httpClient = _httpClientFactory.CreateClient();
+                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                    httpClient.DefaultRequestHeaders.Add("User-Agent", "SREAgent");
+                    httpClient.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+
+                    var response = await httpClient.GetAsync("https://api.github.com/user", CancellationToken.None);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        healthy = true;
+                        if (tokenExpiration.HasValue)
+                        {
+                            var daysUntilExpiration = (tokenExpiration.Value - DateTime.UtcNow).TotalDays;
+                            message = $"Connected. Token expires {tokenExpiration.Value:yyyy-MM-dd HH:mm:ss} UTC ({daysUntilExpiration:F0} days).";
+                        }
+                        else
+                        {
+                            message = "Connected. Token has no expiration.";
+                        }
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                             response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    {
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        message = $"Authentication failed ({(int)response.StatusCode}). Token may be revoked or have insufficient permissions.";
+                        details = new { error = errorContent, statusCode = (int)response.StatusCode };
+                        _logger.LogInternalWarning("GitHub auth failed for connector {ConnectorName}: {StatusCode}", connectorName, response.StatusCode);
+                    }
+                    else
+                    {
+                        message = $"GitHub API returned status code {(int)response.StatusCode}.";
+                        details = new { statusCode = (int)response.StatusCode };
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "GitHub connectivity check exception for connector: {ConnectorName}", connectorName);
+            message = $"Check failed: {ex.Message}";
+            details = new { error = ex.Message };
+        }
+        finally
+        {
+            stopwatch.Stop();
+        }
+
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "GitHubOAuth",
+            Healthy: healthy,
+            Message: message,
+            Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
+            ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+            Details: details);
+    }
+
+    private async Task<ConnectorStatusResponse> BuildAzureDevOpsConnectorStatusAsync(string connectorName)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        bool healthy = false;
+        string message;
+        object? details = null;
+        DateTime? tokenExpiration = null;
+
+        try
+        {
+            // Get token document from CosmosDB
+            var tokenDoc = await _threadRepository.GetAzureDevOpsOAuthTokenAsync();
+            if (tokenDoc == null || string.IsNullOrEmpty(tokenDoc.AccessToken))
+            {
+                message = "Azure DevOps access token not configured. Please authenticate.";
+                details = new { error = "Token not found" };
+            }
+            else
+            {
+                var token = tokenDoc.AccessToken;
+                tokenExpiration = tokenDoc.ExpiresOn;
+
+                // Check token expiration
+                if (tokenExpiration.HasValue && tokenExpiration < DateTime.UtcNow)
+                {
+                    message = $"Token expired on {tokenExpiration.Value:yyyy-MM-dd HH:mm:ss} UTC.";
+                    details = new { error = "Token expired", expiration = tokenExpiration };
+                }
+                else
+                {
+                    // Test Azure DevOps API connectivity
+                    var httpClient = _httpClientFactory.CreateClient();
+                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                    httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                    // Test endpoint: Get user profile
+                    var response = await httpClient.GetAsync("https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=6.0", CancellationToken.None);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        healthy = true;
+                        if (tokenExpiration.HasValue)
+                        {
+                            var daysUntilExpiration = (tokenExpiration.Value - DateTime.UtcNow).TotalDays;
+                            message = $"Connected. Token expires {tokenExpiration.Value:yyyy-MM-dd HH:mm:ss} UTC ({daysUntilExpiration:F0} days).";
+                        }
+                        else
+                        {
+                            message = "Connected. Token has no expiration.";
+                        }
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                             response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    {
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        message = $"Authentication failed ({(int)response.StatusCode}). Token may be revoked or have insufficient permissions.";
+                        details = new { error = errorContent, statusCode = (int)response.StatusCode };
+                        _logger.LogInternalWarning("Azure DevOps auth failed for connector {ConnectorName}: {StatusCode}", connectorName, response.StatusCode);
+                    }
+                    else
+                    {
+                        message = $"Azure DevOps API returned status code {(int)response.StatusCode}.";
+                        details = new { statusCode = (int)response.StatusCode };
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Azure DevOps connectivity check exception for connector: {ConnectorName}", connectorName);
+            message = $"Check failed: {ex.Message}";
+            details = new { error = ex.Message };
+        }
+        finally
+        {
+            stopwatch.Stop();
+        }
+
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "AzureDevOps",
+            Healthy: healthy,
+            Message: message,
+            Status: healthy ? DataConnectorStatus.Connected.ToString() : DataConnectorStatus.Failed.ToString(),
+            ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+            Details: details);
+    }
+
     public async Task<ApiCommandResult<ConnectorStatusResponse>> GetConnectorStatusAsync(string connectorName)
     {
         try
@@ -1133,6 +1314,8 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 "outlook" => await BuildOutlookConnectorStatusAsync(connectorName),
                 "teams" => await BuildTeamsConnectorStatusAsync(connectorName),
                 "tsgcrawler" => await BuildTsgCrawlerConnectorStatusAsync(connectorName, connector.DataSource),
+                "githuboauth" => await BuildGitHubConnectorStatusAsync(connectorName),
+                "azuredevopsoauth" => await BuildAzureDevOpsConnectorStatusAsync(connectorName),
                 _ => new ConnectorStatusResponse(
                         Name: connectorName,
                         Type: connector.ConnectorType,

@@ -8,6 +8,8 @@ export enum ConnectorType {
     OutlookSendEmail = 'Outlook',
     TeamsSendNotification = 'Teams',
     GitHub = 'GitHub',
+    GitHubOAuth = 'GitHubOAuth',
+    AzureDevOpsOAuth = 'AzureDevOpsOAuth',
     McpServer = 'Mcp',
 }
 
@@ -47,6 +49,20 @@ export const connectorTypeOptions = (intl: any): ConnectorTypeOption[] => [
         service: intl.formatMessage(ConnectorsResources.gitHub),
         description: intl.formatMessage(ConnectorsResources.githubDescription),
         img: resolveResourceIcon('GitHub'),
+    },
+    {
+        id: ConnectorType.GitHubOAuth,
+        name: intl.formatMessage(ConnectorsResources.gitHubOAuthConnector),
+        service: intl.formatMessage(ConnectorsResources.gitHub),
+        description: intl.formatMessage(ConnectorsResources.githubOAuthDescription),
+        img: resolveResourceIcon('GitHub'),
+    },
+    {
+        id: ConnectorType.AzureDevOpsOAuth,
+        name: intl.formatMessage(ConnectorsResources.azureDevOpsOAuthConnector),
+        service: intl.formatMessage(ConnectorsResources.azureDevOps),
+        description: intl.formatMessage(ConnectorsResources.azureDevOpsOAuthDescription),
+        img: resolveResourceIcon('AzureDevOps'),
     },
     {
         id: ConnectorType.OutlookSendEmail,

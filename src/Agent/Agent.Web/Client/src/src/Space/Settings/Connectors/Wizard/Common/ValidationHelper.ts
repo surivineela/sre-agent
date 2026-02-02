@@ -35,7 +35,9 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
             .ensure()
             .when(['connectorType', 'mcpConnectionType'], {
                 is: (connectorType: string, mcpConnectionType: string) =>
-                    connectorType === ConnectorType.McpServer && mcpConnectionType === McpConnectionType.Local,
+                    (connectorType === ConnectorType.McpServer && mcpConnectionType === McpConnectionType.Local) ||
+                    connectorType === ConnectorType.GitHubOAuth ||
+                    connectorType === ConnectorType.AzureDevOpsOAuth,
                 then: schema => schema.notRequired(),
                 otherwise: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
             })
@@ -184,7 +186,11 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
         identity: string()
             .ensure()
             .when('connectorType', {
-                is: (connectorType: string) => connectorType !== ConnectorType.McpServer && connectorType !== ConnectorType.GitHub,
+                is: (connectorType: string) =>
+                    connectorType !== ConnectorType.McpServer &&
+                    connectorType !== ConnectorType.GitHub &&
+                    connectorType !== ConnectorType.GitHubOAuth &&
+                    connectorType !== ConnectorType.AzureDevOpsOAuth,
                 then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
                 otherwise: schema => schema.notRequired(),
             }),

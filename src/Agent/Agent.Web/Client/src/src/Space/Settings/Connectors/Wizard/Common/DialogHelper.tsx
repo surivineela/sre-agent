@@ -3,6 +3,8 @@ import { MsiIdentity } from '../../../../../Common/Contracts/Azure/ArmObj';
 import { Connector } from '../../../../../Common/Contracts/Azure/SreAgent';
 import { AuthType, ConnectorFormProps, McpConnectionType } from '../ConnectorWizardFormik';
 import { AzureConnectorForm } from '../SetupForm/AzureConnectorForm';
+import { AzureDevOpsConnectorForm } from '../SetupForm/AzureDevOpsConnectorForm';
+import { GitHubConnectorForm } from '../SetupForm/GitHubConnectorForm';
 import { McpServerForm } from '../SetupForm/McpServerForm';
 import { OutlookTeamsConnectorForm } from '../SetupForm/OutlookTeamsConnectorForm';
 import { ConnectorType } from './ConnectorType';
@@ -75,6 +77,17 @@ export const renderConnectorForm = (options: RenderFormOptions): React.ReactNode
                     refreshAgent={refreshAgent}
                 />
             );
+        case ConnectorType.GitHubOAuth:
+            return <GitHubConnectorForm isEditMode={isEditMode} />;
+        case ConnectorType.AzureDevOpsOAuth:
+            return (
+                <AzureDevOpsConnectorForm
+                    isEditMode={isEditMode}
+                    userAssignedIdentities={userAssignedIdentityOptions}
+                    agentIdentity={agentIdentity}
+                    refreshAgent={refreshAgent}
+                />
+            );
         case ConnectorType.McpServer:
         case ConnectorType.GitHub:
             return (
@@ -112,7 +125,11 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
     let dataSource: string | undefined;
     let extendedProperties: Record<string, any> | undefined;
 
-    if (connectorType !== ConnectorType.McpServer) {
+    if (
+        connectorType !== ConnectorType.McpServer &&
+        connectorType !== ConnectorType.GitHubOAuth &&
+        connectorType !== ConnectorType.AzureDevOpsOAuth
+    ) {
         // Non-MCP connectors use dataSource
         if (connectorType === ConnectorType.TeamsSendNotification) {
             const teamsInfo = parseTeamsChannelLink(values.teamsChannelLink || '');
@@ -120,15 +137,12 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
         } else {
             dataSource = values.url;
         }
-
-        // For Azure DevOps connector with FIC enabled, add extended properties
-        if (values.useManagedIdentityAsFic && connectorType === ConnectorType.AzureDevOpsDocumentation) {
-            extendedProperties = {
-                useManagedIdentityAsFic: true,
-                federatedClientId: values.federatedClientId,
-                federatedTenantId: values.federatedTenantId,
-            };
-        }
+    } else if (connectorType === ConnectorType.GitHubOAuth) {
+        // GitHub OAuth connector - OAuth is handled separately, just set placeholder
+        dataSource = 'github-oauth';
+    } else if (connectorType === ConnectorType.AzureDevOpsOAuth) {
+        // Azure DevOps OAuth connector - OAuth is handled separately, just set placeholder
+        dataSource = 'azure-devops-oauth';
     } else {
         // MCP connectors use extendedProperties
         if (values.mcpConnectionType === McpConnectionType.Local) {
@@ -155,6 +169,16 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
         }
 
         dataSource = 'placeholder';
+    }
+
+    // For connector with FIC enabled, add extended properties
+    if (values.useManagedIdentityAsFic) {
+        extendedProperties = {
+            ...extendedProperties,
+            useManagedIdentityAsFic: true,
+            federatedClientId: values.federatedClientId,
+            federatedTenantId: values.federatedTenantId,
+        };
     }
 
     const dataConnector: Connector = {

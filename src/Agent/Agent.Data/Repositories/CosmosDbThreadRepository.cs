@@ -2498,13 +2498,21 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #endregion
 
-    #region GitHubAccessToken Operations
+    #region OAuth Token Operations
     public async Task<GitHubAccessToken?> GetGitHubAccessTokenAsync()
     {
         try
         {
-            var gitHubAccessTokenDocument = await GetDocumentAsync<GitHubAccessTokenDocument>("GitHubAccessToken", "GitHubAccessToken");
-            return gitHubAccessTokenDocument?.ToDomainModel();
+            // Try new format first
+            var oauthDoc = await GetDocumentAsync<OAuthTokenDocument>("OAuthToken", "GitHubOAuth");
+            if (oauthDoc != null)
+            {
+                return oauthDoc.ToGitHubToken();
+            }
+
+            // Fall back to legacy format for backward compatibility
+            var legacyDoc = await GetDocumentAsync<GitHubAccessTokenDocument>("GitHubAccessToken", "GitHubAccessToken");
+            return legacyDoc?.ToDomainModel();
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -2514,9 +2522,8 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     public async Task<GitHubAccessToken?> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken)
     {
-        // Create the GitHub access token document
-        var gitHubAccessTokenDoc = GitHubAccessTokenDocument.FromDomainModel(gitHubAccessToken);
-        await _client.GetContainer<GitHubAccessTokenDocument>(_databaseName).UpsertItemAsync(gitHubAccessTokenDoc, new PartitionKey(gitHubAccessTokenDoc.PartitionKey));
+        var oauthDoc = OAuthTokenDocument.FromGitHubToken(gitHubAccessToken);
+        await _client.GetContainer<OAuthTokenDocument>(_databaseName).UpsertItemAsync(oauthDoc, new PartitionKey(oauthDoc.PartitionKey));
         return gitHubAccessToken;
     }
 
@@ -2524,15 +2531,22 @@ public class CosmosDbThreadRepository : IThreadRepository
     {
         try
         {
-            // Delete the message
-            await _client.GetContainer<GitHubAccessTokenDocument>(_databaseName).DeleteItemAsync<GitHubAccessTokenDocument>("GitHubAccessToken", new PartitionKey("GitHubAccessToken"));
-
+            // Try to delete new format
+            await _client.GetContainer<OAuthTokenDocument>(_databaseName).DeleteItemAsync<OAuthTokenDocument>("OAuthToken", new PartitionKey("GitHubOAuth"));
             return true;
         }
-
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            return false;
+            // Try to delete legacy format
+            try
+            {
+                await _client.GetContainer<GitHubAccessTokenDocument>(_databaseName).DeleteItemAsync<GitHubAccessTokenDocument>("GitHubAccessToken", new PartitionKey("GitHubAccessToken"));
+                return true;
+            }
+            catch (CosmosException ex2) when (ex2.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
         }
     }
     #endregion
@@ -2570,6 +2584,40 @@ public class CosmosDbThreadRepository : IThreadRepository
             return true;
         }
 
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
+    public async Task<AzureDevOpsAccessToken?> GetAzureDevOpsOAuthTokenAsync()
+    {
+        try
+        {
+            var document = await GetDocumentAsync<OAuthTokenDocument>("OAuthToken", "AzureDevOpsOAuth");
+            return document?.ToAzureDevOpsToken();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsOAuthTokenAsync(
+        AzureDevOpsAccessToken token)
+    {
+        var document = OAuthTokenDocument.FromAzureDevOpsToken(token);
+        await _client.GetContainer<OAuthTokenDocument>(_databaseName).UpsertItemAsync(document, new PartitionKey(document.PartitionKey));
+        return token;
+    }
+
+    public async Task<bool> DeleteAzureDevOpsOAuthTokenAsync()
+    {
+        try
+        {
+            await _client.GetContainer<OAuthTokenDocument>(_databaseName).DeleteItemAsync<OAuthTokenDocument>("OAuthToken", new PartitionKey("AzureDevOpsOAuth"));
+            return true;
+        }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return false;

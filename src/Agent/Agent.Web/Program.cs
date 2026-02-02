@@ -451,6 +451,7 @@ public class Program
             .AddSingleton<INSGRulePlugin, NSGRulePlugin>()
             .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
             .AddSingleton<AzureSupportCenterHelper>()
+            .AddSingleton<JwtValidationHelper>()
             .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()
             .AddSingleton<AppInsightsSettings>()
             .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
@@ -922,6 +923,7 @@ public class Program
         });
 
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
+        builder.Services.AddSingleton<IOAuthTokenService, OAuthTokenService>();
         builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
         builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
         builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");

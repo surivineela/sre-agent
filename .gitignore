@@ -438,6 +438,7 @@ TestPlayground/
 
 # Personal claude instructions
 **/.claude/*.local.*
+Claude.local.*
 
 # Playwright
 **/.playwright-mcp/

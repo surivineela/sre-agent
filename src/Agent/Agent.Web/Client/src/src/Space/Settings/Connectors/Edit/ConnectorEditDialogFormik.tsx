@@ -47,8 +47,8 @@ export const ConnectorEditDialogFormik: React.FC<ConnectorEditDialogFormikProps>
             federatedTenantId: '',
         };
 
-        // Parse FIC properties from extendedProperties for Azure DevOps connector
-        if (connector.extendedProperties && connectorType === ConnectorType.AzureDevOpsDocumentation) {
+        // Parse FIC properties from extendedProperties
+        if (connector.extendedProperties) {
             const props = connector.extendedProperties;
             if (props.useManagedIdentityAsFic) {
                 initialFormProps.useManagedIdentityAsFic = Boolean(props.useManagedIdentityAsFic);

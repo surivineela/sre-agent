@@ -347,6 +347,46 @@ export class ExtendedAgentClient extends DataPlaneClient {
         }
     };
 
+    public getGitHubOAuthConfig = async (): Promise<Response<{ oAuthUrl: string }>> => {
+        try {
+            const { data } = await axios.get(this.getRequestUrl('/api/v1/github/config'), {
+                headers: getAgentHeaders(),
+            });
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    };
+
+    public completeAzureDevOpsOAuth = async (connectorId: string): Promise<Response<{ message: string; success: boolean }>> => {
+        try {
+            const { data } = await axios.post(
+                this.getRequestUrl(`/api/v1/azuredevops/aadauth/complete?connectorId=${encodeURIComponent(connectorId)}`),
+                {},
+                {
+                    headers: getAgentHeaders(),
+                }
+            );
+            return {
+                isSuccessful: true,
+                content: data,
+            };
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error);
+            return {
+                isSuccessful: false,
+                error: errorMessage,
+            };
+        }
+    };
+
     private convertExtendedEntityToYamlDocuments(
         data: Partial<ExtendedAgent> | Partial<ExtendedTool> | Partial<ExtendedConnector>,
         type: 'agent' | 'tool' | 'connector'

@@ -89,6 +89,8 @@
     <PackageVersion Include="Microsoft.IdentityModel.S2S" Version="4.19.1" />
     <PackageVersion Include="Microsoft.IdentityModel.S2S.Configuration" Version="4.19.1" />
     <PackageVersion Include="Microsoft.IdentityModel.S2S.Extensions.AspNetCore" Version="4.19.1" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols" Version="8.6.1" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.6.1" />
     <PackageVersion Include="Microsoft.TeamFoundationServer.Client" Version="19.225.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Services.Client" Version="19.225.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Services.Search.Client" Version="19.225.1" />
