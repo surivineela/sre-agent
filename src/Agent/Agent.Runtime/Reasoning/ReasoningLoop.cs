@@ -2023,6 +2023,10 @@ public class ReasoningLoop : IDisposable
             hooks.ModelGenerationError += customerLoggerHooks.OnModelGenerationError;
         }
 
+        // Add Task tool (parallel subagent) streaming hooks
+        var taskToolStreamingHelper = new TaskToolStreamingHelper(_outboundCommunicationService, _context.ThreadId);
+        taskToolStreamingHelper.SubscribeTo(hooks);
+
         return hooks;
     }
 

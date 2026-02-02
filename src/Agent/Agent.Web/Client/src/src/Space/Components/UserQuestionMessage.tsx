@@ -62,19 +62,21 @@ const useStyles = makeStyles({
         marginLeft: '-2px',
     },
 
-    // Expanded container - minimal left border only
+    // Expanded container - rounded card style matching other tool cards
     expandedContainer: {
-        borderLeft: `1px solid ${tokens.colorNeutralStroke3}`,
-        marginLeft: '7px',
-        marginTop: '2px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: '8px',
+        marginTop: '8px',
+        marginLeft: '24px',
         overflow: 'hidden',
+        backgroundColor: tokens.colorNeutralBackground1,
     },
 
     // Content header - minimal
     contentHeader: {
         display: 'flex',
         alignItems: 'center',
-        padding: '4px 8px 4px 12px',
+        padding: '8px 12px',
         gap: '8px',
     },
     contentHeaderLeft: {
@@ -295,14 +297,9 @@ const UserQuestionMessage = ({ userQuestion, onSubmitResponse }: UserQuestionMes
             {/* Expanded Content */}
             {isExpanded && (
                 <div className={classes.expandedContainer}>
-                    {/* Header with question */}
+                    {/* Question text (full, not truncated) */}
                     <div className={classes.contentHeader}>
-                        <div className={classes.contentHeaderLeft}>
-                            <span className={classes.headerIcon}>
-                                <ChatBubblesQuestion24Regular />
-                            </span>
-                            <div className={classes.questionText}>{userQuestion.question}</div>
-                        </div>
+                        <div className={classes.questionText}>{userQuestion.question}</div>
                     </div>
 
                     {/* Options list */}

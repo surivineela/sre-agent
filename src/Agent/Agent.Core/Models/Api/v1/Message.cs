@@ -54,6 +54,8 @@ public record Message(
     UserQuestion? UserQuestion = null,
     // Todo Plan information associated with this message (for todo plan notifications)
     TodoInfo? TodoInfo = null,
+    // Task tool execution group for parallel subagent executions (Explore agents)
+    TaskToolExecutionGroup? TaskToolExecutionGroup = null,
     // Indicates if the message is complete (e.g., streaming is finished)
     bool IsComplete = true,
     StreamMessageType? MessageType = null

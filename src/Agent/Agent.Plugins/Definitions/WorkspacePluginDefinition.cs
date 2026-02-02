@@ -39,9 +39,10 @@ public class WorkspacePluginDefinition
     {
         var textResult = await _plugin.ReadFileAsync(filePath, startLine, endLine);
 
-        // Parse the result and stream to frontend for rich rendering
+        // Parse the result and stream to frontend for rich rendering (skip if in subagent context)
         var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
-        if (threadId != Guid.Empty)
+        var isInSubagent = !string.IsNullOrEmpty(Framework.ToolStatic.AsyncLocalSubagentExecutionId.Value);
+        if (threadId != Guid.Empty && !isInSubagent)
         {
             var readFileResult = ParseReadFileResult(textResult, filePath, startLine, endLine);
             await _communicationService.AppendAgentReadFileMessage(threadId, readFileResult);
@@ -180,8 +181,9 @@ public class WorkspacePluginDefinition
     {
         var jsonResult = await _plugin.GrepSearchAsync(query, isRegexp, includePattern, maxResults, includeIgnoredFiles);
 
-        // Parse the structured result and stream to frontend
+        // Parse the structured result and stream to frontend (skip if in subagent context - will be shown nested)
         var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
+        var isInSubagent = !string.IsNullOrEmpty(Framework.ToolStatic.AsyncLocalSubagentExecutionId.Value);
         try
         {
             var grepResult = JsonSerializer.Deserialize<Agent.Core.Models.Api.v1.GrepSearchResult>(jsonResult, new JsonSerializerOptions
@@ -189,7 +191,7 @@ public class WorkspacePluginDefinition
                 PropertyNameCaseInsensitive = true
             });
 
-            if (grepResult != null && threadId != Guid.Empty)
+            if (grepResult != null && threadId != Guid.Empty && !isInSubagent)
             {
                 // Stream the structured result to the frontend for rich rendering
                 await _communicationService.AppendAgentGrepSearchMessage(threadId, grepResult);
@@ -218,9 +220,10 @@ public class WorkspacePluginDefinition
     {
         var textResult = await _plugin.RunInTerminalAsync(command, explanation, isBackground);
 
-        // Parse the result and stream to frontend for rich rendering
+        // Parse the result and stream to frontend for rich rendering (skip if in subagent context)
         var threadId = Core.ToolStatic.AsyncLocalThreadId.Value;
-        if (threadId != Guid.Empty)
+        var isInSubagent = !string.IsNullOrEmpty(Framework.ToolStatic.AsyncLocalSubagentExecutionId.Value);
+        if (threadId != Guid.Empty && !isInSubagent)
         {
             var terminalResult = ParseTerminalResult(textResult, command, explanation, isBackground);
             await _communicationService.AppendAgentTerminalMessage(threadId, terminalResult);

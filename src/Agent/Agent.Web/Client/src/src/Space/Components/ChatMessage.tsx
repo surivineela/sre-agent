@@ -2,15 +2,17 @@ import { UserMessage } from '@fluentui-copilot/react-copilot-chat';
 import { Badge, Text, Tooltip, tokens } from '@fluentui/react-components';
 import { Bookmark16Regular, Search16Regular } from '@fluentui/react-icons';
 import mermaid from 'mermaid';
-import { memo, useMemo } from 'react';
+import { memo, useContext, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import ReactMarkdownComponent from '../../Common/Components/ReactMarkdownComponent';
 import { formatDateTimeWithShortYear, getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import { IChatMessageProps } from '../Contracts/Activities';
+import { StreamingContext } from '../Contracts/Context';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { getScheduledTaskMessage } from '../Hooks/useScheduledTaskMessage';
+import { useTaskToolExecutions } from '../Hooks/useTaskToolExecutions';
 import { getChatBoxStyles, nameAndTimestampContainerStyle, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentMessage from './AgentMessage';
 import AgentMessageLoadingComponent from './AgentMessageLoadingComponent';
@@ -19,6 +21,7 @@ import ConnectionErrorComponent from './ConnectionErrorComponent';
 import DeepInvestigationStatusMessage from './DeepInvestigationStatusMessage';
 import ScheduledTaskCreationChatMessage from './ScheduledTaskCreationChatMessage';
 import ScheduledTaskExecutionChatMessage from './ScheduledTaskExecutionChatMessage';
+import TaskToolExecutionMessage from './TaskToolExecutionMessage';
 
 // Initialize mermaid with default configuration
 mermaid.initialize({
@@ -50,6 +53,17 @@ const ChatMessage = ({
     const id = useMemo(() => componentId || Guid.newGuid(), [componentId]);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
+
+    // Get streaming Task tool execution groups for real-time display
+    const { executionGroups } = useTaskToolExecutions(threadId);
+    const { cancelTaskExecution } = useContext(StreamingContext);
+
+    // Filter out execution groups that already exist as persisted messages
+    // to avoid duplicate rendering (AgentMessage will render those)
+    const streamingOnlyGroups = useMemo(() => {
+        const persistedGroupIds = new Set(messages.filter(m => m.taskToolExecutionGroup).map(m => m.taskToolExecutionGroup!.id));
+        return executionGroups.filter(group => !persistedGroupIds.has(group.id));
+    }, [executionGroups, messages]);
 
     const Loading = () => {
         return (
@@ -112,6 +126,11 @@ const ChatMessage = ({
                                 />
                             );
                         })}
+
+                        {/* Render streaming Task tool execution groups (not yet persisted) */}
+                        {streamingOnlyGroups.map(group => (
+                            <TaskToolExecutionMessage key={group.id} executionGroup={group} onCancelExecution={cancelTaskExecution} />
+                        ))}
 
                         <ConnectionErrorComponent key={`${id}-connection-error`} isStreamingMessage={isStreamingMessage} />
                         <ToolCallTextComponent key={`${id}-tool-call-text`} />

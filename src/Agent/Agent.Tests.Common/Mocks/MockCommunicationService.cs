@@ -260,5 +260,12 @@ public class MockCommunicationService : IAgentOutboundCommunicationService
         Messages.Add(executionData);
         return Task.CompletedTask;
     }
+
+    public Task<Guid> AppendAgentTaskToolExecutionGroupMessage(Guid threadId, TaskToolExecutionGroup executionGroup, Guid messageId = default)
+    {
+        _logger?.LogInternalInformation($"Mock: Task tool execution group message for thread {threadId} with {executionGroup.Executions.Count} executions");
+        Messages.Add($"TaskToolExecutionGroup: {executionGroup.Id}");
+        return Task.FromResult(messageId == default ? Guid.NewGuid() : messageId);
+    }
 }
 

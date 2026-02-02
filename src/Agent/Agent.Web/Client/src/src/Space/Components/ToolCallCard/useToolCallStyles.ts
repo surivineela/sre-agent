@@ -5,12 +5,14 @@ import { makeStyles, tokens } from '@fluentui/react-components';
  * Minimal design inspired by VS Code / Cursor.
  */
 export const useToolCallStyles = makeStyles({
-    // Container for expanded content - minimal border
+    // Container for expanded content - rounded card design
     expandedContainer: {
-        borderLeft: `1px solid ${tokens.colorNeutralStroke3}`,
-        marginLeft: '7px',
-        marginTop: '2px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: '8px',
+        marginTop: '8px',
+        marginLeft: '24px',
         overflow: 'hidden',
+        backgroundColor: tokens.colorNeutralBackground1,
     },
 
     // Header bar - minimal, no background

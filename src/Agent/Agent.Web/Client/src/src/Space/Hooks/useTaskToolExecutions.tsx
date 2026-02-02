@@ -29,6 +29,7 @@ type TaskToolInvocationStreamData = {
     status: string;
     startedAt?: string;
     completedAt?: string;
+    output?: string;
 };
 
 const toTaskToolExecution = (data: TaskToolExecutionStreamData): TaskToolExecution => ({
@@ -62,9 +63,9 @@ export const useTaskToolExecutions = (threadId: string | undefined | null) => {
                     const newExecutions = [...group.executions];
                     newExecutions[execIndex] = toTaskToolExecution(execData);
 
-                    const isComplete = checkCompletion && newExecutions.every(
-                        e => e.status === 'Completed' || e.status === 'Failed' || e.status === 'Cancelled'
-                    );
+                    const isComplete =
+                        checkCompletion &&
+                        newExecutions.every(e => e.status === 'Completed' || e.status === 'Failed' || e.status === 'Cancelled');
 
                     const newMap = new Map(prev);
                     newMap.set(groupId, {
@@ -93,11 +94,12 @@ export const useTaskToolExecutions = (threadId: string | undefined | null) => {
             const existingIdx = invocations.findIndex(inv => inv.toolName === invData.toolName && inv.status === 'Running');
 
             if (isEnd && existingIdx >= 0) {
-                // Update existing invocation
+                // Update existing invocation with output
                 invocations[existingIdx] = {
                     ...invocations[existingIdx],
                     status: invData.status as SubagentToolInvocation['status'],
                     completedAt: invData.completedAt,
+                    output: invData.output,
                 };
             } else if (!isEnd) {
                 // Add new invocation
@@ -142,40 +144,43 @@ export const useTaskToolExecutions = (threadId: string | undefined | null) => {
         });
     }, []);
 
-    const handleSubagentUpdate = useCallback((message: StreamingMessage) => {
-        const messageThreadId = message?.additionalProperties?.threadId;
-        const streamMessageType = message?.additionalProperties?.streamMessageType;
-        const content = message?.contents?.[0]?.text;
+    const handleSubagentUpdate = useCallback(
+        (message: StreamingMessage) => {
+            const messageThreadId = message?.additionalProperties?.threadId;
+            const streamMessageType = message?.additionalProperties?.streamMessageType;
+            const content = message?.contents?.[0]?.text;
 
-        if (!messageThreadId || messageThreadId !== threadIdRef.current || !content) {
-            return;
-        }
-
-        try {
-            if (streamMessageType === 'TaskToolGroupStart' || streamMessageType === 'TaskToolGroupEnd') {
-                const groupData = JSON.parse(content) as TaskToolGroupStreamData;
-                setExecutionGroups(prev => {
-                    const newMap = new Map(prev);
-                    newMap.set(groupData.groupId, {
-                        id: groupData.groupId,
-                        executions: groupData.executions.map(toTaskToolExecution),
-                        isComplete: streamMessageType === 'TaskToolGroupEnd' ? (groupData.isComplete ?? true) : false,
-                        startedAt: groupData.startedAt,
-                        completedAt: groupData.completedAt,
-                    });
-                    return newMap;
-                });
-            } else if (streamMessageType === 'TaskToolExecutionStart' || streamMessageType === 'TaskToolExecutionEnd') {
-                const execData = JSON.parse(content) as TaskToolExecutionStreamData;
-                updateExecutionInGroups(execData, streamMessageType === 'TaskToolExecutionEnd');
-            } else if (streamMessageType === 'TaskToolInvocationStart' || streamMessageType === 'TaskToolInvocationEnd') {
-                const invData = JSON.parse(content) as TaskToolInvocationStreamData;
-                updateToolInvocation(invData, streamMessageType === 'TaskToolInvocationEnd');
+            if (!messageThreadId || messageThreadId !== threadIdRef.current || !content) {
+                return;
             }
-        } catch {
-            // Silent fail - streaming errors shouldn't break the UI
-        }
-    }, [updateExecutionInGroups, updateToolInvocation]);
+
+            try {
+                if (streamMessageType === 'TaskToolGroupStart' || streamMessageType === 'TaskToolGroupEnd') {
+                    const groupData = JSON.parse(content) as TaskToolGroupStreamData;
+                    setExecutionGroups(prev => {
+                        const newMap = new Map(prev);
+                        newMap.set(groupData.groupId, {
+                            id: groupData.groupId,
+                            executions: groupData.executions.map(toTaskToolExecution),
+                            isComplete: streamMessageType === 'TaskToolGroupEnd' ? (groupData.isComplete ?? true) : false,
+                            startedAt: groupData.startedAt,
+                            completedAt: groupData.completedAt,
+                        });
+                        return newMap;
+                    });
+                } else if (streamMessageType === 'TaskToolExecutionStart' || streamMessageType === 'TaskToolExecutionEnd') {
+                    const execData = JSON.parse(content) as TaskToolExecutionStreamData;
+                    updateExecutionInGroups(execData, streamMessageType === 'TaskToolExecutionEnd');
+                } else if (streamMessageType === 'TaskToolInvocationStart' || streamMessageType === 'TaskToolInvocationEnd') {
+                    const invData = JSON.parse(content) as TaskToolInvocationStreamData;
+                    updateToolInvocation(invData, streamMessageType === 'TaskToolInvocationEnd');
+                }
+            } catch {
+                // Silent fail - streaming errors shouldn't break the UI
+            }
+        },
+        [updateExecutionInGroups, updateToolInvocation]
+    );
 
     useEffect(() => {
         let isSubscribed = true;

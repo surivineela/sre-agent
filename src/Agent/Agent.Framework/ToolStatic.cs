@@ -21,4 +21,10 @@ public static class ToolStatic
     /// AsyncLocal because we want to keep the message ID for streaming in the current async context.
     /// </summary>
     public static readonly AsyncLocal<Guid?> AsyncLocalToolCallMessageId = new();
+
+    /// <summary>
+    /// Holds the subagent execution ID when a tool is called from within a Task tool subagent.
+    /// Used to suppress individual tool message streaming (they'll be shown nested under the subagent).
+    /// </summary>
+    public static readonly AsyncLocal<string?> AsyncLocalSubagentExecutionId = new();
 }

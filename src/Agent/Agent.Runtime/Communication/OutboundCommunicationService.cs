@@ -1282,4 +1282,23 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             _logger.LogInternalError(ex, "Failed to stream Task tool execution update for thread {ThreadId}", threadId);
         }
     }
+
+    public async Task<Guid> AppendAgentTaskToolExecutionGroupMessage(Guid threadId, TaskToolExecutionGroup executionGroup, Guid messageId = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        var resolvedMessageId = messageId == default ? Guid.NewGuid() : messageId;
+
+        // Build a descriptive text message for the execution group
+        var completedCount = executionGroup.Executions.Count(e => e.Status == TaskToolExecutionStatus.Completed);
+        var failedCount = executionGroup.Executions.Count(e => e.Status == TaskToolExecutionStatus.Failed);
+        var taskDescriptions = string.Join(", ", executionGroup.Executions.Select(e => e.Description ?? e.SubagentType ?? "Unknown").Take(5));
+        var messageText = $"Parallel subagent execution: {completedCount} completed, {failedCount} failed ({taskDescriptions})";
+
+        // Persist to database
+        return await _sinkService.SinkAgentTaskToolExecutionGroupMessageAsync(threadId, messageText, resolvedMessageId, executionGroup);
+    }
 }

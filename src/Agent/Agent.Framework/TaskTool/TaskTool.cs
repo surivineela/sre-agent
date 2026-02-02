@@ -239,7 +239,13 @@ public class TaskTool<TContext> : AIFunction where TContext : class
             subagentHooks.ToolEnd += async (context, subagent, functionCall, tool, result) =>
             {
                 var success = result != null && !result.ToString()?.StartsWith("Error", StringComparison.OrdinalIgnoreCase) == true;
-                await RunHooks.OnTaskToolInvocationEnd(context, agent, executionId, tool.Name, success);
+                // Truncate output to 500 chars for streaming efficiency
+                var output = result?.ToString();
+                if (output != null && output.Length > 500)
+                {
+                    output = output.Substring(0, 500) + "...";
+                }
+                await RunHooks.OnTaskToolInvocationEnd(context, agent, executionId, tool.Name, success, output);
             };
 
             // Run the subagent with the linked cancellation token
@@ -247,6 +253,9 @@ public class TaskTool<TContext> : AIFunction where TContext : class
             {
                 new ChatMessage(ChatRole.User, prompt)
             };
+
+            // Set subagent context to suppress individual tool message streaming
+            ToolStatic.AsyncLocalSubagentExecutionId.Value = executionId;
 
             var result = await Runner.RunAsync(
                 startingAgent: agent,
@@ -272,6 +281,8 @@ public class TaskTool<TContext> : AIFunction where TContext : class
         }
         finally
         {
+            // Clear subagent context
+            ToolStatic.AsyncLocalSubagentExecutionId.Value = null;
             // Always unregister to prevent memory leaks
             TaskToolCancellationRegistry.UnregisterExecution(executionId);
         }

@@ -30,7 +30,7 @@ public class RunHooks<TContext> where TContext : class
     public delegate Task TaskToolExecutionStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecution execution);
     public delegate Task TaskToolExecutionEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecution execution);
     public delegate Task TaskToolInvocationStartDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, string? description);
-    public delegate Task TaskToolInvocationEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, bool success);
+    public delegate Task TaskToolInvocationEndDelegate(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, bool success, string? output = null);
     public event AgentStartDelegate? AgentStart;
     public event AgentEndDelegate? AgentEnd;
     public event ToolStartDelegate? ToolStart;
@@ -74,5 +74,5 @@ public class RunHooks<TContext> where TContext : class
     public Task OnTaskToolExecutionStart(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecution execution) => TaskToolExecutionStart?.Invoke(context, agent, execution) ?? Task.CompletedTask;
     public Task OnTaskToolExecutionEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, TaskToolExecution execution) => TaskToolExecutionEnd?.Invoke(context, agent, execution) ?? Task.CompletedTask;
     public Task OnTaskToolInvocationStart(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, string? description) => TaskToolInvocationStart?.Invoke(context, agent, executionId, toolName, description) ?? Task.CompletedTask;
-    public Task OnTaskToolInvocationEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, bool success) => TaskToolInvocationEnd?.Invoke(context, agent, executionId, toolName, success) ?? Task.CompletedTask;
+    public Task OnTaskToolInvocationEnd(RunContextWrapper<TContext> context, Agent<TContext> agent, string executionId, string toolName, bool success, string? output = null) => TaskToolInvocationEnd?.Invoke(context, agent, executionId, toolName, success, output) ?? Task.CompletedTask;
 }

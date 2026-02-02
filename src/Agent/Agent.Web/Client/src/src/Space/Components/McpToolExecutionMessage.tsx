@@ -518,18 +518,6 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
             {/* Expanded Content inside the card */}
             {isExpanded && (
                 <div className={classes.expandedContainer}>
-                    {/* Header */}
-                    <div className={classes.contentHeader}>
-                        <div className={classes.contentHeaderLeft}>
-                            {getIcon()}
-                            <Text weight="semibold" size={200}>
-                                {execution.displayName || execution.toolName}
-                            </Text>
-                            <Caption1 className={classes.toolNameBadge}>{execution.mcpServerName}</Caption1>
-                        </div>
-                        {statusBadge}
-                    </div>
-
                     {/* Parameters */}
                     {renderParameters()}
 

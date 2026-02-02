@@ -937,6 +937,31 @@ export const SreAgentResources = defineMessages({
     openMenu: { defaultMessage: 'Agent configuration and more', id: 'qTuUKM' },
     toolCalls: { defaultMessage: 'Tool calls', id: '/ZNQCX' },
     otherToolCalls: { defaultMessage: '+{count} other tool calls', id: 'xWArib' },
+    // Task tool execution messages
+    taskToolParallelExploration: { defaultMessage: 'Parallel Exploration', id: 'Iq2iKS' },
+    taskToolExploreAgents: {
+        defaultMessage: '{count, plural, one {# Explore Agent} other {# Explore Agents}}',
+        id: 'mLW6TK',
+    },
+    taskToolOutput: { defaultMessage: 'Output', id: 'fio5op' },
+    taskToolToolCalls: { defaultMessage: 'Tool Calls', id: 'tDQLmD' },
+    taskToolFinalResult: { defaultMessage: 'Final Result', id: 'AMYnZD' },
+    taskToolNoOutputsAvailable: {
+        defaultMessage: 'No tool outputs available (only captured during real-time execution)',
+        id: 'JT3E4l',
+    },
+    taskToolAgentsCompleted: {
+        defaultMessage: '{total, plural, one {# agent} other {# agents}} · {completed} completed',
+        id: 'HUw/WX',
+    },
+    taskToolAgentsFailed: { defaultMessage: '{failed} failed', id: 'DOKjLe' },
+    taskToolRunning: { defaultMessage: '{count} running', id: 'gjhcMb' },
+    taskToolAllComplete: { defaultMessage: 'All complete', id: '1d/uxD' },
+    taskToolToolCallsCount: {
+        defaultMessage: '{count, plural, one {# tool call} other {# tool calls}}',
+        id: '4yQHX3',
+    },
+    taskToolEarlierCount: { defaultMessage: '+{count} earlier', id: 'GcvRXK' },
 });
 
 export const SreAgentTabResources = defineMessages({

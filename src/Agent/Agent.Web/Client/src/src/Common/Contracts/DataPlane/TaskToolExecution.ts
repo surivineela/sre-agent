@@ -39,6 +39,8 @@ export interface SubagentToolInvocation {
     startedAt: string;
     /** When the tool invocation completed */
     completedAt?: string;
+    /** Truncated output from the tool (max 500 chars) */
+    output?: string;
 }
 
 /**

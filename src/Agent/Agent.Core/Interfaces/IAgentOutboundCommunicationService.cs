@@ -168,4 +168,10 @@ public interface IAgentOutboundCommunicationService
     /// Used for real-time progress display of parallel subagent executions.
     /// </summary>
     Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Appends a completed Task tool execution group as a persistent message.
+    /// Called when all subagent executions in a group have completed.
+    /// </summary>
+    Task<Guid> AppendAgentTaskToolExecutionGroupMessage(Guid threadId, TaskToolExecutionGroup executionGroup, Guid messageId = default);
 }
