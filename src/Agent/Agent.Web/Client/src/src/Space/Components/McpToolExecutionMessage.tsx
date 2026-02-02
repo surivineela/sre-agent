@@ -83,102 +83,102 @@ type McpToolExecutionMessageProps = {
 };
 
 const useStyles = makeStyles({
-    root: {
-        display: 'flex',
-        flexDirection: 'column',
-    },
-
-    // Summary line - minimal, VS Code style
-    summaryLine: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '2px 0',
-        cursor: 'pointer',
-        color: tokens.colorNeutralForeground3,
-        fontSize: '13px',
-        userSelect: 'none',
+    // Card container - matches ExecutionMessage pattern
+    card: {
+        backgroundColor: tokens.colorNeutralBackground3,
+        borderRadius: '12px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        padding: '12px',
+        transitionProperty: 'background-color, border-color',
+        transitionDuration: '0.15s',
+        transitionTimingFunction: 'ease',
         ':hover': {
-            color: tokens.colorNeutralForeground2,
+            backgroundColor: tokens.colorNeutralBackground3Hover,
+            border: `1px solid ${tokens.colorNeutralStroke1Hover}`,
         },
     },
-    chevron: {
-        color: tokens.colorNeutralForeground4,
-        flexShrink: 0,
-        fontSize: '14px',
-    },
-    summaryIcon: {
-        flexShrink: 0,
+    // Card header with icon and content
+    cardHeader: {
         display: 'flex',
         alignItems: 'center',
+        gap: '12px',
+        cursor: 'pointer',
     },
-    summaryToolName: {
-        fontFamily: 'Consolas, Monaco, monospace',
-        color: tokens.colorNeutralForeground2,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        flexShrink: 1,
+    // Icon container (40px square, rounded)
+    iconContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '40px',
+        height: '40px',
+        borderRadius: '8px',
+        backgroundColor: tokens.colorNeutralBackground4,
+        flexShrink: 0,
+    },
+    // Content area next to icon
+    headerContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
+        flex: 1,
         minWidth: 0,
+    },
+    primaryText: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        flexWrap: 'wrap',
+    },
+    toolNameText: {
+        fontWeight: 600,
+        color: tokens.colorNeutralForeground1,
+    },
+    secondaryText: {
+        color: tokens.colorNeutralForeground3,
         fontSize: '12px',
     },
-    summaryServerName: {
-        color: tokens.colorNeutralForeground4,
-        fontSize: '12px',
-        flexShrink: 0,
-        whiteSpace: 'nowrap',
-    },
-    separator: {
-        flexShrink: 0,
-        color: tokens.colorNeutralForeground4,
-    },
-    summaryResultInfo: {
+    chevronIcon: {
         color: tokens.colorNeutralForeground4,
         flexShrink: 0,
-        whiteSpace: 'nowrap',
-        fontSize: '12px',
     },
-    summaryResultInfoSuccess: {
-        color: tokens.colorPaletteGreenForeground1,
-    },
-    summaryResultInfoError: {
-        color: tokens.colorPaletteRedForeground1,
+    statusBadge: {
+        minWidth: '18px',
+        height: '18px',
+        fontSize: '11px',
+        flexShrink: 0,
     },
     spinner: {
-        marginLeft: '-2px',
+        flexShrink: 0,
     },
 
-    // Expanded container - minimal left border
+    // Expanded content container
     expandedContainer: {
-        borderLeft: `1px solid ${tokens.colorNeutralStroke3}`,
-        marginLeft: '7px',
-        marginTop: '2px',
+        marginTop: '12px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: '8px',
+        backgroundColor: tokens.colorNeutralBackground1,
         overflow: 'hidden',
     },
-
-    // Content header - minimal
+    // Content header inside expanded
     contentHeader: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '4px 8px 4px 12px',
+        padding: '8px 12px',
+        backgroundColor: tokens.colorNeutralBackground3,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         gap: '8px',
     },
     contentHeaderLeft: {
         display: 'flex',
         alignItems: 'center',
-        gap: '6px',
+        gap: '8px',
         flex: 1,
         minWidth: 0,
         flexWrap: 'wrap',
     },
     toolNameBadge: {
         color: tokens.colorNeutralForeground4,
-        fontSize: '11px',
-    },
-    statusBadge: {
-        minWidth: '18px',
-        height: '18px',
         fontSize: '11px',
     },
     parameterSection: {
@@ -230,13 +230,13 @@ const useStyles = makeStyles({
     parameterName: {
         color: tokens.colorNeutralForeground4,
     },
-    kustoIcon: {
+    kustoIconColor: {
         color: '#0078d4',
     },
-    adoIcon: {
+    adoIconColor: {
         color: '#0078d4',
     },
-    mcpIcon: {
+    mcpIconColor: {
         color: tokens.colorBrandForeground1,
     },
     outputPre: {
@@ -302,11 +302,11 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
     const getIcon = () => {
         switch (displayConfig.colorScheme) {
             case 'kusto':
-                return <Database20Regular className={classes.kustoIcon} />;
+                return <Database20Regular className={classes.kustoIconColor} />;
             case 'ado':
-                return <BranchFork20Regular className={classes.adoIcon} />;
+                return <BranchFork20Regular className={classes.adoIconColor} />;
             default:
-                return <AppsAddIn20Regular className={classes.mcpIcon} />;
+                return <AppsAddIn20Regular className={classes.mcpIconColor} />;
         }
     };
 
@@ -326,8 +326,6 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
         }
     }, [execution.status, intl]);
 
-    const isError = execution.status === 'Failed';
-    const isSuccess = execution.status === 'Completed';
     const isLoading = execution.status === 'Running';
 
     const statusBadge = useMemo(() => {
@@ -490,54 +488,37 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
         return null;
     };
 
-    // Truncate tool name for summary
-    const truncatedToolName =
-        (execution.displayName || execution.toolName).length > 50
-            ? (execution.displayName || execution.toolName).slice(0, 47) + '...'
-            : execution.displayName || execution.toolName;
-
     return (
-        <div className={classes.root}>
-            {/* Summary Line */}
+        <div className={classes.card}>
+            {/* Card header with icon container */}
             <div
-                className={classes.summaryLine}
+                className={classes.cardHeader}
                 onClick={handleToggleExpand}
                 onKeyDown={handleKeyDown}
                 role="button"
                 tabIndex={0}
                 aria-expanded={isExpanded}
             >
-                {isLoading ? (
-                    <Spinner size="extra-tiny" className={classes.spinner} />
-                ) : isExpanded ? (
-                    <ChevronDown16Regular className={classes.chevron} />
+                <div className={classes.iconContainer}>{getIcon()}</div>
+                <div className={classes.headerContent}>
+                    <div className={classes.primaryText}>
+                        <Text className={classes.toolNameText}>{execution.displayName || execution.toolName}</Text>
+                        <Caption1 className={classes.toolNameBadge}>{execution.mcpServerName}</Caption1>
+                    </div>
+                    <Text className={classes.secondaryText}>{getResultInfo}</Text>
+                </div>
+                {isLoading ? <Spinner size="extra-tiny" className={classes.spinner} /> : statusBadge}
+                {isExpanded ? (
+                    <ChevronDown16Regular className={classes.chevronIcon} />
                 ) : (
-                    <ChevronRight16Regular className={classes.chevron} />
+                    <ChevronRight16Regular className={classes.chevronIcon} />
                 )}
-
-                <span className={classes.summaryIcon}>{getIcon()}</span>
-
-                <span className={classes.summaryToolName}>{truncatedToolName}</span>
-
-                <span className={classes.separator}>·</span>
-                <span className={classes.summaryServerName}>{execution.mcpServerName}</span>
-
-                <span className={classes.separator}>·</span>
-                <span
-                    className={mergeClasses(
-                        classes.summaryResultInfo,
-                        isSuccess && classes.summaryResultInfoSuccess,
-                        isError && classes.summaryResultInfoError
-                    )}
-                >
-                    {getResultInfo}
-                </span>
             </div>
 
-            {/* Expanded Content */}
+            {/* Expanded Content inside the card */}
             {isExpanded && (
                 <div className={classes.expandedContainer}>
-                    {/* Header - minimal */}
+                    {/* Header */}
                     <div className={classes.contentHeader}>
                         <div className={classes.contentHeaderLeft}>
                             {getIcon()}

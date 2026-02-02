@@ -291,11 +291,11 @@ public static class SubAgentPrompts
     {
         return type switch
         {
-            SubAgentType.Explore => "Fast file search specialist that thoroughly navigates and explores codebases to find files, search content, and analyze implementations.",
-            SubAgentType.Plan => "Software architect and planning specialist for exploring codebases and designing implementation plans with critical file identification.",
+            SubAgentType.Explore => "Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns (eg. \"src/components/**/*.tsx\"), search code for keywords (eg. \"API endpoints\"), or answer questions about the codebase (eg. \"how do API endpoints work?\"). When calling this agent, specify the desired thoroughness level: \"quick\" for basic searches, \"medium\" for moderate exploration, or \"very thorough\" for comprehensive analysis across multiple locations and naming conventions.",
+            SubAgentType.Plan => "Software architect agent for designing implementation plans. Use this when you need to plan the implementation strategy for a task. Returns step-by-step plans, identifies critical files, and considers architectural trade-offs.",
             SubAgentType.CodeReview => "Reviews code for bugs, logic errors, security vulnerabilities, code quality issues, and adherence to project conventions, using confidence-based filtering to report only high-priority issues that truly matter.",
-            SubAgentType.KustoQuery => "Executes KQL queries against Azure Data Explorer clusters, analyzes the returned data, and provides actionable insights and recommendations based on query results.",
-            SubAgentType.Bash => "Command execution specialist for running bash commands efficiently and safely. Use for git operations, command execution, and other terminal tasks.",
+            SubAgentType.KustoQuery => "Executes KQL queries against Azure Data Explorer clusters. Use this when you need to query telemetry, logs, or metrics data. Analyzes returned data and provides actionable insights and recommendations based on query results.",
+            SubAgentType.Bash => "Command execution specialist for running bash commands. Use this for git operations, command execution, and other terminal tasks.",
             _ => throw new ArgumentException($"Unknown subagent type: {type}. Supported types: {SupportedTypes}", nameof(type))
         };
     }
