@@ -176,12 +176,16 @@ public class TsgConnectorCloneService : BackgroundService
         var now = DateTime.UtcNow;
 
         // Phase 1: Needs clone (includes Failed for auto-retry)
+        // Also include Unhealthy connectors that failed due to auth errors - they should be retried
+        // since the auth error may have been transient (e.g., container restart, network issue)
         var needsClone = connectors
-            .Where(c => c.Status == ConnectorStatus.Healthy
+            .Where(c => (c.Status == ConnectorStatus.Healthy || c.Status == ConnectorStatus.Unhealthy)
                         && c.CloneStatus is CloneStatus.NotStarted
                                          or CloneStatus.PendingCredentialUpdate
                                          or CloneStatus.Failed)
             .ToList();
+
+        _logger.LogInternalInformation($"Found {connectors.Count} total connectors, {needsClone.Count} need clone (Healthy: {connectors.Count(c => c.Status == ConnectorStatus.Healthy)}, Unhealthy: {connectors.Count(c => c.Status == ConnectorStatus.Unhealthy)})");
 
         // Phase 2: Stale (>1 day), ordered by most stale first
         var stale = connectors
@@ -323,6 +327,12 @@ public class TsgConnectorCloneService : BackgroundService
             await SetupGitCredentialsAsync(sessionId, localPath, repoUrl, connector.Pat, ct);
             var commitHash = await GetCommitHashAsync(sessionId, localPath, ct);
             await _repository.UpdateCloneStatusAsync(connector.Name, CloneStatus.Ready, localPath, commitHash);
+            // If connector was unhealthy due to previous auth failure, mark it healthy now
+            if (connector.Status == ConnectorStatus.Unhealthy)
+            {
+                await _repository.UpdateStatusAsync(connector.Name, ConnectorStatus.Healthy);
+                _logger.LogInternalInformation($"Connector {connector.Name} recovered from unhealthy state");
+            }
             _logger.LogInternalInformation($"Successfully processed connector: {connector.Name}");
         }
         else
@@ -354,7 +364,14 @@ public class TsgConnectorCloneService : BackgroundService
             ForceDeleteDirectory(localPath);
         }
 
-        _logger.LogInternalInformation($"Cloning repository {repoUrl} to {localPath}");
+        // Check if PAT is available - if not, fail early with a clear error
+        if (string.IsNullOrEmpty(pat))
+        {
+            _logger.LogInternalWarning($"No PAT available for repository {repoUrl}, clone will fail");
+            return (false, "No PAT/credentials available for repository. Please update the connector with valid credentials.");
+        }
+
+        _logger.LogInternalInformation($"Cloning repository {repoUrl} to {localPath} (PAT length: {pat.Length})");
         var authUrl = BuildAuthenticatedUrl(repoUrl, pat);
         var cmd = $"git clone \"{authUrl}\" \"{localPath}\"";
         var (output, exitCode) = await _terminalManager.ExecuteCommandAsync(sessionId, cmd, ct);
