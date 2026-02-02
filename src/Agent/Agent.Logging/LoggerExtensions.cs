@@ -261,7 +261,7 @@ public static partial class LoggerExtensions
     [LoggerMessage(
         EventId = 3001,
         Level = LogLevel.Information,
-        Message = "Model Request: path: {Path}, statusCode: {StatusCode}, modelName: {ModelName}, hostName: {HostName}, responseHeader: {ResponseHeader}, requestHeader: {RequestHeader}, latency: {Latency}, requestSize: {RequestSize}, responseSize: {ResponseSize}, remainingRequests: {RemainingRequests}, remainingTokens: {RemainingTokens}, threadId: {ThreadId}")]
+        Message = "Model Request: path: {Path}, statusCode: {StatusCode}, modelName: {ModelName}, hostName: {HostName}, responseHeader: {ResponseHeader}, requestHeader: {RequestHeader}, latency: {Latency}, requestSize: {RequestSize}, responseSize: {ResponseSize}, remainingRequests: {RemainingRequests}, remainingTokens: {RemainingTokens}, threadId: {ThreadId}, clientRequestId: {ClientRequestId}, errorMessage: {ErrorMessage}")]
     public static partial void LogModelRequest(
         this ILogger logger,
         string path,
@@ -275,7 +275,9 @@ public static partial class LoggerExtensions
         long responseSize,
         long remainingRequests,
         long remainingTokens,
-        string threadId);
+        string threadId,
+        string clientRequestId,
+        string errorMessage = "");
 
     /// <summary>
     /// Logs ICM request details including path, status code, latency, and request/response sizes

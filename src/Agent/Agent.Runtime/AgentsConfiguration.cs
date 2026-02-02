@@ -227,6 +227,16 @@ public static class AgentsConfigurationExtensions
         public override async ValueTask ProcessAsync(PipelineMessage message, IReadOnlyList<PipelinePolicy> pipeline, int index)
         {
             var threadId = Core.ToolStatic.AsyncLocalThreadId.Value.ToString();
+
+            // Get existing headers dictionary and add path and client request id
+            var headers = Core.ToolStatic.AsyncLocalHttpHeaders.Value;
+            if (headers != null)
+            {
+                headers["Path"] = message.Request.Uri?.AbsolutePath ?? string.Empty;
+                // Extract x-ms-client-request-id from request headers
+                headers["ClientRequestId"] = ExtractRequestHeader(message.Request, "x-ms-client-request-id");
+            }
+
             long requestContentLength = -1;
             message.Request.Content?.TryComputeLength(out requestContentLength);
             var startTimestamp = DateTime.UtcNow;
@@ -300,9 +310,14 @@ public static class AgentsConfigurationExtensions
             {
                 var path = message.Request.Uri?.AbsolutePath ?? string.Empty;
                 var statusCode = message.Response?.Status ?? 0;
-                var modelName = ExtractModelName(message);
+
+                // Get pre-captured values from AsyncLocal storage
+                var modelName = Core.ToolStatic.AsyncLocalModelId.Value ?? string.Empty;
+                var headers = Core.ToolStatic.AsyncLocalHttpHeaders.Value;
                 var responseHeader = SerializeResponseHeaders(message.Response);
                 var requestHeader = SerializeRequestHeaders(message.Request);
+                var clientRequestId = headers?.GetValueOrDefault("ClientRequestId") ?? string.Empty;
+
                 var latency = (long)(endTimestamp - startTimestamp).TotalMilliseconds;
                 var requestSize = requestContentLength;
                 var responseSize = responseContentLength;
@@ -321,37 +336,13 @@ public static class AgentsConfigurationExtensions
                     responseSize: responseSize,
                     remainingRequests: remainingRequests,
                     remainingTokens: remainingTokens,
-                    threadId: threadId);
+                    threadId: threadId,
+                    clientRequestId: clientRequestId);
             }
             catch
             {
                 // Swallow any errors in logging to prevent affecting the pipeline
             }
-        }
-
-        private string ExtractModelName(PipelineMessage message)
-        {
-            try
-            {
-                // Try to extract model name from the request path (e.g., /openai/deployments/{model}/chat/completions)
-                var path = message.Request.Uri?.AbsolutePath ?? string.Empty;
-                var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-                // Look for deployment name in typical Azure OpenAI path structure
-                for (var i = 0; i < segments.Length - 1; i++)
-                {
-                    if (segments[i].Equals("deployments", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return segments[i + 1];
-                    }
-                }
-            }
-            catch
-            {
-                // Fall through to return empty string
-            }
-
-            return string.Empty;
         }
 
         private string SerializeResponseHeaders(PipelineResponse? response)
@@ -426,6 +417,28 @@ public static class AgentsConfigurationExtensions
             }
 
             return 0;
+        }
+
+        private static string ExtractRequestHeader(PipelineRequest? request, string headerName)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return string.Empty;
+                }
+
+                if (request.Headers.TryGetValue(headerName, out var value))
+                {
+                    return value ?? string.Empty;
+                }
+            }
+            catch
+            {
+                // Fall through to return empty string
+            }
+
+            return string.Empty;
         }
     }
 
@@ -596,6 +609,7 @@ public static class AgentsConfigurationExtensions
                     }
 
                     var client = new BetaService(anthropicClient);
+                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
                     return new ChatClientBuilder(client.AsIChatClient(defaultModelId: modelName, defaultMaxOutputTokens: anthropicSettings.MaxOutputTokens))
                         .Use(next => new ReasoningChatClient(next, new AnthropicReasoningChatClientOptions(
@@ -603,8 +617,8 @@ public static class AgentsConfigurationExtensions
                             ExtendedThinkingEnabled: anthropicSettings.ExtendedThinkingEnabled,
                             MaxOutputTokens: anthropicSettings.MaxOutputTokens,
                             ThinkingTokenBudget: anthropicSettings.ThinkingBudgetTokens)))
-                        .UseTokenLogging(sp.GetRequiredService<ILoggerFactory>())
-                        .UseLogging(sp.GetRequiredService<ILoggerFactory>())
+                        .UseTokenLogging(loggerFactory)
+                        .UseLogging(loggerFactory)
                         .Build();
                 });
             }
