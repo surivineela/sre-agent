@@ -53,6 +53,8 @@ export interface ConnectorFormProps {
     useManagedIdentityAsFic?: boolean;
     federatedClientId?: string;
     federatedTenantId?: string;
+    // Azure DevOps organization
+    azureDevOpsOrganization?: string;
 }
 
 export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = props => {
@@ -81,6 +83,7 @@ export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = prop
             useManagedIdentityAsFic: false,
             federatedClientId: '',
             federatedTenantId: '',
+            azureDevOpsOrganization: '',
         };
     }, []);
 

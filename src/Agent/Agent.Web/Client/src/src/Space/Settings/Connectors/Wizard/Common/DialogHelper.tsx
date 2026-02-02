@@ -143,6 +143,9 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
     } else if (connectorType === ConnectorType.AzureDevOpsOAuth) {
         // Azure DevOps OAuth connector - OAuth is handled separately, just set placeholder
         dataSource = 'azure-devops-oauth';
+        extendedProperties = {
+            organization: values.azureDevOpsOrganization,
+        };
     } else {
         // MCP connectors use extendedProperties
         if (values.mcpConnectionType === McpConnectionType.Local) {

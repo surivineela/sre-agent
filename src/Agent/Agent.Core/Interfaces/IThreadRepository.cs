@@ -102,9 +102,9 @@ public interface IThreadRepository
     Task<AzureDevOpsAccessToken?> GetAzureDevOpsAccessTokenAsync(string resourceId);
     Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsAccessTokenAsync(AzureDevOpsAccessToken azureDevOpsAccessToken, string resourceId);
     Task<bool> DeleteAzureDevOpsAccessTokenAsync(string resourceId);
-    Task<AzureDevOpsAccessToken?> GetAzureDevOpsOAuthTokenAsync();
-    Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsOAuthTokenAsync(AzureDevOpsAccessToken token);
-    Task<bool> DeleteAzureDevOpsOAuthTokenAsync();
+    Task<AzureDevOpsAccessToken?> GetAzureDevOpsOAuthTokenAsync(string organizationName);
+    Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsOAuthTokenAsync(AzureDevOpsAccessToken token, string organizationName);
+    Task<bool> DeleteAzureDevOpsOAuthTokenAsync(string organizationName);
     Task<AzCliExecution?> ListPendingAzCliExecutionAsync(Guid threadId);
     Task<AzCliExecution?> GetAzCliExecutionAsync(Guid threadId, Guid executionId);
     Task<AzCliExecution?> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution);

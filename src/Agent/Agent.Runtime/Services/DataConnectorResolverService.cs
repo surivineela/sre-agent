@@ -246,7 +246,8 @@ public class DataConnectorResolverService : IConnectorResolver
                 ConnectorType = settings.DataConnectorType,
                 DataSource = settings.DataSource,
                 Identity = settings.Identity,
-                Source = settings.Source.ToString()
+                Source = settings.Source.ToString(),
+                ExtendedProperties = settings.ExtendedProperties
             }).ToList();
         }
         catch (Exception ex)

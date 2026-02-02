@@ -23,6 +23,7 @@ import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ExtendedAgentClient } from '../../../../../Common/Clients/ExtendedAgentClient';
+import InputFormik from '../../../../../Common/Components/Input/InputFormik';
 import { MsiIdentity } from '../../../../../Common/Contracts/Azure/ArmObj';
 import { resolveResourceIcon } from '../../../../../Common/Helpers/Resources';
 import { ConnectorsResources, SreAgentResources } from '../../../../../Strings/SREAgentResources';
@@ -104,7 +105,7 @@ export const AzureDevOpsConnectorForm: React.FC<AzureDevOpsConnectorFormProps> =
             valueObjectFriendlyName: 'OAuth Sign In',
         });
 
-        const response = await client.completeAzureDevOpsOAuth(values.name);
+        const response = await client.completeAzureDevOpsOAuth(values.azureDevOpsOrganization || '');
 
         if (response.isSuccessful && response.content) {
             setIsAuthenticated(true);
@@ -138,7 +139,7 @@ export const AzureDevOpsConnectorForm: React.FC<AzureDevOpsConnectorFormProps> =
         }
 
         setIsAuthenticating(false);
-    }, [client, values.name, azPortalProxy]);
+    }, [client, values.azureDevOpsOrganization, values.name, azPortalProxy]);
 
     // Handle sign in with different account
     const handleSignInWithDifferentAccount = useCallback(() => {
@@ -151,13 +152,6 @@ export const AzureDevOpsConnectorForm: React.FC<AzureDevOpsConnectorFormProps> =
         setShowResultDialog(false);
         setResultMessage(null);
     }, []);
-
-    // Set default name to "azuredevops" if not in edit mode
-    useEffect(() => {
-        if (!isEditMode && !values.name) {
-            setFieldValue('name', 'azuredevops');
-        }
-    }, [isEditMode, values.name, setFieldValue]);
 
     // Validate identity when in Managed Identity mode
     useEffect(() => {
@@ -175,7 +169,16 @@ export const AzureDevOpsConnectorForm: React.FC<AzureDevOpsConnectorFormProps> =
 
     return (
         <>
-            <NameInput disabled={isEditMode || true} />
+            <NameInput disabled={isEditMode} />
+
+            <InputFormik
+                name="azureDevOpsOrganization"
+                label={intl.formatMessage(ConnectorsResources.organization)}
+                required
+                orientation="vertical"
+                placeholder={intl.formatMessage(ConnectorsResources.organizationPlaceholder)}
+                disabled={isEditMode}
+            />
 
             <Field label={intl.formatMessage(ConnectorsResources.authenticationMethod)} required orientation="vertical">
                 <RadioGroup
@@ -210,7 +213,7 @@ export const AzureDevOpsConnectorForm: React.FC<AzureDevOpsConnectorFormProps> =
                             <Button
                                 appearance="primary"
                                 onClick={handleSignIn}
-                                disabled={isAuthenticating}
+                                disabled={isAuthenticating || !values.azureDevOpsOrganization}
                                 className={styles.outlookTeamsButton}
                             >
                                 {intl.formatMessage(ConnectorsResources.signInToAzureDevOps)}

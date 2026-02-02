@@ -36,6 +36,7 @@ namespace Agent.Data.Repositories
         private readonly Dictionary<Guid, PagerDutyIncident> _pagerDutyIncidents = new();
         private readonly Dictionary<Guid, AzMonitorAlert> _azMonitorAlerts = new();
         private readonly Dictionary<Guid, ThreadEvaluateResult> _threadEvaluateResults = new();
+        private readonly Dictionary<string, AzureDevOpsAccessToken> _azureDevOpsOAuthTokens = new();
         private readonly ILogger<InMemoryThreadRepository> _logger;
 
         public InMemoryThreadRepository(ILogger<InMemoryThreadRepository> logger)
@@ -1141,19 +1142,21 @@ namespace Agent.Data.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<AzureDevOpsAccessToken?> GetAzureDevOpsOAuthTokenAsync()
+        public Task<AzureDevOpsAccessToken?> GetAzureDevOpsOAuthTokenAsync(string organizationName)
         {
-            throw new NotImplementedException();
+            _azureDevOpsOAuthTokens.TryGetValue(organizationName, out var token);
+            return Task.FromResult(token);
         }
 
-        public Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsOAuthTokenAsync(AzureDevOpsAccessToken token)
+        public Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsOAuthTokenAsync(AzureDevOpsAccessToken token, string organizationName)
         {
-            throw new NotImplementedException();
+            _azureDevOpsOAuthTokens[organizationName] = token;
+            return Task.FromResult<AzureDevOpsAccessToken?>(token);
         }
 
-        public Task<bool> DeleteAzureDevOpsOAuthTokenAsync()
+        public Task<bool> DeleteAzureDevOpsOAuthTokenAsync(string organizationName)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_azureDevOpsOAuthTokens.Remove(organizationName));
         }
 
         #endregion

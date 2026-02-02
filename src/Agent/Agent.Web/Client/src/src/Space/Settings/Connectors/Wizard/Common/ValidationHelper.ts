@@ -218,4 +218,39 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
                 then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
                 otherwise: schema => schema.notRequired(),
             }),
+        azureDevOpsOrganization: string()
+            .ensure()
+            .when('connectorType', {
+                is: (connectorType: string) => connectorType === ConnectorType.AzureDevOpsOAuth,
+                then: schema =>
+                    schema
+                        .required(intl.formatMessage(SreAgentResources.fieldRequired))
+                        .test(
+                            'validateAzureDevOpsOrgName',
+                            'Organization name must contain only letters, numbers, and hyphens',
+                            function (orgName: string | undefined) {
+                                if (!orgName) return true;
+                                // Validate Azure DevOps organization name format
+                                // Must start with letter or number, can contain letters, numbers, hyphens
+                                // Typically 1-255 characters
+                                return /^[a-zA-Z0-9][a-zA-Z0-9-]{0,254}$/.test(orgName);
+                            }
+                        )
+                        .test(
+                            'validateUniqueOrganization',
+                            intl.formatMessage(ConnectorsResources.duplicateOrganizationError),
+                            function (orgName: string | undefined) {
+                                if (!orgName || isEditMode) return true;
+                                // Check if any existing Azure DevOps OAuth connector has this organization
+                                const isDuplicate = existingConnectors?.some(
+                                    connector =>
+                                        connector.dataConnectorType === ConnectorType.AzureDevOpsOAuth &&
+                                        connector.extendedProperties?.organization &&
+                                        equals(orgName, String(connector.extendedProperties.organization), AntUxStringComparison.IgnoreCase)
+                                );
+                                return !isDuplicate;
+                            }
+                        ),
+                otherwise: schema => schema.notRequired(),
+            }),
     });

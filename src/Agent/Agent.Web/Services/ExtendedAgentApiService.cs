@@ -1199,7 +1199,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             Details: details);
     }
 
-    private async Task<ConnectorStatusResponse> BuildAzureDevOpsConnectorStatusAsync(string connectorName)
+    private async Task<ConnectorStatusResponse> BuildAzureDevOpsConnectorStatusAsync(string connectorName, string organization)
     {
         var stopwatch = Stopwatch.StartNew();
         bool healthy = false;
@@ -1209,8 +1209,22 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
 
         try
         {
-            // Get token document from CosmosDB
-            var tokenDoc = await _threadRepository.GetAzureDevOpsOAuthTokenAsync();
+            if (string.IsNullOrEmpty(organization))
+            {
+                message = "Organization not configured for this connector.";
+                details = new { error = "Missing organization in connector configuration" };
+                return new ConnectorStatusResponse(
+                    Name: connectorName,
+                    Type: "AzureDevOps",
+                    Healthy: false,
+                    Message: message,
+                    Status: DataConnectorStatus.Failed.ToString(),
+                    ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+                    Details: details);
+            }
+
+            // Get token document from CosmosDB using organization
+            var tokenDoc = await _threadRepository.GetAzureDevOpsOAuthTokenAsync(organization);
             if (tokenDoc == null || string.IsNullOrEmpty(tokenDoc.AccessToken))
             {
                 message = "Azure DevOps access token not configured. Please authenticate.";
@@ -1306,6 +1320,16 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                     Details: null));
             }
 
+            // Extract organization for Azure DevOps OAuth connectors
+            string? organization = null;
+            if (connector.ConnectorType.Equals("AzureDevOpsOAuth", StringComparison.OrdinalIgnoreCase))
+            {
+                if (connector.ExtendedProperties?.TryGetValue("organization", out var orgValue) == true)
+                {
+                    organization = orgValue.GetString();
+                }
+            }
+
             ConnectorStatusResponse response = connector.ConnectorType.ToLowerInvariant() switch
             {
                 "mcp" => await BuildMcpConnectorStatusAsync(connectorName),
@@ -1315,7 +1339,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 "teams" => await BuildTeamsConnectorStatusAsync(connectorName),
                 "tsgcrawler" => await BuildTsgCrawlerConnectorStatusAsync(connectorName, connector.DataSource),
                 "githuboauth" => await BuildGitHubConnectorStatusAsync(connectorName),
-                "azuredevopsoauth" => await BuildAzureDevOpsConnectorStatusAsync(connectorName),
+                "azuredevopsoauth" => await BuildAzureDevOpsConnectorStatusAsync(connectorName, organization ?? string.Empty),
                 _ => new ConnectorStatusResponse(
                         Name: connectorName,
                         Type: connector.ConnectorType,

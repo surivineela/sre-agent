@@ -18,8 +18,10 @@ public interface IOAuthTokenService
     Task<GitHubAccessToken?> GetValidGitHubTokenAsync();
 
     /// <summary>
-    /// Gets a valid Azure DevOps OAuth access token. If the token is expired, it will be refreshed automatically.
+    /// Gets a valid Azure DevOps OAuth access token for the specified organization.
+    /// If the token is expired, it will be refreshed automatically.
     /// </summary>
+    /// <param name="organizationName">The name of the Azure DevOps organization</param>
     /// <returns>A valid Azure DevOps access token, or null if no token exists or refresh fails</returns>
-    Task<AzureDevOpsAccessToken?> GetValidAzureDevOpsTokenAsync();
+    Task<AzureDevOpsAccessToken?> GetValidAzureDevOpsTokenAsync(string organizationName);
 }

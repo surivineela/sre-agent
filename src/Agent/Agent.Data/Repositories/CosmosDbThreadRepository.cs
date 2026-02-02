@@ -2590,11 +2590,11 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<AzureDevOpsAccessToken?> GetAzureDevOpsOAuthTokenAsync()
+    public async Task<AzureDevOpsAccessToken?> GetAzureDevOpsOAuthTokenAsync(string organizationName)
     {
         try
         {
-            var document = await GetDocumentAsync<OAuthTokenDocument>("OAuthToken", "AzureDevOpsOAuth");
+            var document = await GetDocumentAsync<OAuthTokenDocument>(organizationName, "AzureDevOpsOAuth");
             return document?.ToAzureDevOpsToken();
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -2604,18 +2604,19 @@ public class CosmosDbThreadRepository : IThreadRepository
     }
 
     public async Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsOAuthTokenAsync(
-        AzureDevOpsAccessToken token)
+        AzureDevOpsAccessToken token,
+        string organizationName)
     {
-        var document = OAuthTokenDocument.FromAzureDevOpsToken(token);
+        var document = OAuthTokenDocument.FromAzureDevOpsToken(token, organizationName);
         await _client.GetContainer<OAuthTokenDocument>(_databaseName).UpsertItemAsync(document, new PartitionKey(document.PartitionKey));
         return token;
     }
 
-    public async Task<bool> DeleteAzureDevOpsOAuthTokenAsync()
+    public async Task<bool> DeleteAzureDevOpsOAuthTokenAsync(string organizationName)
     {
         try
         {
-            await _client.GetContainer<OAuthTokenDocument>(_databaseName).DeleteItemAsync<OAuthTokenDocument>("OAuthToken", new PartitionKey("AzureDevOpsOAuth"));
+            await _client.GetContainer<OAuthTokenDocument>(_databaseName).DeleteItemAsync<OAuthTokenDocument>(organizationName, new PartitionKey("AzureDevOpsOAuth"));
             return true;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)

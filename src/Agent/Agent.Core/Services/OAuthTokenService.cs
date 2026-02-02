@@ -68,26 +68,26 @@ public sealed class OAuthTokenService : IOAuthTokenService, IDisposable
     }
 
     /// <inheritdoc/>
-    public async Task<AzureDevOpsAccessToken?> GetValidAzureDevOpsTokenAsync()
+    public async Task<AzureDevOpsAccessToken?> GetValidAzureDevOpsTokenAsync(string organizationName)
     {
         await _azureDevOpsLock.WaitAsync();
         try
         {
-            var token = await _threadRepository.GetAzureDevOpsOAuthTokenAsync();
+            var token = await _threadRepository.GetAzureDevOpsOAuthTokenAsync(organizationName);
             if (token is null)
             {
-                _logger.LogInternalWarning("No Azure DevOps OAuth token found in database");
+                _logger.LogInternalWarning("No Azure DevOps OAuth token found for organization {OrganizationName}", organizationName);
                 return null;
             }
 
             // Check if token is expired or about to expire
             if (token.ExpiresOn.HasValue && token.ExpiresOn.Value <= DateTime.UtcNow.Add(TokenExpirationBuffer))
             {
-                _logger.LogExternalInformation("Azure DevOps OAuth token is expired or expiring soon, attempting refresh");
+                _logger.LogExternalInformation("Azure DevOps OAuth token for organization {OrganizationName} is expired or expiring soon, attempting refresh", organizationName);
 
                 if (string.IsNullOrEmpty(token.RefreshToken))
                 {
-                    _logger.LogInternalWarning("Azure DevOps OAuth token is expired but no refresh token is available");
+                    _logger.LogInternalWarning("Azure DevOps OAuth token for organization {OrganizationName} is expired but no refresh token is available", organizationName);
                     return null;
                 }
 
@@ -96,12 +96,12 @@ public sealed class OAuthTokenService : IOAuthTokenService, IDisposable
                 if (refreshedToken is not null)
                 {
                     // Save the new token to database
-                    await _threadRepository.CreateOrUpdateAzureDevOpsOAuthTokenAsync(refreshedToken);
-                    _logger.LogExternalInformation("Azure DevOps OAuth token refreshed successfully");
+                    await _threadRepository.CreateOrUpdateAzureDevOpsOAuthTokenAsync(refreshedToken, organizationName);
+                    _logger.LogExternalInformation("Azure DevOps OAuth token for organization {OrganizationName} refreshed successfully", organizationName);
                     return refreshedToken;
                 }
 
-                _logger.LogInternalWarning("Failed to refresh Azure DevOps OAuth token");
+                _logger.LogInternalWarning("Failed to refresh Azure DevOps OAuth token for organization {OrganizationName}", organizationName);
                 return null;
             }
 
@@ -109,7 +109,7 @@ public sealed class OAuthTokenService : IOAuthTokenService, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error retrieving Azure DevOps OAuth token");
+            _logger.LogInternalError(ex, "Error retrieving Azure DevOps OAuth token for organization {OrganizationName}", organizationName);
             return null;
         }
         finally

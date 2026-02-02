@@ -6,6 +6,7 @@ namespace Agent.Data.DataModels;
 /// <summary>
 /// General OAuth token document for storing OAuth access tokens for various services (GitHub, Azure DevOps, etc.)
 /// Services are differentiated by PartitionKey (e.g., "GitHubOAuth", "AzureDevOpsOAuth")
+/// Azure DevOps tokens are stored per organization (ID = organization name), allowing multiple connectors to share the same token
 /// </summary>
 public record OAuthTokenDocument(
     string AccessToken,
@@ -13,20 +14,22 @@ public record OAuthTokenDocument(
     string? RefreshToken = null) : ICosmosDocument
 {
     public required string PartitionKey { get; init; }
-    public string Id => "OAuthToken";
+    public required string Id { get; init; }
     public string DocumentType => "OAuthToken";
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
     public static OAuthTokenDocument FromGitHubToken(GitHubAccessToken token) =>
         new OAuthTokenDocument(token.AccessToken, token.ExpiresOn)
         {
-            PartitionKey = "GitHubOAuth"
+            PartitionKey = "GitHubOAuth",
+            Id = "github"
         };
 
-    public static OAuthTokenDocument FromAzureDevOpsToken(AzureDevOpsAccessToken token) =>
+    public static OAuthTokenDocument FromAzureDevOpsToken(AzureDevOpsAccessToken token, string organizationName) =>
         new OAuthTokenDocument(token.AccessToken, token.ExpiresOn, token.RefreshToken)
         {
-            PartitionKey = "AzureDevOpsOAuth"
+            PartitionKey = "AzureDevOpsOAuth",
+            Id = organizationName
         };
 
     public GitHubAccessToken ToGitHubToken() =>

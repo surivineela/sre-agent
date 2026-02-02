@@ -45,6 +45,7 @@ export const ConnectorEditDialogFormik: React.FC<ConnectorEditDialogFormikProps>
             useManagedIdentityAsFic: false,
             federatedClientId: '',
             federatedTenantId: '',
+            azureDevOpsOrganization: '',
         };
 
         // Parse FIC properties from extendedProperties
@@ -54,6 +55,10 @@ export const ConnectorEditDialogFormik: React.FC<ConnectorEditDialogFormikProps>
                 initialFormProps.useManagedIdentityAsFic = Boolean(props.useManagedIdentityAsFic);
                 initialFormProps.federatedClientId = (props.federatedClientId as string) || '';
                 initialFormProps.federatedTenantId = (props.federatedTenantId as string) || '';
+            }
+            // Parse Azure DevOps organization
+            if (connectorType === ConnectorType.AzureDevOpsOAuth && props.organization) {
+                initialFormProps.azureDevOpsOrganization = (props.organization as string) || '';
             }
         }
 

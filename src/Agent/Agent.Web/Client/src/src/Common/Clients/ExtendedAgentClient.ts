@@ -365,10 +365,10 @@ export class ExtendedAgentClient extends DataPlaneClient {
         }
     };
 
-    public completeAzureDevOpsOAuth = async (connectorId: string): Promise<Response<{ message: string; success: boolean }>> => {
+    public completeAzureDevOpsOAuth = async (organization: string): Promise<Response<{ message: string; success: boolean }>> => {
         try {
             const { data } = await axios.post(
-                this.getRequestUrl(`/api/v1/azuredevops/aadauth/complete?connectorId=${encodeURIComponent(connectorId)}`),
+                this.getRequestUrl(`/api/v1/azuredevops/aadauth/complete?organization=${encodeURIComponent(organization)}`),
                 {},
                 {
                     headers: getAgentHeaders(),

@@ -74,7 +74,7 @@ public class AzureDevOpsController(
 
     [HttpPost("aadauth/complete")]
 #pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation
-    public async Task<IActionResult> CompleteAzureDevOpsAuth([FromQuery] string connectorId)
+    public async Task<IActionResult> CompleteAzureDevOpsAuth([FromQuery] string organization)
 #pragma warning restore CUSTOM004
     {
         try
@@ -95,26 +95,27 @@ public class AzureDevOpsController(
 
             if (validatedToken == null)
             {
-                _logger.LogInternalWarning("Token validation failed for connector {ConnectorId}", connectorId);
+                _logger.LogInternalWarning("Token validation failed for organization {Organization}", organization);
                 return Unauthorized(new { message = "Invalid or expired token", success = false });
             }
 
             // Log authentication details (without sensitive token data)
             _logger.LogExternalInformation(
-                "Azure DevOps authentication completed for connector " + connectorId);
+                "Azure DevOps authentication completed for organization " + organization);
 
             // Read refresh token from custom header
             var refreshToken = Request.Headers["x-sreagent-exchanged-refresh-tokens"].FirstOrDefault();
 
             // Save tokens to database with proper expiration from the validated token
             await _threadRepository.CreateOrUpdateAzureDevOpsOAuthTokenAsync(
-                new AzureDevOpsAccessToken(accessToken, ExpiresOn: validatedToken.ValidTo, refreshToken));
+                new AzureDevOpsAccessToken(accessToken, ExpiresOn: validatedToken.ValidTo, refreshToken),
+                organization);
 
             return Ok(new { message = "You are now logged into your Azure DevOps account!", success = true });
         }
         catch (Exception ex)
         {
-            _logger.LogExternalWarning("Error completing Azure DevOps OAuth for connector " + connectorId);
+            _logger.LogExternalWarning("Error completing Azure DevOps OAuth for organization " + organization);
             return StatusCode(500, new { message = "Failed to complete authentication", success = false, error = ex.Message });
         }
     }
