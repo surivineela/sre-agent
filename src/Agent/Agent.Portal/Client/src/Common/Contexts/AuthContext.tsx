@@ -75,17 +75,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const switchTenant = useCallback(
         async (tenantId: string) => {
+            const targetAuthority = `https://login.microsoftonline.com/${tenantId}`;
+
+            console.log('[Auth:switchTenant] Starting tenant switch', {
+                targetTenantId: tenantId,
+                targetAuthority,
+                currentAccount: account,
+            });
+
             // Clear the current account from cache to ensure clean tenant switch
             // This prevents useAccount() from returning the old tenant's account
             if (account) {
                 await msalInstance.clearCache({ account });
+                console.log('[Auth:switchTenant] Cache cleared for account');
             }
 
+            console.log('[Auth:switchTenant] Initiating loginRedirect');
             await instance.loginRedirect({
                 ...loginRequest,
-                prompt: 'none',
-                loginHint: account?.username,
-                authority: `https://login.microsoftonline.com/${tenantId}`,
+                authority: targetAuthority,
             });
         },
         [instance, account]
@@ -95,8 +103,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (!isLoadingAuth) {
             const accounts = instance.getAllAccounts();
-            if (accounts.length > 0 && !instance.getActiveAccount()) {
+            const activeAccount = instance.getActiveAccount();
+
+            console.log('[Auth:setActiveAccount] Checking accounts', {
+                accounts,
+                currentActiveAccount: activeAccount,
+                willSetActive: accounts.length > 0 && !activeAccount,
+            });
+
+            if (accounts.length > 0 && !activeAccount) {
                 instance.setActiveAccount(accounts[0]);
+                console.log('[Auth:setActiveAccount] Set active account to', accounts[0]);
             }
         }
     }, [isLoadingAuth, instance]);
@@ -130,6 +147,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     authority,
                 });
                 // Session is valid, user can continue
+                console.log('[Auth:validateSession] Result', {
+                    acquireTokenSilent: 'succeeded',
+                    activeAccount,
+                    authority,
+                });
             } catch (error) {
                 const errorName = error instanceof Error ? error.constructor.name : typeof error;
                 // Use errorCode instead of message to avoid potential PII (e.g., user email in error messages)
@@ -153,9 +175,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                             authority,
                         });
                         // SSO succeeded - user has an active Entra session
+                        console.log('[Auth:validateSession] Result', {
+                            acquireTokenSilent: 'failed',
+                            acquireTokenSilentError: errorCode,
+                            ssoSilent: 'succeeded',
+                            activeAccount,
+                            authority,
+                        });
                     } catch (ssoError) {
                         const ssoErrorName = ssoError instanceof Error ? ssoError.constructor.name : typeof ssoError;
                         const ssoErrorCode = ssoError instanceof AuthError ? ssoError.errorCode : 'unknown';
+
+                        console.log('[Auth:validateSession] Result', {
+                            acquireTokenSilent: 'failed',
+                            acquireTokenSilentError: errorCode,
+                            ssoSilent: 'failed',
+                            ssoSilentError: ssoErrorCode,
+                            activeAccount,
+                            authority,
+                            outcome: 'session-expired',
+                        });
 
                         logTelemetryEvent({
                             telemetrySource: TelemetrySource.Auth,
@@ -171,6 +210,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     }
                 } else {
                     // Log non-InteractionRequiredAuthError errors for visibility
+                    console.log('[Auth:validateSession] Result', {
+                        acquireTokenSilent: 'failed',
+                        acquireTokenSilentError: errorCode,
+                        errorType: 'unexpected',
+                        errorName,
+                        activeAccount,
+                        authority,
+                    });
+
                     logTelemetryEvent({
                         telemetrySource: TelemetrySource.Auth,
                         action: 'validateSession',
