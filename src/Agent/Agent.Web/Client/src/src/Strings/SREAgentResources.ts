@@ -6349,6 +6349,30 @@ export const ConnectorsResources = defineMessages({
     mcpLabel: { defaultMessage: 'MCP', id: 'RbWH8Q' },
     mcpResult: { defaultMessage: 'Result', id: 'ZpQ6us' },
     mcpNullValue: { defaultMessage: 'null', id: 'BPj/Jo' },
+
+    // ICM Connector
+    icmConnector: { defaultMessage: 'IcM connector', id: '8FmkXP' },
+    microsoftIcm: { defaultMessage: 'Microsoft IcM', id: '0D+7fr' },
+    icmConnectorDescription: {
+        defaultMessage: 'Connect to IcM for automated incident management using certificate authentication.',
+        id: 'EP+8Fu',
+    },
+    keyVault: { defaultMessage: 'Key Vault', id: 'aeROIb' },
+    selectKeyVault: { defaultMessage: 'Select Key Vault', id: 'dZnjb1' },
+    certificateUri: { defaultMessage: 'Certificate URI', id: 'eno+SG' },
+    certificateUriPlaceholder: { defaultMessage: 'Enter certificate URI or select from dropdown', id: 'EEYDYJ' },
+    certificateUriHelperText: {
+        defaultMessage: "The certificate URI must be in the format: https://'<'vault-name'>'.vault.azure.net/certificates/'<'cert-name'>'",
+        id: '8AbWVe',
+    },
+    missingKeyVaultOrIdentity: {
+        defaultMessage: 'Missing Key Vault ID or managed identity principal ID',
+        id: 'RV25PS',
+    },
+    failedToAssignRoles: {
+        defaultMessage: 'Failed to assign {roleNames}: {error}',
+        id: 'ste0mr',
+    },
 });
 
 export const AgentPermissionsResources = defineMessages({

@@ -51,6 +51,7 @@ export const useConnectorWizardStyles = makeStyles({
         maxWidth: '460px',
     },
     identityLink: {
+        padding: '6px 3px',
         width: 'fit-content',
     },
     title: {

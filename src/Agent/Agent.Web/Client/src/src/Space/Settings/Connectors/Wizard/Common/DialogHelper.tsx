@@ -5,6 +5,7 @@ import { AuthType, ConnectorFormProps, McpConnectionType } from '../ConnectorWiz
 import { AzureConnectorForm } from '../SetupForm/AzureConnectorForm';
 import { AzureDevOpsConnectorForm } from '../SetupForm/AzureDevOpsConnectorForm';
 import { GitHubConnectorForm } from '../SetupForm/GitHubConnectorForm';
+import { ICMConnectorForm } from '../SetupForm/IcMConnectorForm';
 import { McpServerForm } from '../SetupForm/McpServerForm';
 import { OutlookTeamsConnectorForm } from '../SetupForm/OutlookTeamsConnectorForm';
 import { ConnectorType } from './ConnectorType';
@@ -98,6 +99,15 @@ export const renderConnectorForm = (options: RenderFormOptions): React.ReactNode
                     refreshAgent={refreshAgent}
                 />
             );
+        case ConnectorType.Icm:
+            return (
+                <ICMConnectorForm
+                    isEditMode={isEditMode}
+                    userAssignedIdentities={userAssignedIdentityOptions}
+                    agentIdentity={agentIdentity}
+                    refreshAgent={refreshAgent}
+                />
+            );
         default:
             return null;
     }
@@ -136,6 +146,13 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
             dataSource = `${values.url};${teamsInfo?.teamsGroupId};${teamsInfo?.channelId}`;
         } else {
             dataSource = values.url;
+        }
+
+        // For ICM connector, add keyVaultId to extended properties for role assignment
+        if (connectorType === ConnectorType.Icm) {
+            extendedProperties = {
+                keyVaultId: values.keyVaultId,
+            };
         }
     } else if (connectorType === ConnectorType.GitHubOAuth) {
         // GitHub OAuth connector - OAuth is handled separately, just set placeholder
@@ -190,6 +207,7 @@ export const handleConnectorSubmit = async (options: CreateConnectorSubmitOption
         dataSource: dataSource,
         extendedProperties: extendedProperties,
         identity: values.identity,
+        ...(connectorType === ConnectorType.Icm ? { keyVaultUri: values.url } : {}),
     };
 
     onClose();

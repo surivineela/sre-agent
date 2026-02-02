@@ -11,6 +11,7 @@ export enum ConnectorType {
     GitHubOAuth = 'GitHubOAuth',
     AzureDevOpsOAuth = 'AzureDevOpsOAuth',
     McpServer = 'Mcp',
+    Icm = 'IcM',
 }
 
 export interface ConnectorTypeOption {
@@ -84,6 +85,13 @@ export const connectorTypeOptions = (intl: any): ConnectorTypeOption[] => [
         service: intl.formatMessage(ConnectorsResources.userProvidedConnector),
         description: intl.formatMessage(ConnectorsResources.mcpServerDescription),
         img: resolveResourceIcon('CustomConnector'),
+    },
+    {
+        id: ConnectorType.Icm,
+        name: intl.formatMessage(ConnectorsResources.icmConnector),
+        service: intl.formatMessage(ConnectorsResources.microsoftIcm),
+        description: intl.formatMessage(ConnectorsResources.icmConnectorDescription),
+        img: resolveResourceIcon('IcM'),
     },
 ];
 

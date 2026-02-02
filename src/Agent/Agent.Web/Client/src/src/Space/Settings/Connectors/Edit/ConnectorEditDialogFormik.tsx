@@ -46,6 +46,7 @@ export const ConnectorEditDialogFormik: React.FC<ConnectorEditDialogFormikProps>
             federatedClientId: '',
             federatedTenantId: '',
             azureDevOpsOrganization: '',
+            keyVaultId: connector.extendedProperties?.keyVaultId,
         };
 
         // Parse FIC properties from extendedProperties

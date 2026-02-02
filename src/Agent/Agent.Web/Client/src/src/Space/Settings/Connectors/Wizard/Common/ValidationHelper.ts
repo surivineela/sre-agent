@@ -253,4 +253,11 @@ export const getValidationSchema = (existingConnectors: Connector[], intl: any, 
                         ),
                 otherwise: schema => schema.notRequired(),
             }),
+        keyVaultId: string()
+            .ensure()
+            .when('connectorType', {
+                is: (connectorType: string) => connectorType === ConnectorType.Icm,
+                then: schema => schema.required(intl.formatMessage(SreAgentResources.fieldRequired)),
+                otherwise: schema => schema.notRequired(),
+            }),
     });

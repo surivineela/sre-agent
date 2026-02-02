@@ -55,6 +55,8 @@ export interface ConnectorFormProps {
     federatedTenantId?: string;
     // Azure DevOps organization
     azureDevOpsOrganization?: string;
+    // ICM connector properties
+    keyVaultId?: string;
 }
 
 export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = props => {
@@ -84,6 +86,7 @@ export const ConnectorWizardFormik: React.FC<ConnectorsWizardFormikProps> = prop
             federatedClientId: '',
             federatedTenantId: '',
             azureDevOpsOrganization: '',
+            keyVaultId: '',
         };
     }, []);
 

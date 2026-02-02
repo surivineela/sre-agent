@@ -4,9 +4,11 @@ import { HttpResponseObject } from '../../../Common/ArmHelper.types';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
+import { PermissionClient } from '../../../Common/Clients/PermissionsClient';
 import { TextWithLink } from '../../../Common/Components/TextWithLink';
 import { SreAgentFwLinks } from '../../../Common/Constants/FwLinks';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
+import { RBACRoleIds } from '../../../Common/Contracts/Azure/Permission';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { FirstPartyHelper } from '../../../Common/Helpers/FirstPartyHelper';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
@@ -91,6 +93,60 @@ export const Connectors = () => {
 
     const { getAccessPolicies, assignAccessPolicies } = useApiConnection();
 
+    const assignKeyVaultRoles = useCallback(
+        async (connector: Connector): Promise<{ success: boolean; error?: string }> => {
+            let objectId: string;
+            if (connector.identity === IdentityKeys.system) {
+                objectId = agent?.identity?.principalId || '';
+            } else {
+                const selectedIdentity = Object.entries(agent?.identity?.userAssignedIdentities || {}).find(([key, _]) =>
+                    equals(key, connector.identity)
+                );
+                objectId = selectedIdentity ? selectedIdentity[1].principalId : '';
+            }
+
+            const keyVaultId = connector.extendedProperties?.keyVaultId;
+            if (!keyVaultId || !objectId) {
+                return {
+                    success: false,
+                    error: intl.formatMessage(ConnectorsResources.missingKeyVaultOrIdentity),
+                };
+            }
+
+            const permissionClient = PermissionClient.getInstance();
+            const requiredRoles = [
+                { id: RBACRoleIds.keyVaultSecretsUser, name: 'Key Vault Secrets User' },
+                { id: RBACRoleIds.keyVaultCertificateUser, name: 'Key Vault Certificate User' },
+            ];
+            const failedRoles: string[] = [];
+            let lastError: string | undefined;
+
+            for (const role of requiredRoles) {
+                const hasRole = await permissionClient.hasRoleAssignment(keyVaultId, role.id, objectId);
+                if (!hasRole) {
+                    const response = await permissionClient.assignRole(keyVaultId, role.id, objectId, 'ServicePrincipal');
+                    if (!response.metadata.success) {
+                        failedRoles.push(role.name);
+                        lastError = getErrorMessage(response.metadata.error);
+                    }
+                }
+            }
+
+            if (failedRoles.length > 0) {
+                return {
+                    success: false,
+                    error: intl.formatMessage(ConnectorsResources.failedToAssignRoles, {
+                        roleNames: failedRoles.join(', '),
+                        error: lastError || 'Unknown error',
+                    }),
+                };
+            }
+
+            return { success: true };
+        },
+        [agent, intl]
+    );
+
     const putAssignAccessPolicies = useCallback(
         async (connector: Connector, isEditMode = false) => {
             const tenantId = agent?.identity?.tenantId || '';
@@ -141,6 +197,64 @@ export const Connectors = () => {
                 intl.formatMessage(ConnectorsResources.creatingConnectorDescription, { name: connector.name })
             );
 
+            // For ICM connectors, assign Key Vault roles first before creating the connector
+            if (connector.dataConnectorType === ConnectorType.Icm) {
+                const roleResult = await assignKeyVaultRoles(connector);
+                if (!roleResult.success) {
+                    log({
+                        action: 'assignKeyVaultRoles',
+                        actionModifier: 'failed',
+                        resourceId,
+                        logLevel: 'error',
+                        data: {
+                            message: `Failed to assign Key Vault roles: ${roleResult.error}`,
+                        },
+                    });
+
+                    stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(ConnectorsResources.createConnectorWithMessageFailed, {
+                            error: roleResult.error,
+                        })
+                    );
+                    setIsOperationInProgress(false);
+                    return;
+                }
+
+                // Proceed to create the connector after successful role assignment
+                const putConnectorResponse = await putConnector(connector);
+                if (putConnectorResponse.metadata.success) {
+                    refresh();
+                    stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(ConnectorsResources.connectorCreated, { name: connector.name })
+                    );
+                } else {
+                    const error = putConnectorResponse.metadata.error;
+                    const errorMessage = getErrorMessage(error);
+                    log({
+                        action: 'createDataConnector',
+                        actionModifier: 'failed',
+                        resourceId,
+                        logLevel: 'error',
+                        data: {
+                            message: `Failed to create ICM connector: ${errorMessage}`,
+                        },
+                    });
+
+                    stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(ConnectorsResources.createConnectorWithMessageFailed, { error: errorMessage })
+                    );
+                }
+                setIsOperationInProgress(false);
+                return;
+            }
+
+            // For non-ICM connectors, run putConnector and putAssignAccessPolicies in parallel
             const promises = [putConnector(connector), putAssignAccessPolicies(connector)];
             const responses = await Promise.all(promises);
 
@@ -190,7 +304,18 @@ export const Connectors = () => {
             }
             setIsOperationInProgress(false);
         },
-        [startNotification, intl, putConnector, putAssignAccessPolicies, refresh, stopNotification, log, resourceId, isAmePmeTenant]
+        [
+            assignKeyVaultRoles,
+            startNotification,
+            intl,
+            putConnector,
+            putAssignAccessPolicies,
+            refresh,
+            stopNotification,
+            log,
+            resourceId,
+            isAmePmeTenant,
+        ]
     );
 
     const updateDataConnection = useCallback(
