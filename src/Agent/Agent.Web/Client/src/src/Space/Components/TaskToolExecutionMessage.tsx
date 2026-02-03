@@ -121,17 +121,13 @@ const useStyles = makeStyles({
         backgroundColor: tokens.colorNeutralStroke1,
     },
 
-    // Horizontal line spanning all cards
-    horizontalLineContainer: {
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        width: '100%',
-    },
-
+    // Horizontal line — absolutely positioned inside branchesContainer
     horizontalLine: {
+        position: 'absolute',
+        top: 0,
         height: '1.5px',
         backgroundColor: tokens.colorNeutralStroke1,
+        // Centered via inline left + width
     },
 
     // Scrollable wrapper for branches
@@ -139,7 +135,6 @@ const useStyles = makeStyles({
         width: '100%',
         overflowX: 'auto',
         overflowY: 'hidden',
-        // Hide scrollbar by default, show thin one on hover
         scrollbarWidth: 'thin',
         scrollbarColor: `${tokens.colorNeutralStroke2} transparent`,
         paddingBottom: '4px',
@@ -150,6 +145,7 @@ const useStyles = makeStyles({
 
     // Branch lines going down to each card
     branchesContainer: {
+        position: 'relative',
         display: 'flex',
         justifyContent: 'center',
         gap: '16px',
@@ -646,15 +642,17 @@ const TaskToolExecutionMessage = ({ execution, executionGroup }: TaskToolExecuti
 
                     {/* Scrollable branch area */}
                     <div className={classes.branchesScrollArea}>
-                        {/* Horizontal line spanning cards (only if more than 1 card) */}
-                        {totalCount > 1 && (
-                            <div className={classes.horizontalLineContainer}>
-                                <div className={classes.horizontalLine} style={{ width: `calc(100% - ${240 + 24}px)` }} />
-                            </div>
-                        )}
-
-                        {/* Branch lines going down to each card */}
                         <div className={classes.branchesContainer}>
+                            {/* Horizontal line — positioned absolute, spans center of first to last card */}
+                            {totalCount > 1 && (
+                                <div
+                                    className={classes.horizontalLine}
+                                    style={{
+                                        left: `calc(12px + 120px)`,
+                                        width: `${(totalCount - 1) * (240 + 16)}px`,
+                                    }}
+                                />
+                            )}
                             {executions.map(exec => (
                                 <div key={exec.id} className={classes.branchWrapper}>
                                     <div className={classes.branchLine} />

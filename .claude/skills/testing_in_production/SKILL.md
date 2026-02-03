@@ -25,6 +25,15 @@ ask the user to provide it:
 dotnet publish src/Agent/Agent.Web/Agent.Web.csproj -o out/web/publish
 ```
 
+   **Troubleshooting:** If publish fails with errors about compressed assets not being found (e.g., `The asset '...compressed/publish/...' can not be found`), delete the stale compressed asset cache and retry:
+
+```bash
+rm -rf src/Agent/Agent.Web/obj/Release/net9.0/compressed
+# or if that's not enough:
+rm -rf src/Agent/Agent.Web/obj/Release
+```
+   Then re-run the `dotnet publish` command.
+
 2. Build and push the container image
 
    The image name is formatted as: `[acr-name].azurecr.io/sre-agent-test/agent:[tag]`
