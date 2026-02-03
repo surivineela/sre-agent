@@ -8,6 +8,10 @@ import { useIntl } from 'react-intl';
 import { useAzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import {
+    useIncidentPlatformPicker,
+    UseIncidentPlatformPickerResult,
+} from '../../Common/Components/IncidentPlatformPicker/useIncidentPlatformPicker';
+import {
     useInfrastructureScopePicker,
     UseInfrastructureScopePickerResult,
 } from '../../Common/Components/InfrastructureScopePicker/InfrastructureScopePicker';
@@ -20,7 +24,10 @@ import { SuggestedActionsContent } from './SuggestedActionsContent';
 
 export interface SuggestedActionsContentProps {
     infrastructurePicker: UseInfrastructureScopePickerResult;
+    incidentPlatformPicker: UseIncidentPlatformPickerResult;
     knowledgeBasePicker: UseKnowledgeBasePickerResult;
+    isSubscriptionConfigured: boolean;
+    isResourceGroupConfigured: boolean;
 }
 
 const useSuggestedActionsCardStyles = makeStyles({
@@ -85,6 +92,8 @@ const useSuggestedActionsCount = () => {
 
 const SuggestedActionsCard: FC = () => {
     const [isOpen, setIsOpen] = useState<boolean>(true);
+    const [isSubscriptionConfigured, setIsSubscriptionConfigured] = useState<boolean>(false);
+    const [isResourceGroupConfigured, setIsResourceGroupConfigured] = useState<boolean>(false);
 
     const intl = useIntl();
     const styles = useSuggestedActionsCardStyles();
@@ -116,6 +125,12 @@ const SuggestedActionsCard: FC = () => {
             });
 
             if (response.metadata.success) {
+                if (subscriptionIds.length > 0) {
+                    setIsSubscriptionConfigured(true);
+                }
+                if (resourceGroupIds.length > 0) {
+                    setIsResourceGroupConfigured(true);
+                }
                 azPortalContext.log({
                     action: 'suggested-actions-infrastructure',
                     actionModifier: 'saved',
@@ -157,6 +172,14 @@ const SuggestedActionsCard: FC = () => {
         initialResourceGroupIds: initialValues.selectedResourceGroupIds,
         onSubscriptionsChange: handleSubscriptionsChange,
         onResourceGroupsChange: handleResourceGroupsChange,
+    });
+
+    const incidentPlatformPicker = useIncidentPlatformPicker({
+        initialPlatformType: initialValues.incidentPlatformType,
+        initialPagerDutyApiKey: initialValues.pagerDutyApiKey,
+        initialServiceNowEndpoint: initialValues.serviceNowEndpoint,
+        initialServiceNowUsername: initialValues.serviceNowUsername,
+        initialServiceNowPassword: initialValues.serviceNowPassword,
     });
     const knowledgeBasePicker = useKnowledgeBasePicker();
 
@@ -205,7 +228,7 @@ const SuggestedActionsCard: FC = () => {
     }
 
     return (
-        <Card size="small" className={styles.card}>
+        <Card className={styles.card}>
             <CardHeader
                 header={
                     <Body1Strong>{intl.formatMessage(OverviewResources.suggestionActions, { value: suggestedActionsCount })}</Body1Strong>
@@ -233,8 +256,14 @@ const SuggestedActionsCard: FC = () => {
             {/* Collapsible Content using Fluent UI Collapse wrapped in Formik */}
             <Collapse visible={isOpen}>
                 <div className={styles.contentWrapper}>
-                    <Formik<AgentFormValues> initialValues={initialValues} onSubmit={handleSubmit}>
-                        <SuggestedActionsContent infrastructurePicker={infrastructurePicker} knowledgeBasePicker={knowledgeBasePicker} />
+                    <Formik<AgentFormValues> initialValues={initialValues} onSubmit={handleSubmit} enableReinitialize>
+                        <SuggestedActionsContent
+                            infrastructurePicker={infrastructurePicker}
+                            incidentPlatformPicker={incidentPlatformPicker}
+                            knowledgeBasePicker={knowledgeBasePicker}
+                            isSubscriptionConfigured={isSubscriptionConfigured}
+                            isResourceGroupConfigured={isResourceGroupConfigured}
+                        />
                     </Formik>
                 </div>
             </Collapse>

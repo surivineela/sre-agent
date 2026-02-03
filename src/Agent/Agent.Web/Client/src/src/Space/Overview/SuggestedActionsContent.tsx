@@ -1,5 +1,6 @@
 import { makeStyles, tokens } from '@fluentui/react-components';
-import { FC, useContext, useMemo } from 'react';
+import { useFormikContext } from 'formik';
+import { FC, useMemo } from 'react';
 import { IncidentPlatformPickerCard } from '../../Common/Components/IncidentPlatformPicker/IncidentPlatformPickerCard';
 import {
     InfrastructureScopeDialogs,
@@ -13,7 +14,7 @@ import {
     KnowledgeBaseDialogs,
 } from '../../Common/Components/KnowledgeBasePicker/KnowledgeBasePicker';
 import { IncidentManagementType } from '../../Common/Contracts/Azure/SreAgent';
-import { SreAgentContext } from '../Contracts/Context';
+import { AgentFormValues } from '../../Common/Utils/AgentFormUtils';
 import { SuggestedActionsContentProps } from './SuggestedActionsCard';
 
 const useSuggestedActionsCardContentStyles = makeStyles({
@@ -24,45 +25,27 @@ const useSuggestedActionsCardContentStyles = makeStyles({
     },
 });
 
-/**
- * Determines which suggested action cards should be shown based on agent configuration.
- * Cards are hidden if their corresponding configuration is already complete.
- * Uses the same logic as useOnboardingWizard's isStepComplete function.
- */
-const useVisibleCards = () => {
-    const { agentObj } = useContext(SreAgentContext);
-    const agent = agentObj?.properties;
+export const SuggestedActionsContent: FC<SuggestedActionsContentProps> = ({
+    infrastructurePicker,
+    incidentPlatformPicker,
+    knowledgeBasePicker,
+    isSubscriptionConfigured,
+    isResourceGroupConfigured,
+}) => {
+    const styles = useSuggestedActionsCardContentStyles();
 
-    return useMemo(() => {
-        const managedResources = agent?.knowledgeGraphConfiguration?.managedResources ?? [];
+    const { initialValues } = useFormikContext<AgentFormValues>();
 
-        // Check if any subscriptions are configured (resources starting with /subscriptions/ but not containing /resourceGroups/)
-        const hasSubscriptions = managedResources.some(
-            r => r.startsWith('/subscriptions/') && !r.toLowerCase().includes('/resourcegroups/')
-        );
-
-        // Check if any resource groups are configured
-        const hasResourceGroups = managedResources.some(r => r.toLowerCase().includes('/resourcegroups/'));
-
-        // Check if incident platform is configured (type is defined and not None)
-        const incidentType = agent?.incidentManagementConfiguration?.type;
-        const hasIncidentPlatform = incidentType !== undefined && incidentType !== IncidentManagementType.None;
-
-        // Knowledge base cards are always shown (optional step, similar to wizard behavior)
-
+    const { showSubscriptionCard, showResourceGroupCard, showIncidentPlatformCard, showKnowledgeBaseCards } = useMemo(() => {
         return {
-            showSubscriptionCard: !hasSubscriptions,
-            showResourceGroupCard: !hasResourceGroups,
-            showIncidentPlatformCard: !hasIncidentPlatform,
-            // Knowledge base cards are always visible as they're optional/additive
+            showSubscriptionCard: initialValues.selectedSubscriptionIds.length === 0 && !isSubscriptionConfigured,
+            showResourceGroupCard: initialValues.selectedResourceGroupIds.length === 0 && !isResourceGroupConfigured,
+            showIncidentPlatformCard:
+                (initialValues.incidentPlatformType === undefined || initialValues.incidentPlatformType === IncidentManagementType.None) &&
+                !incidentPlatformPicker.isIncidentPlatformConfigured,
             showKnowledgeBaseCards: true,
         };
-    }, [agent]);
-};
-
-export const SuggestedActionsContent: FC<SuggestedActionsContentProps> = ({ infrastructurePicker, knowledgeBasePicker }) => {
-    const styles = useSuggestedActionsCardContentStyles();
-    const { showSubscriptionCard, showResourceGroupCard, showIncidentPlatformCard, showKnowledgeBaseCards } = useVisibleCards();
+    }, [initialValues, isSubscriptionConfigured, isResourceGroupConfigured, incidentPlatformPicker.isIncidentPlatformConfigured]);
 
     // Check if any cards are visible
     const hasVisibleCards = showSubscriptionCard || showResourceGroupCard || showIncidentPlatformCard || showKnowledgeBaseCards;
@@ -79,7 +62,7 @@ export const SuggestedActionsContent: FC<SuggestedActionsContentProps> = ({ infr
                 {showResourceGroupCard && <ResourceGroupPickerCard picker={infrastructurePicker} />}
 
                 {/* Incident platform card */}
-                {showIncidentPlatformCard && <IncidentPlatformPickerCard />}
+                {showIncidentPlatformCard && <IncidentPlatformPickerCard picker={incidentPlatformPicker} />}
 
                 {/* Knowledge base cards - always shown as they're additive */}
                 {showKnowledgeBaseCards && (

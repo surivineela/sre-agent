@@ -1,14 +1,15 @@
 import { useFormikContext } from 'formik';
 import { FC, useCallback } from 'react';
-import { IncidentPlatformPicker, IncidentPlatformValues } from '../../../Common/Components/IncidentPlatformPicker/IncidentPlatformPicker';
+import { IncidentPlatformConfig } from '../../../Common/Components/IncidentPlatformPicker/IncidentPlatformDialog';
+import { IncidentPlatformPicker } from '../../../Common/Components/IncidentPlatformPicker/IncidentPlatformPicker';
 import { IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { AgentFormValues } from '../../../Common/Utils/AgentFormUtils';
 
 export const IncidentPlatformStep: FC = () => {
     const { values, setFieldValue } = useFormikContext<AgentFormValues>();
 
-    const pickerValues: IncidentPlatformValues = {
-        incidentPlatformType: values.incidentPlatformType,
+    const pickerValues: IncidentPlatformConfig = {
+        type: values.incidentPlatformType || IncidentManagementType.None,
         pagerDutyApiKey: values.pagerDutyApiKey,
         serviceNowEndpoint: values.serviceNowEndpoint,
         serviceNowUsername: values.serviceNowUsername,

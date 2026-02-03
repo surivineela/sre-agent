@@ -6,6 +6,7 @@ import { SreAgentContext } from '../../../Space/Contracts/Context';
 import { IncidentManagementPlatformResources, OnboardingWizardResources, PagerDutyResources } from '../../../Strings/SREAgentResources';
 import { IncidentManagementType } from '../../Contracts/Azure/SreAgent';
 import { FirstPartyHelper } from '../../Helpers/FirstPartyHelper';
+import { IncidentPlatformConfig } from './IncidentPlatformDialog';
 
 export interface PlatformOption {
     type: IncidentManagementType;
@@ -16,16 +17,8 @@ export interface PlatformOption {
     useIcon?: boolean;
 }
 
-export interface IncidentPlatformValues {
-    incidentPlatformType?: IncidentManagementType;
-    pagerDutyApiKey: string;
-    serviceNowEndpoint: string;
-    serviceNowUsername: string;
-    serviceNowPassword: string;
-}
-
 export interface IncidentPlatformPickerProps {
-    values: IncidentPlatformValues;
+    values: IncidentPlatformConfig;
     onPlatformSelect: (type: IncidentManagementType) => void;
     onPagerDutyApiKeyChange: (value: string) => void;
     onServiceNowEndpointChange: (value: string) => void;
@@ -258,15 +251,12 @@ export const IncidentPlatformPicker: FC<IncidentPlatformPickerProps> = ({
                 {platformOptions.map(platform => (
                     <div
                         key={platform.type}
-                        className={mergeClasses(
-                            styles.platformCard,
-                            values.incidentPlatformType === platform.type && styles.platformCardSelected
-                        )}
+                        className={mergeClasses(styles.platformCard, values.type === platform.type && styles.platformCardSelected)}
                         onClick={() => onPlatformSelect(platform.type)}
                         role="button"
                         tabIndex={0}
                         onKeyDown={e => e.key === 'Enter' && onPlatformSelect(platform.type)}
-                        aria-pressed={values.incidentPlatformType === platform.type}
+                        aria-pressed={values.type === platform.type}
                     >
                         {platform.useIcon ? (
                             <DismissCircleFilled className={styles.platformIcon} aria-hidden="true" />
@@ -279,11 +269,11 @@ export const IncidentPlatformPicker: FC<IncidentPlatformPickerProps> = ({
             </div>
 
             <PlatformConfigForm
-                platformType={values.incidentPlatformType}
-                pagerDutyApiKey={values.pagerDutyApiKey}
-                serviceNowEndpoint={values.serviceNowEndpoint}
-                serviceNowUsername={values.serviceNowUsername}
-                serviceNowPassword={values.serviceNowPassword}
+                platformType={values.type}
+                pagerDutyApiKey={values.pagerDutyApiKey || ''}
+                serviceNowEndpoint={values.serviceNowEndpoint || ''}
+                serviceNowUsername={values.serviceNowUsername || ''}
+                serviceNowPassword={values.serviceNowPassword || ''}
                 onPagerDutyApiKeyChange={onPagerDutyApiKeyChange}
                 onServiceNowEndpointChange={onServiceNowEndpointChange}
                 onServiceNowUsernameChange={onServiceNowUsernameChange}
@@ -296,20 +286,20 @@ export const IncidentPlatformPicker: FC<IncidentPlatformPickerProps> = ({
 /**
  * Validates if the incident platform form is complete
  */
-export const isIncidentPlatformFormValid = (values: IncidentPlatformValues): boolean => {
-    if (!values.incidentPlatformType) return false;
-    switch (values.incidentPlatformType) {
+export const isIncidentPlatformFormValid = (values: IncidentPlatformConfig): boolean => {
+    if (!values.type) return false;
+    switch (values.type) {
         case IncidentManagementType.None:
         case IncidentManagementType.AzMonitor:
         case IncidentManagementType.Icm:
             return true;
         case IncidentManagementType.PagerDuty:
-            return values.pagerDutyApiKey.trim().length > 0;
+            return (values.pagerDutyApiKey || '').trim().length > 0;
         case IncidentManagementType.ServiceNow:
             return (
-                values.serviceNowEndpoint.trim().length > 0 &&
-                values.serviceNowUsername.trim().length > 0 &&
-                values.serviceNowPassword.trim().length > 0
+                (values.serviceNowEndpoint || '').trim().length > 0 &&
+                (values.serviceNowUsername || '').trim().length > 0 &&
+                (values.serviceNowPassword || '').trim().length > 0
             );
         default:
             return false;

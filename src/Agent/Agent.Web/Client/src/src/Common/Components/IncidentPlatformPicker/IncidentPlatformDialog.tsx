@@ -10,11 +10,11 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { Dismiss24Regular } from '@fluentui/react-icons';
-import { FC, useCallback, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { OnboardingWizardResources, SreAgentResources } from '../../../Strings/SREAgentResources';
 import { IncidentManagementType } from '../../Contracts/Azure/SreAgent';
-import { IncidentPlatformPicker, IncidentPlatformValues, isIncidentPlatformFormValid } from './IncidentPlatformPicker';
+import { IncidentPlatformPicker, isIncidentPlatformFormValid } from './IncidentPlatformPicker';
 
 export interface IncidentPlatformConfig {
     type: IncidentManagementType;
@@ -55,9 +55,17 @@ export const IncidentPlatformDialog: FC<IncidentPlatformDialogProps> = ({ isOpen
     const [serviceNowPassword, setServiceNowPassword] = useState(initialConfig?.serviceNowPassword ?? '');
     const [isSaving, setIsSaving] = useState(false);
 
-    const pickerValues: IncidentPlatformValues = useMemo(
+    useEffect(() => {
+        setSelectedType(initialConfig?.type);
+        setPagerDutyApiKey(initialConfig?.pagerDutyApiKey ?? '');
+        setServiceNowEndpoint(initialConfig?.serviceNowEndpoint ?? '');
+        setServiceNowUsername(initialConfig?.serviceNowUsername ?? '');
+        setServiceNowPassword(initialConfig?.serviceNowPassword ?? '');
+    }, [initialConfig]);
+
+    const pickerValues: IncidentPlatformConfig = useMemo(
         () => ({
-            incidentPlatformType: selectedType,
+            type: selectedType || IncidentManagementType.None,
             pagerDutyApiKey,
             serviceNowEndpoint,
             serviceNowUsername,

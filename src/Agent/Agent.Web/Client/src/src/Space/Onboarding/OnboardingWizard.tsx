@@ -18,6 +18,7 @@ import { GrantPermissionsStep } from './Steps/GrantPermissionsStep';
 import { IncidentPlatformStep } from './Steps/IncidentPlatformStep';
 import { InfrastructureScopeStep } from './Steps/InfrastructureScopeStep';
 import { KnowledgeBaseStep } from './Steps/KnowledgeBaseStep';
+import { getIncidentManagementConfguration } from './Utilities';
 
 const isStepDirty = (step: WizardStep, currentValues: AgentFormValues, initialValues: AgentFormValues): boolean => {
     switch (step) {
@@ -53,7 +54,7 @@ export const OnboardingWizard: FC<OnboardingWizardProps> = ({ onComplete }) => {
 
     const initialValues = useMemo<AgentFormValues>(() => getAgentFormInitialValues(agentObj, resourceId), [agentObj, resourceId]);
 
-    const handleSubmit = useCallback((_values: AgentFormValues, _helpers: FormikHelpers<AgentFormValues>) => { }, []);
+    const handleSubmit = useCallback((_values: AgentFormValues, _helpers: FormikHelpers<AgentFormValues>) => {}, []);
 
     return (
         <Formik<AgentFormValues> initialValues={initialValues} onSubmit={handleSubmit}>
@@ -96,23 +97,13 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
     const saveIncidentPlatform = useCallback(async (): Promise<boolean> => {
         if (!values.incidentPlatformType) return false;
 
-        let config = null;
-        if (values.incidentPlatformType !== IncidentManagementType.None) {
-            config = {
-                type: values.incidentPlatformType,
-                connectionName: values.incidentPlatformType.toLowerCase(),
-                ...(values.incidentPlatformType === IncidentManagementType.PagerDuty && {
-                    connectionKey: values.pagerDutyApiKey,
-                }),
-                ...(values.incidentPlatformType === IncidentManagementType.ServiceNow && {
-                    connectionUrl: values.serviceNowEndpoint,
-                    connectionKey: JSON.stringify({
-                        username: values.serviceNowUsername,
-                        password: values.serviceNowPassword,
-                    }),
-                }),
-            };
-        }
+        const config = getIncidentManagementConfguration({
+            incidentPlatformType: values.incidentPlatformType,
+            pagerDutyApiKey: values.pagerDutyApiKey,
+            serviceNowEndpoint: values.serviceNowEndpoint,
+            serviceNowUsername: values.serviceNowUsername,
+            serviceNowPassword: values.serviceNowPassword,
+        });
 
         const response = await patchAgent({
             properties: {
@@ -284,7 +275,13 @@ const OnboardingWizardContent: FC<OnboardingWizardContentProps> = ({ onComplete 
                             {intl.formatMessage(OnboardingWizardResources.back)}
                         </Button>
                     )}
-                    <Button appearance="primary" onClick={handleSaveAndNext} disabled={!isCurrentStepValid} icon={<ChevronRightRegular />} iconPosition="after">
+                    <Button
+                        appearance="primary"
+                        onClick={handleSaveAndNext}
+                        disabled={!isCurrentStepValid}
+                        icon={<ChevronRightRegular />}
+                        iconPosition="after"
+                    >
                         {isLastStep
                             ? intl.formatMessage(OnboardingWizardResources.launchPortal)
                             : intl.formatMessage(OnboardingWizardResources.next)}
