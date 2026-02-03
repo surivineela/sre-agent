@@ -12,7 +12,6 @@ export enum SettingNames {
     ForUnitTests = 'forUnitTests',
     ShowSubAgentsItemInSettings = 'showSubAgentsItemInSettings',
     McpServer = 'McpServer',
-    ShowThreadTraceUI = 'showThreadTraceUI',
     AllowMetaAgentOverride = 'allowMetaAgentOverride',
     ShowPermissionsInSettings = 'showPermissionsInSettings',
     ShowIncidentTriggerWithLearnings = 'showIncidentTriggerWithLearnings',
@@ -30,20 +29,17 @@ const configSettings: Record<string, Partial<Record<SettingNames, any>>> = {
     },
     'portal.azure.com': {},
     'ms.portal.azure.com': {
-        [SettingNames.ShowThreadTraceUI]: true,
         [SettingNames.Connectors]: true,
         [SettingNames.AllowMetaAgentOverride]: true,
         [SettingNames.ShowPermissionsInSettings]: true,
         [SettingNames.ShowIncidentTriggerWithLearnings]: true,
     },
     'sre.azure.com': {
-        [SettingNames.ShowThreadTraceUI]: true,
         [SettingNames.AllowMetaAgentOverride]: true,
     },
     localhost: {
         [SettingNames.ShowAgentModeForThread]: true,
         [SettingNames.ForUnitTests]: true,
-        [SettingNames.ShowThreadTraceUI]: true,
         [SettingNames.AllowMetaAgentOverride]: true,
         [SettingNames.ShowPermissionsInSettings]: true,
         [SettingNames.Connectors]: true,

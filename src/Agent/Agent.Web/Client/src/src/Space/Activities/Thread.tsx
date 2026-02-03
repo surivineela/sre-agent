@@ -6,7 +6,6 @@ import { ThreadClient } from '../../Common/Clients/ThreadClient';
 import NoAccessError from '../../Common/Components/NoAccessError';
 import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
 import { Thread as ThreadObject } from '../../Common/Contracts/DataPlane/Thread';
-import { SettingNames, useConfigSetting } from '../../Common/Hooks/ConfigSettings';
 import useUserPermissions from '../../Common/Hooks/useUserPermissions';
 import { ChatBoxHandleRef } from '../Contracts/Activities';
 import { SreAgentContext, SreAgentSpaceContext } from '../Contracts/Context';
@@ -42,7 +41,6 @@ const Thread: FC<IThreadProps> = ({ isOverview }) => {
     const { isCrossTenantPortalMode } = useContext(EnvironmentContext);
 
     const { canReadThreads } = useUserPermissions();
-    const showThreadTraceUI = useConfigSetting(SettingNames.ShowThreadTraceUI);
 
     const threadClient = ThreadClient.getInstance(sreAgentEndpoint);
 
@@ -111,7 +109,7 @@ const Thread: FC<IThreadProps> = ({ isOverview }) => {
                     isToDoPlanOpen={isToDoPlanOpen}
                     openToDoPlan={openToDoPlan}
                     closeToDoPlan={closeToDoPlan}
-                    showTraceButton={showThreadTraceUI && showControlPlaneDependentFeatures && !!agentAppInsightsAppId}
+                    showTraceButton={showControlPlaneDependentFeatures && !!agentAppInsightsAppId}
                     toggleTraceVisibility={() => setShowTrace(!showTrace)}
                     traceFocusRestorationRef={traceFocusRestorationRef}
                 />
