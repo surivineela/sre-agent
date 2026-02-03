@@ -14,6 +14,7 @@ namespace Agent.Framework.TaskTool;
 public class TaskTool<TContext> : AIFunction where TContext : class
 {
     private readonly int _defaultMaxTurns;
+    private readonly IAgentFactory<TContext>? _agentFactory;
 
     /// <summary>
     /// Gets or sets the run configuration for the subagent.
@@ -35,36 +36,61 @@ public class TaskTool<TContext> : AIFunction where TContext : class
 
     public override string Name => "Task";
 
-    public override string Description => """
-        Launch a subagent to handle complex, multi-step tasks autonomously.
+    public override string Description
+    {
+        get
+        {
+            var description = new System.Text.StringBuilder();
+            description.AppendLine("Launch a subagent to handle complex, multi-step tasks autonomously.");
+            description.AppendLine();
+            description.AppendLine("Available subagent types:");
 
-        Available subagent types:
-        - Explore: Deeply analyzes codebase features by tracing execution paths, mapping architecture layers,
-          understanding patterns and abstractions, and documenting dependencies. Use when you need to understand
-          how a feature works, trace code flow, or map architecture before making changes.
+            // Built-in subagent types
+            description.AppendLine("- Explore: Deeply analyzes codebase features by tracing execution paths, mapping architecture layers,");
+            description.AppendLine("  understanding patterns and abstractions, and documenting dependencies. Use when you need to understand");
+            description.AppendLine("  how a feature works, trace code flow, or map architecture before making changes.");
+            description.AppendLine();
+            description.AppendLine("- Plan: Designs feature architectures by analyzing existing codebase patterns and conventions, then");
+            description.AppendLine("  providing comprehensive implementation blueprints with specific files to create/modify, component");
+            description.AppendLine("  designs, data flows, and build sequences. Use for planning new features or significant changes.");
+            description.AppendLine();
+            description.AppendLine("- CodeReview: Reviews code for bugs, logic errors, security vulnerabilities, code quality issues,");
+            description.AppendLine("  and adherence to project conventions. Uses confidence-based filtering (>=80) to report only");
+            description.AppendLine("  high-priority issues that truly matter. Use for reviewing code changes before committing.");
+            description.AppendLine();
+            description.AppendLine("- KustoQuery: Executes KQL queries against Azure Data Explorer clusters and analyzes the results.");
+            description.AppendLine("  Use when you need to investigate logs, metrics, or telemetry data. The agent can run queries,");
+            description.AppendLine("  interpret results, identify patterns/anomalies, and provide actionable recommendations.");
+            description.AppendLine();
+            description.AppendLine("- Bash: Command execution specialist for running bash commands. Use this for git operations,");
+            description.AppendLine("  command execution, and other terminal tasks.");
 
-        - Plan: Designs feature architectures by analyzing existing codebase patterns and conventions, then
-          providing comprehensive implementation blueprints with specific files to create/modify, component
-          designs, data flows, and build sequences. Use for planning new features or significant changes.
+            // Add ExtendedAgents dynamically
+            var extendedAgents = GetFilteredExtendedAgents();
+            if (extendedAgents.Count > 0)
+            {
+                description.AppendLine();
+                foreach (var agent in extendedAgents)
+                {
+                    var handoffDesc = agent.HandoffDescription!.GetOriginalText();
+                    description.AppendLine($"- {agent.Name}: {handoffDesc}");
+                }
+            }
 
-        - CodeReview: Reviews code for bugs, logic errors, security vulnerabilities, code quality issues,
-          and adherence to project conventions. Uses confidence-based filtering (>=80) to report only
-          high-priority issues that truly matter. Use for reviewing code changes before committing.
+            description.AppendLine();
+            description.AppendLine("You can call this tool multiple times in parallel to perform different tasks simultaneously.");
+            description.AppendLine("Each subagent runs independently and returns its findings.");
+            description.AppendLine();
+            description.AppendLine("Example usage:");
+            description.AppendLine("- Launch an Explore agent to \"trace the authentication flow from login to token generation\"");
+            description.AppendLine("- Launch multiple Explore agents in parallel to investigate different parts of a feature");
+            description.AppendLine("- Launch a Plan agent to \"design the architecture for adding a caching layer\"");
+            description.AppendLine("- Launch a CodeReview agent to \"review the changes in src/Services/ for potential bugs\"");
+            description.Append("- Launch a KustoQuery agent to \"analyze error rates in wawsprod over the last 24 hours\"");
 
-        - KustoQuery: Executes KQL queries against Azure Data Explorer clusters and analyzes the results.
-          Use when you need to investigate logs, metrics, or telemetry data. The agent can run queries,
-          interpret results, identify patterns/anomalies, and provide actionable recommendations.
-
-        You can call this tool multiple times in parallel to perform different tasks simultaneously.
-        Each subagent runs independently and returns its findings.
-
-        Example usage:
-        - Launch an Explore agent to "trace the authentication flow from login to token generation"
-        - Launch multiple Explore agents in parallel to investigate different parts of a feature
-        - Launch a Plan agent to "design the architecture for adding a caching layer"
-        - Launch a CodeReview agent to "review the changes in src/Services/ for potential bugs"
-        - Launch a KustoQuery agent to "analyze error rates in wawsprod over the last 24 hours"
-        """;
+            return description.ToString();
+        }
+    }
 
     public override JsonElement JsonSchema
     {
@@ -78,8 +104,7 @@ public class TaskTool<TContext> : AIFunction where TContext : class
                     subagent_type = new
                     {
                         type = "string",
-                        @enum = Enum.GetNames(typeof(SubAgentType)),
-                        description = "The type of subagent to spawn: 'Explore' for code exploration, 'Plan' for architecture design, 'CodeReview' for reviewing code quality and bugs."
+                        description = "The type of subagent to spawn. Can be a built-in type ('Explore', 'Plan', 'CodeReview', 'KustoQuery', 'Bash') or the name of any registered ExtendedAgent."
                     },
                     prompt = new
                     {
@@ -108,9 +133,10 @@ public class TaskTool<TContext> : AIFunction where TContext : class
         }
     }
 
-    public TaskTool(int defaultMaxTurns = 15)
+    public TaskTool(int defaultMaxTurns = 15, IAgentFactory<TContext>? agentFactory = null)
     {
         _defaultMaxTurns = defaultMaxTurns;
+        _agentFactory = agentFactory;
     }
 
     protected override async ValueTask<object?> InvokeCoreAsync(AIFunctionArguments arguments, CancellationToken cancellationToken)
@@ -146,12 +172,35 @@ public class TaskTool<TContext> : AIFunction where TContext : class
         // Validate required arguments
         if (string.IsNullOrWhiteSpace(subagentTypeStr))
         {
-            return "Error: subagent_type is required. Available types: " + string.Join(", ", Enum.GetNames(typeof(SubAgentType)));
+            return "Error: subagent_type is required. Available types: " + GetAvailableSubagentTypes();
         }
 
-        if (!Enum.TryParse<SubAgentType>(subagentTypeStr, ignoreCase: true, out var subagentType))
+        // Try built-in subagent type first
+        bool isBuiltIn = Enum.TryParse<SubAgentType>(subagentTypeStr, ignoreCase: true, out var builtInType);
+
+        // If not built-in, check if it's an ExtendedAgent
+        bool isExtendedAgent = false;
+        Agent<TContext>? extendedAgent = null;
+
+        if (!isBuiltIn && _agentFactory != null)
         {
-            return $"Error: Unknown subagent_type '{subagentTypeStr}'. Available types: " + string.Join(", ", Enum.GetNames(typeof(SubAgentType)));
+            isExtendedAgent = _agentFactory.AgentExists(subagentTypeStr);
+            if (isExtendedAgent)
+            {
+                try
+                {
+                    extendedAgent = _agentFactory.GetAgent(subagentTypeStr);
+                }
+                catch (KeyNotFoundException)
+                {
+                    isExtendedAgent = false;
+                }
+            }
+        }
+
+        if (!isBuiltIn && !isExtendedAgent)
+        {
+            return $"Error: Unknown subagent_type '{subagentTypeStr}'. Available types: {GetAvailableSubagentTypes()}";
         }
 
         if (string.IsNullOrWhiteSpace(prompt))
@@ -172,6 +221,7 @@ public class TaskTool<TContext> : AIFunction where TContext : class
         // Register for cancellation tracking if ExecutionId is set
         var effectiveToken = cancellationToken;
         var executionId = ExecutionId ?? Guid.NewGuid().ToString("N");
+        string agentTypeName = subagentTypeStr ?? "Unknown";
 
         try
         {
@@ -179,17 +229,45 @@ public class TaskTool<TContext> : AIFunction where TContext : class
             effectiveToken = TaskToolCancellationRegistry.RegisterExecution(executionId, cancellationToken);
 
             // Create ephemeral agent for this task
-            var agentName = $"task_{subagentType.ToString().ToLowerInvariant()}_{Guid.NewGuid():N}";
-            var systemPrompt = SubAgentPrompts.GetPrompt(subagentType);
-            var toolNames = SubAgentPrompts.GetTools(subagentType);
+            Agent<TContext> agent;
+            IReadOnlyList<string> toolNames;
 
-            var agent = new Agent<TContext>(agentName)
+            if (isBuiltIn)
             {
-                Instructions = systemPrompt,
-                FactoryTools = toolNames.ToList(),
-                AllowParallelToolCalls = true,
-                Temperature = 0.3f
-            };
+                // Built-in subagent - use existing logic
+                agentTypeName = builtInType.ToString();
+                var agentName = $"task_{builtInType.ToString().ToLowerInvariant()}_{Guid.NewGuid():N}";
+                var systemPrompt = SubAgentPrompts.GetPrompt(builtInType);
+                toolNames = SubAgentPrompts.GetTools(builtInType);
+
+                agent = new Agent<TContext>(agentName)
+                {
+                    Instructions = systemPrompt,
+                    FactoryTools = toolNames.ToList(),
+                    AllowParallelToolCalls = true,
+                    Temperature = 0.3f
+                };
+            }
+            else
+            {
+                // ExtendedAgent - clone configuration from registered agent
+                agentTypeName = extendedAgent!.Name;
+                var agentName = $"task_{extendedAgent.Name.ToLowerInvariant()}_{Guid.NewGuid():N}";
+
+                agent = new Agent<TContext>(agentName)
+                {
+                    Instructions = extendedAgent.Instructions,
+                    FactoryTools = extendedAgent.FactoryTools.ToList(),
+                    AllowParallelToolCalls = extendedAgent.AllowParallelToolCalls,
+                    Temperature = extendedAgent.Temperature,
+                    HandoffDescription = extendedAgent.HandoffDescription,
+                    MaxReflectionCount = extendedAgent.MaxReflectionCount,
+                    CustomReflectionNote = extendedAgent.CustomReflectionNote,
+                    OutputType = extendedAgent.OutputType
+                };
+
+                toolNames = extendedAgent.FactoryTools;
+            }
 
             // Set up hooks that resolve tools from the parent's tool factory
             var subagentHooks = new RunHooks<TContext>();
@@ -270,14 +348,14 @@ public class TaskTool<TContext> : AIFunction where TContext : class
 
             if (lastAssistantMessage == null)
             {
-                return $"[{description ?? subagentType.ToString()}] The subagent did not provide a response.";
+                return $"[{description ?? agentTypeName}] The subagent did not provide a response.";
             }
 
-            return $"[{description ?? subagentType.ToString()}]\n\n{lastAssistantMessage.Text}";
+            return $"[{description ?? agentTypeName}]\n\n{lastAssistantMessage.Text}";
         }
         catch (OperationCanceledException) when (effectiveToken.IsCancellationRequested)
         {
-            return $"[{description ?? subagentType.ToString()}] Task was cancelled.";
+            return $"[{description ?? agentTypeName}] Task was cancelled.";
         }
         finally
         {
@@ -288,11 +366,40 @@ public class TaskTool<TContext> : AIFunction where TContext : class
         }
     }
 
+    private List<Agent<TContext>> GetFilteredExtendedAgents()
+    {
+        if (_agentFactory == null)
+        {
+            return [];
+        }
+
+        return _agentFactory.GetAllAgents()
+            .Where(a => a.IsExtended)
+            .Where(a => a.Name != "meta_agent")
+            .Where(a => !string.IsNullOrWhiteSpace(a.HandoffDescription?.GetOriginalText()))
+            .OrderBy(a => a.Name)
+            .ToList();
+    }
+
+    private string GetAvailableSubagentTypes()
+    {
+        var builtInTypes = string.Join(", ", Enum.GetNames(typeof(SubAgentType)));
+
+        var extendedAgents = GetFilteredExtendedAgents();
+
+        if (extendedAgents.Count > 0)
+        {
+            return $"Built-in: {builtInTypes}; ExtendedAgents: {string.Join(", ", extendedAgents.Select(a => a.Name))}";
+        }
+
+        return builtInTypes;
+    }
+
     /// <summary>
     /// Creates a new TaskTool instance.
     /// </summary>
-    public static TaskTool<TContext> Create(int defaultMaxTurns = 15)
+    public static TaskTool<TContext> Create(int defaultMaxTurns = 15, IAgentFactory<TContext>? agentFactory = null)
     {
-        return new TaskTool<TContext>(defaultMaxTurns);
+        return new TaskTool<TContext>(defaultMaxTurns, agentFactory);
     }
 }

@@ -383,7 +383,12 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         // Register the Task tool for spawning subagents (e.g., Explore agent)
         RegisterTool(
             "Task",
-            new AIDynamicTool<TContext>((threadId, agentMode, agent) => TaskTool<TContext>.Create()),
+            new AIDynamicTool<TContext>((threadId, agentMode, agent) =>
+            {
+                // Resolve AgentFactory lazily from service provider to avoid circular dependency
+                var agentFactory = _serviceProvider.GetService<IAgentFactory<TContext>>();
+                return TaskTool<TContext>.Create(agentFactory: agentFactory);
+            }),
             onNameConflict);
 
         if (_mcpToolsRepository != null)

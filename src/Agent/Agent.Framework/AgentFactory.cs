@@ -67,6 +67,10 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
 
     // Attempt loading deferred MCP agent descriptors after MCP tools become available
     void AttemptLoadDeferredMcpAgents();
+
+    bool AgentExists(string agentName);
+
+    List<Agent<TContext>> GetAllAgents();
 }
 
 public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory<TContext>
