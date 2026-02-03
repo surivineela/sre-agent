@@ -429,4 +429,13 @@ Do NOT use chart parameters if you're just posting a text summary or HTML table.
     {
         return await _icmPlugin.GetCurrentOnCallAliases(teamId);
     }
+
+    [Description("Assign an ICM incident to a specific user by alias")]
+    [AgentTool(ToolMode.Auto)]
+    public async Task<string> AssignIncidentToUser(
+        [Description("Incident ID")] string incidentId,
+        [Description("User alias to assign the incident to")] string userAlias)
+    {
+        return await _icmPlugin.AssignIncidentToUser(incidentId, userAlias);
+    }
 }
