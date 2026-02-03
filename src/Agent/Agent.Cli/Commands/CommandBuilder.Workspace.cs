@@ -19,6 +19,7 @@ public static partial class CommandBuilder
         {
             var workspace = new Command("workspace", "Workspace management commands. Upload, download, and delete workspace files.")
             {
+                CreateSyncCommand(),
                 CreateRepoInstructionsCommand(),
                 CreateSessionInsightsCommand(),
                 CreateSynthesizedKnowledgeCommand()
@@ -26,6 +27,23 @@ public static partial class CommandBuilder
 
             return workspace;
         }
+
+        #region Sync Command
+
+        private static Command CreateSyncCommand()
+        {
+            var cmd = new Command("sync", CommandExamples.Workspace.SyncDescription)
+            {
+                WorkspaceCommandOptions.Memory.PathOption,
+                WorkspaceCommandOptions.Memory.IncludeSessionInsightsOption,
+                WorkspaceCommandOptions.Memory.ThreadIdOption
+            };
+
+            cmd.SetAction(WorkspaceCommandHandlers.HandleSyncCommand);
+            return cmd;
+        }
+
+        #endregion
 
         #region Repo Instructions Commands
 
@@ -84,23 +102,10 @@ public static partial class CommandBuilder
         {
             var cmd = new Command("session-insights", "Manage session insights.")
             {
-                CreateSessionInsightsUploadCommand(),
                 CreateSessionInsightsDownloadCommand(),
                 CreateSessionInsightsDeleteCommand()
             };
 
-            return cmd;
-        }
-
-        private static Command CreateSessionInsightsUploadCommand()
-        {
-            var cmd = new Command("upload", CommandExamples.Workspace.SessionInsightsUploadDescription)
-            {
-                WorkspaceCommandOptions.Memory.PathOption,
-                WorkspaceCommandOptions.Memory.ThreadIdOption
-            };
-
-            cmd.SetAction(WorkspaceCommandHandlers.HandleSessionInsightsUploadCommand);
             return cmd;
         }
 

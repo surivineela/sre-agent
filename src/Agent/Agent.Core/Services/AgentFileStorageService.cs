@@ -28,6 +28,7 @@ public class AgentFileStorageService : IAgentFileStorageService
     private readonly IRemoteFileStorage _remoteStorage;
     private readonly ToolOutputSettings _settings;
     private readonly ILogger<AgentFileStorageService> _logger;
+    private readonly string _sandboxRoot;
     private readonly string _localToolOutputPath;
     private readonly string _localThreadFilesPath;
     private readonly string _localSandboxMemoryPath;
@@ -43,10 +44,14 @@ public class AgentFileStorageService : IAgentFileStorageService
         _settings = settings.Value;
         _logger = logger;
 
+        // Get sandbox root for relative path computation
+        var sandboxPaths = new LocalSandboxPaths().SandboxPaths;
+        _sandboxRoot = sandboxPaths.SandboxRoot;
+
         // Determine base path for tool outputs and thread files
         var basePath = workspaceToolsPlugin.Enabled
             // When workspace tools are enabled, use sandbox tmp path
-            ? new LocalSandboxPaths().SandboxPaths.TmpPath
+            ? sandboxPaths.TmpPath
             // Use configured path if available, otherwise fall back to temp directory
             : !string.IsNullOrEmpty(_settings.StoragePath)
                 ? _settings.StoragePath
@@ -54,7 +59,7 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         _localToolOutputPath = Path.Combine(basePath, "ToolOutputs");
         _localThreadFilesPath = Path.Combine(basePath, "ThreadFiles");
-        _localSandboxMemoryPath = new LocalSandboxPaths().SandboxPaths.MemoriesPath;
+        _localSandboxMemoryPath = sandboxPaths.MemoriesPath;
 
         // Ensure local directories exist
         try
@@ -207,8 +212,9 @@ public class AgentFileStorageService : IAgentFileStorageService
             extension = $".{extension}";
         }
 
-        // Use callId-based naming: {threadId}/{toolName}_{callId}{extension}
-        var fileKey = $"{threadId}/{toolName}_{callId}{extension}";
+        // Compute file key as path relative to sandbox root: tmp/ToolOutputs/{threadId}/{toolName}_{callId}{extension}
+        var relativePath = Path.GetRelativePath(_sandboxRoot, _localToolOutputPath);
+        var fileKey = $"{relativePath}/{threadId}/{toolName}_{callId}{extension}".Replace('\\', '/');
         var lineCount = content.Split('\n').Length;
         var contentLength = content.Length;
 
@@ -261,20 +267,19 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         try
         {
-            // File key format: {threadId}/{toolName}_{callId}{extension}
-            // Validate that the key doesn't contain path traversal attempts
-            if (fileKey.Contains("..") ||
-                fileKey.IndexOfAny(new[] { '*', '?' }) >= 0)
+            // File key format: relative path from sandbox root (e.g., tmp/ToolOutputs/{threadId}/{toolName}_{callId}{extension})
+            // Validate that the key doesn't contain wildcard characters
+            if (fileKey.IndexOfAny(new[] { '*', '?' }) >= 0)
             {
                 _logger.LogInternalWarning("Invalid fileKey detected: {FileKey}", fileKey);
                 return null;
             }
 
-            // Normalize path separators and construct full local path
+            // Normalize path separators
             var normalizedFileKey = fileKey.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
 
-            // Validate path security (prevents path traversal and symlink attacks)
-            if (!PathSecurityHelper.TryGetSafeFilePath(_localToolOutputPath, normalizedFileKey, out var toolOutputFilePath)
+            // Validate path security against sandbox root (prevents path traversal and symlink attacks)
+            if (!PathSecurityHelper.TryGetSafeFilePath(_sandboxRoot, normalizedFileKey, out var toolOutputFilePath)
                 || toolOutputFilePath == null)
             {
                 _logger.LogInternalWarning("Path traversal or symlink attack detected for {FileKey}", fileKey);
@@ -443,7 +448,8 @@ public class AgentFileStorageService : IAgentFileStorageService
             throw new ArgumentException("Repository name cannot be null or empty.", nameof(repoName));
         }
 
-        var localFolder = Path.Combine(_localSandboxMemoryPath, RepoInstructionsFolderName, repoName);
+        // Local path: {MemoriesPath}/{repoName}/.github/
+        var localFolder = Path.Combine(_localSandboxMemoryPath, repoName, RepoInstructionsFolderName);
         if (!Directory.Exists(localFolder))
         {
             _logger.LogInternalDebug("Repo instructions folder does not exist: {Path}", localFolder);
@@ -466,7 +472,8 @@ public class AgentFileStorageService : IAgentFileStorageService
                 }
 
                 var relativePath = filePath.Substring(localFolder.Length).TrimStart(Path.DirectorySeparatorChar);
-                var blobPath = $"{RepoInstructionsFolderName}/{repoName}/{relativePath.Replace(Path.DirectorySeparatorChar, '/')}";
+                // Blob path: {repoName}/.github/{relativePath}
+                var blobPath = $"{repoName}/{RepoInstructionsFolderName}/{relativePath.Replace(Path.DirectorySeparatorChar, '/')}";
                 var content = await File.ReadAllBytesAsync(filePath, cancellationToken);
 
                 await _remoteStorage.UploadAsync(
@@ -672,7 +679,8 @@ public class AgentFileStorageService : IAgentFileStorageService
         }
 
         var downloadedCount = 0;
-        var blobPrefix = $"{RepoInstructionsFolderName}/{repoName}/";
+        // Blob prefix: {repoName}/.github/
+        var blobPrefix = $"{repoName}/{RepoInstructionsFolderName}/";
 
         try
         {
@@ -903,8 +911,8 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         var deletedCount = 0;
 
-        // Delete local files
-        var localFolder = Path.Combine(_localSandboxMemoryPath, RepoInstructionsFolderName, repoName);
+        // Delete local files: {MemoriesPath}/{repoName}/.github
+        var localFolder = Path.Combine(_localSandboxMemoryPath, repoName, RepoInstructionsFolderName);
         if (Directory.Exists(localFolder))
         {
             try
@@ -927,10 +935,10 @@ public class AgentFileStorageService : IAgentFileStorageService
             }
         }
 
-        // Delete from blob storage
+        // Delete from blob storage: {repoName}/.github/
         try
         {
-            var blobPrefix = $"{RepoInstructionsFolderName}/{repoName}/";
+            var blobPrefix = $"{repoName}/{RepoInstructionsFolderName}/";
             var blobDeleted = await _remoteStorage.DeleteByPrefixAsync(
                 MemoriesContainerName,
                 blobPrefix,
@@ -1062,6 +1070,99 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         _logger.LogInternalInformation("Deleted total {Count} synthesized knowledge file(s)", deletedCount);
         return deletedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> UploadAllMemoriesAsync(CancellationToken cancellationToken = default)
+    {
+        var totalUploaded = 0;
+
+        _logger.LogInternalDebug("Starting upload of all memory files...");
+
+        try
+        {
+            // 1. Upload repo instructions - scan for all {repoName}/.github/ folders
+            if (Directory.Exists(_localSandboxMemoryPath))
+            {
+                foreach (var repoDir in Directory.GetDirectories(_localSandboxMemoryPath))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var repoName = Path.GetFileName(repoDir);
+
+                    // Skip known non-repo folders
+                    if (repoName.Equals(SessionInsightsFolderName, StringComparison.OrdinalIgnoreCase) ||
+                        repoName.Equals(SynthesizedKnowledgeFolderName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var githubPath = Path.Combine(repoDir, RepoInstructionsFolderName);
+                    if (Directory.Exists(githubPath))
+                    {
+                        try
+                        {
+                            var uploaded = await UploadWorkspaceRepoInstructionsAsync(repoName, cancellationToken);
+                            totalUploaded += uploaded;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning(ex, "Failed to upload repo instructions for {RepoName}", repoName);
+                        }
+                    }
+                }
+            }
+
+            // 2. Upload session insights - scan for all thread folders
+            var sessionInsightsPath = Path.Combine(_localSandboxMemoryPath, SessionInsightsFolderName);
+            if (Directory.Exists(sessionInsightsPath))
+            {
+                foreach (var threadDir in Directory.GetDirectories(sessionInsightsPath))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var threadIdStr = Path.GetFileName(threadDir);
+                    if (Guid.TryParse(threadIdStr, out var threadId))
+                    {
+                        try
+                        {
+                            var uploaded = await UploadWorkspaceSessionInsightsAsync(threadId, cancellationToken);
+                            totalUploaded += uploaded;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning(ex, "Failed to upload session insights for thread {ThreadId}", threadId);
+                        }
+                    }
+                }
+            }
+
+            // 3. Upload synthesized knowledge
+            try
+            {
+                var uploaded = await UploadWorkspaceSynthesizedKnowledgeAsync(cancellationToken);
+                totalUploaded += uploaded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to upload synthesized knowledge");
+            }
+
+            if (totalUploaded > 0)
+            {
+                _logger.LogInternalInformation("Uploaded total {Count} memory file(s)", totalUploaded);
+            }
+            else
+            {
+                _logger.LogInternalDebug("No memory files needed to be uploaded");
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogInternalError(ex, "Error during memory files upload");
+        }
+
+        return totalUploaded;
     }
 
     #endregion

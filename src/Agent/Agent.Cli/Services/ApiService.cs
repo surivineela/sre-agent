@@ -2343,43 +2343,6 @@ public partial class ApiService : IDisposable
     #region Session Insights
 
     /// <summary>
-    /// Uploads session insights files to the agent as a tar.gz archive.
-    /// </summary>
-    public async Task<(bool Success, string Response)> UploadSessionInsightsAsync(byte[] tarGzData, Guid? threadId = null)
-    {
-        try
-        {
-            var config = await _configService.LoadConfigurationAsync();
-            if (config == null)
-            {
-                return (false, "Configuration not found. Please run 'srectl init' first.");
-            }
-
-            var queryParams = threadId.HasValue ? $"?threadId={threadId.Value}" : "";
-            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/session-insights{queryParams}";
-            var request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
-            {
-                Content = new ByteArrayContent(tarGzData)
-            };
-            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/gzip");
-
-            var (response, content, _) = await MakeHttpRequestAsync(request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return (true, content);
-            }
-
-            return (false, $"Failed to upload session insights: {response.StatusCode} - {content}");
-        }
-        catch (Exception ex)
-        {
-            DebugLogger.Debug("Exception", $"UploadSessionInsights failed: {ex.Message}");
-            return (false, $"Failed to upload session insights: {ex.Message}");
-        }
-    }
-
-    /// <summary>
     /// Downloads session insights files from the agent as a tar.gz archive.
     /// </summary>
     public async Task<(bool Success, byte[] Data, string ErrorMessage)> DownloadSessionInsightsAsync(Guid? threadId = null)
@@ -2612,6 +2575,65 @@ public partial class ApiService : IDisposable
         {
             DebugLogger.Debug("Exception", $"DeleteSynthesizedKnowledge failed: {ex.Message}");
             return (false, $"Failed to delete synthesized knowledge: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #region List Workspace Memory
+
+    /// <summary>
+    /// Lists workspace memory files from the agent.
+    /// </summary>
+    /// <param name="type">Memory type filter (repo-instructions, session-insights, synthesized-knowledge)</param>
+    /// <param name="repo">Repository name (only for repo-instructions)</param>
+    /// <param name="threadId">Thread ID (only for session-insights)</param>
+    /// <returns>Success status, list response, and error message</returns>
+    public async Task<(bool Success, WorkspaceMemoryListResponse? Response, string ErrorMessage)> ListWorkspaceMemoryAsync(
+        string? type = null,
+        string? repo = null,
+        Guid? threadId = null)
+    {
+        try
+        {
+            var config = await _configService.LoadConfigurationAsync();
+            if (config == null)
+            {
+                return (false, null, "Configuration not found. Please run 'srectl init' first.");
+            }
+
+            var queryParams = new List<string>();
+            if (!string.IsNullOrEmpty(type))
+            {
+                queryParams.Add($"type={Uri.EscapeDataString(type)}");
+            }
+            if (!string.IsNullOrEmpty(repo))
+            {
+                queryParams.Add($"repo={Uri.EscapeDataString(repo)}");
+            }
+            if (threadId.HasValue)
+            {
+                queryParams.Add($"threadId={threadId.Value}");
+            }
+
+            var queryString = queryParams.Count > 0 ? $"?{string.Join("&", queryParams)}" : "";
+            var requestUrl = $"{config.ResourceUrl.TrimEnd('/')}/api/v1/WorkspaceMemory/list{queryString}";
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            var (response, content, _) = await MakeHttpRequestAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var listResponse = JsonSerializer.Deserialize<WorkspaceMemoryListResponse>(content, _camelCaseJsonOptions);
+                return (true, listResponse, string.Empty);
+            }
+
+            return (false, null, $"Failed to list workspace memory: {response.StatusCode} - {content}");
+        }
+        catch (Exception ex)
+        {
+            DebugLogger.Debug("Exception", $"ListWorkspaceMemory failed: {ex.Message}");
+            return (false, null, $"Failed to list workspace memory: {ex.Message}");
         }
     }
 
@@ -3534,5 +3556,21 @@ public class StructuredToolListYaml : StructuredAgentYamlWrapper<ToolListSpec>
 }
 
 public record ThreadMessage(string Id, string Text, DateTime Timestamp, string AuthorRole, string AuthorUserId, string AuthorDisplayName);
+
+/// <summary>
+/// Response model for workspace memory file info.
+/// </summary>
+public record WorkspaceMemoryFileInfo(
+    string Path,
+    long Size,
+    DateTime LastModified);
+
+/// <summary>
+/// Response model for workspace memory list operation.
+/// </summary>
+public record WorkspaceMemoryListResponse(
+    List<WorkspaceMemoryFileInfo> Files,
+    int TotalCount,
+    long TotalSize);
 
 

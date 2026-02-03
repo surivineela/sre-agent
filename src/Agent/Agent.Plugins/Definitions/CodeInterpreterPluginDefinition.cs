@@ -28,6 +28,13 @@ File handling:
 - Images (matplotlib, seaborn, PIL outputs) return as ![filename](link) for inline display
 - Data files, documents, and other outputs return as [Download filename](link)
 - Supports comprehensive file types: images, data formats, documents, archives, scientific data
+Input handling best practices:
+- DON'T embed large data directly in Python code (e.g., hardcoded lists, dictionaries, or strings). 
+- DO firstly upload data files, then read them in your code
+Example: 
+- Upload 'data.json' usig appropriate tool
+- use `with open('/mnt/data/data.json') as f: data = json.load(f)` in code to retrieve the data
+
 Returns stdout/stderr (truncated) plus auto-retrieved files as ready-to-use markdown links.
 Examples:
 - Calculate fibonacci numbers and save results to CSV
@@ -35,7 +42,7 @@ Examples:
 - Generate data analysis reports in multiple formats
 - Process datasets and export to Excel, JSON, or HDF5
 - Fetching web content
-Avoid: installing packages, spawning processes.")]
+Avoid: installing packages, spawning processes, embedding large data in code.")]
     [AgentTool(ToolMode.Manual, KeepOriginalReturnType = true)]
     public Task<CodeExecutionResponse> ExecutePythonCodeAsync(
         [Description("Python code to execute (<=20k chars)")] string pythonCode,
@@ -125,14 +132,24 @@ The file is saved locally and made available via /api/files endpoint. All respon
         [Description("Local filename to save as (e.g. 'analysis_chart.png')")] string saveAsFilename)
         => _plugin.GetSessionFileAsync(filename, saveAsFilename);
 
-    [Description(@"Upload a file to the code interpreter session's /mnt/data directory using a tool output file key.
+    [Description(@"Upload a file to the code interpreter session's /mnt/data directory.
+
+The filePath should be a path relative to the sandbox root directory.
+- For tool output files (from truncated output), use the file path shown in the truncation message (e.g., 'tmp/ToolOutputs/{threadId}/tool_xyz.json')
+- For other sandbox files, use the relative path from sandbox root (e.g., 'path/to/data.csv')
+
+Workflow:
+1. Call UploadFileToSessionAsync with the relative file path
+2. The file will be stored at /mnt/data/<filename> in the session
+3. In your Python code, read the file from /mnt/data/<filename>
+
 Use cases:
 - Upload previously generated outputs or data files to the session for Python processing and analysis
 - Make files available for further processing within the code interpreter session
-The file will be uploaded to /mnt/data/ directory in the session where Python code can access it.
+- Avoid embedding large data directly in Python code - upload as a file instead.
 Returns: The file path in the session (e.g., '/mnt/data/filename.json') on success, or error message if upload fails.")]
     [AgentTool(ToolMode.Manual)]
     public Task<string> UploadFileToSessionAsync(
-        [Description("Tool output file key to upload (e.g., 'thread-id-timestamp.json')")] string fileKey)
-        => _plugin.UploadFileToSessionAsync(fileKey);
+        [Description("File path relative to sandbox root (e.g., 'tmp/ToolOutputs/{threadId}/file.json' or 'data/input.csv')")] string filePath)
+        => _plugin.UploadFileToSessionAsync(filePath);
 }

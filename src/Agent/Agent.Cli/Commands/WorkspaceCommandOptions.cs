@@ -56,11 +56,35 @@ public static class WorkspaceCommandOptions
 
         /// <summary>
         /// Thread ID for session insights operations.
-        /// If not specified, operate on all threads.
+        /// Use "*" or omit to operate on all threads.
         /// </summary>
-        public static readonly Option<Guid?> ThreadIdOption = new("--thread-id")
+        public static readonly Option<string> ThreadIdOption = new("--thread-id")
         {
-            Description = "Thread ID for session insights (empty = all threads)"
+            Description = "Thread ID for session insights (use '*' or omit for all threads)"
+        };
+
+        /// <summary>
+        /// Parses thread ID string to Guid. Returns null for "*" or empty (meaning all threads).
+        /// </summary>
+        public static Guid? ParseThreadId(string? threadIdStr)
+        {
+            if (string.IsNullOrWhiteSpace(threadIdStr) || threadIdStr == "*")
+            {
+                return null;
+            }
+            if (!Guid.TryParse(threadIdStr, out var guid))
+            {
+                throw new ArgumentException($"Invalid thread ID: '{threadIdStr}'. Must be a valid GUID or '*' for all threads.");
+            }
+            return guid;
+        }
+
+        /// <summary>
+        /// Flag to include session insights in sync operations.
+        /// </summary>
+        public static readonly Option<bool> IncludeSessionInsightsOption = new("--include-session-insights")
+        {
+            Description = "Include session insights in sync operation (all threads unless --thread-id specified)"
         };
 
         /// <summary>

@@ -5,6 +5,7 @@
 using System.Text;
 using System.Text.Json;
 using Agent.Common.ApiModels.Session;
+using Agent.Common.Services;
 using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -27,6 +28,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
     private readonly ISessionPoolService _sessionPoolService;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IAgentFileStorageService _agentFileStorageService;
+    private readonly string _sandboxRoot;
 
     public Guid? ThreadId { get; set; }
 
@@ -40,6 +42,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         _sessionPoolService = sessionPoolService;
         _hostEnvironment = hostEnvironment;
         _agentFileStorageService = agentFileStorageService;
+        _sandboxRoot = new LocalSandboxPaths().SandboxPaths.SandboxRoot;
     }
 
     public async Task<CodeExecutionResponse> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds)
@@ -474,47 +477,58 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         return _sessionPoolService.BuildSessionIdentifier(agentName, threadId, false);
     }
 
-    public async Task<string> UploadFileToSessionAsync(string fileKey)
+    public async Task<string> UploadFileToSessionAsync(string filePath)
     {
-        _logger.LogInternalInformation("Uploading file to session: FileKey={FileKey}", fileKey);
+        _logger.LogInternalInformation("Uploading file to session: FilePath={FilePath}", filePath);
 
-        // Use original filename from fileKey
-        var filename = Path.GetFileName(fileKey);
-
-        var threadId = ThreadId ?? ToolStatic.AsyncLocalThreadId.Value;
-
-        // Download file from thread storage or tool output
-        string? tempFilePath;
         try
         {
-            tempFilePath = await _agentFileStorageService.DownloadThreadFileAsync(threadId, fileKey);
-            if (tempFilePath == null)
+            // Validate that the file path doesn't contain wildcard characters
+            if (filePath.IndexOfAny(new[] { '*', '?' }) >= 0)
             {
-                tempFilePath = await _agentFileStorageService.GetToolOutputAsync(fileKey, threadId.ToString());
-            }
-            if (tempFilePath == null)
-            {
-                var errorMsg = $"Error: File with key '{fileKey}' not found in thread file storage.";
+                var errorMsg = $"Error: Invalid characters in file path '{filePath}'.";
                 _logger.LogInternalWarning(errorMsg);
                 return errorMsg;
             }
 
-            var fileContent = await File.ReadAllBytesAsync(tempFilePath);
+            // Normalize path separators
+            var normalizedPath = filePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+
+            // Validate path security against sandbox root (prevents path traversal and symlink attacks)
+            if (!PathSecurityHelper.TryGetSafeFilePath(_sandboxRoot, normalizedPath, out var resolvedFilePath)
+                || resolvedFilePath == null)
+            {
+                var errorMsg = $"Error: File path '{filePath}' is not within the sandbox directory.";
+                _logger.LogInternalWarning(errorMsg);
+                return errorMsg;
+            }
+
+            // Check if file exists
+            if (!File.Exists(resolvedFilePath))
+            {
+                var errorMsg = $"Error: File not found at path '{filePath}'.";
+                _logger.LogInternalWarning(errorMsg);
+                return errorMsg;
+            }
+
+            // Use original filename from path
+            var filename = Path.GetFileName(resolvedFilePath);
+            var fileContent = await File.ReadAllBytesAsync(resolvedFilePath);
 
             // Get session identifier
             var identifier = BuildIdentifier();
 
             _logger.LogInternalInformation(
-                "Uploading file to session pool: FileKey={FileKey}, Identifier={Identifier}, Filename={Filename}, Size={Size} bytes",
-                fileKey, identifier, filename, fileContent.Length);
+                "Uploading file to session pool: FilePath={FilePath}, Identifier={Identifier}, Filename={Filename}, Size={Size} bytes",
+                filePath, identifier, filename, fileContent.Length);
 
-            // Upload to session pool /mnt/data (don't pass destinationFilename, let it use default /mnt/data)
+            // Upload to session pool /mnt/data
             await _sessionPoolService.UploadSessionFileAsync(
                 identifier,
                 filename,
                 fileContent);
 
-            _logger.LogInternalInformation("Upload successful: FileKey={FileKey}, Filename={Filename}, Size={Size} bytes", fileKey, filename, fileContent.Length);
+            _logger.LogInternalInformation("Upload successful: FilePath={FilePath}, Filename={Filename}, Size={Size} bytes", filePath, filename, fileContent.Length);
 
             // Return the file path in /mnt/data
             return $"filePath: /mnt/data/{filename}";
@@ -522,7 +536,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         catch (Exception ex)
         {
             var errorMsg = $"Error uploading file to session: {ex.Message}";
-            _logger.LogInternalError(ex, "Failed to upload file: FileKey={FileKey}", fileKey);
+            _logger.LogInternalError(ex, "Failed to upload file: FilePath={FilePath}", filePath);
             return errorMsg;
         }
     }

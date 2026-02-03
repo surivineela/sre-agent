@@ -14,7 +14,7 @@ public static class TerminalConfiguration
     /// <summary>
     /// Maximum time to wait for a foreground command to complete.
     /// </summary>
-    public static readonly TimeSpan CommandTimeout = TimeSpan.FromMinutes(5);
+    public static readonly TimeSpan CommandTimeout = TimeSpan.FromMinutes(60);
 
     /// <summary>
     /// Maximum time to wait for shell integration to initialize.

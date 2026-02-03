@@ -35,6 +35,8 @@ variants:
             - SearchIncidents
             - RunAzCliWriteCommands
             - RunAzCliReadCommands
+            - ExecutePythonCode
+            - UploadFileToSession
             - kusto-mcp_kusto_cluster_get
             - kusto-mcp_kusto_cluster_list
             - kusto-mcp_kusto_database_list

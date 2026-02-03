@@ -176,4 +176,13 @@ public interface IAgentFileStorageService
     Task<MemoryStream?> DownloadWorkspaceSessionInsightsToStreamAsync(
         Guid? threadId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Uploads all memory files from the local memories folder to remote blob storage.
+    /// This includes repo instructions, session insights, and synthesized knowledge.
+    /// Only uploads files that have changed since last upload.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The total number of files uploaded</returns>
+    Task<int> UploadAllMemoriesAsync(CancellationToken cancellationToken = default);
 }

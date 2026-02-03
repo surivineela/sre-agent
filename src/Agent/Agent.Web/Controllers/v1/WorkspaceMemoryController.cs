@@ -98,8 +98,9 @@ public class WorkspaceMemoryController(
 
         try
         {
+            // Local path: {MemoriesPath}/{repo}/.github
             var (uploadedFiles, totalSize) = await ExtractTarGzToFolderAsync(
-                Path.Combine(_localMemoryPath, RepoInstructionsFolderName, repo),
+                Path.Combine(_localMemoryPath, repo, RepoInstructionsFolderName),
                 cancellationToken);
 
             // Sync to blob storage
@@ -152,7 +153,8 @@ public class WorkspaceMemoryController(
 
         try
         {
-            var folderPath = Path.Combine(_localMemoryPath, RepoInstructionsFolderName, repo);
+            // Local path: {MemoriesPath}/{repo}/.github
+            var folderPath = Path.Combine(_localMemoryPath, repo, RepoInstructionsFolderName);
 
             logger.LogInternalInformation("Downloading from blob storage", repo);
             var downloadedCount = await agentFileStorageService.DownloadWorkspaceRepoInstructionsAsync(repo, cancellationToken);
@@ -225,91 +227,6 @@ public class WorkspaceMemoryController(
     #endregion
 
     #region Session Insights
-
-    /// <summary>
-    /// Uploads session insight files from a tar.gz archive.
-    /// Extracts to local memories folder and syncs to blob storage.
-    /// </summary>
-    /// <param name="threadId">Thread ID (optional - if not provided, extracts to sessionInsights root)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Upload result with count and size of uploaded files</returns>
-    [HttpPost("session-insights")]
-    [AuthorizeArmOperation(ArmOperations.AgentMemoryWriteActionId)]
-    [Consumes("application/gzip", "application/x-gzip", "application/octet-stream")]
-    [ProducesResponseType(typeof(WorkspaceMemoryUploadResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UploadSessionInsights(
-        [FromQuery] Guid? threadId = null,
-        CancellationToken cancellationToken = default)
-    {
-        if (Request.ContentLength == null || Request.ContentLength == 0)
-        {
-            return BadRequest(new { error = "No content provided" });
-        }
-
-        logger.LogInternalInformation(
-            "Received session insights upload request. ThreadId: {ThreadId}, ContentLength: {ContentLength}",
-            threadId?.ToString() ?? "all", Request.ContentLength);
-
-        try
-        {
-            string destPath;
-            if (threadId.HasValue)
-            {
-                destPath = Path.Combine(_localMemoryPath, SessionInsightsFolderName, threadId.Value.ToString());
-            }
-            else
-            {
-                destPath = Path.Combine(_localMemoryPath, SessionInsightsFolderName);
-            }
-
-            var (uploadedFiles, totalSize) = await ExtractTarGzToFolderAsync(destPath, cancellationToken);
-
-            // Sync to blob storage
-            if (threadId.HasValue)
-            {
-                await agentFileStorageService.UploadWorkspaceSessionInsightsAsync(threadId.Value, cancellationToken);
-            }
-            else
-            {
-                // Upload all thread folders
-                if (Directory.Exists(destPath))
-                {
-                    foreach (var threadDir in Directory.GetDirectories(destPath))
-                    {
-                        var dirName = Path.GetFileName(threadDir);
-                        if (Guid.TryParse(dirName, out var tid))
-                        {
-                            await agentFileStorageService.UploadWorkspaceSessionInsightsAsync(tid, cancellationToken);
-                        }
-                    }
-                }
-            }
-
-            logger.LogInternalInformation(
-                "Session insights upload completed. ThreadId: {ThreadId}, Files: {FileCount}, Size: {TotalSize} bytes",
-                threadId?.ToString() ?? "all", uploadedFiles, totalSize);
-
-            return Ok(new WorkspaceMemoryUploadResponse(
-                Message: threadId.HasValue
-                    ? $"Session insights for thread '{threadId}' uploaded successfully"
-                    : "Session insights uploaded successfully",
-                UploadedFiles: uploadedFiles,
-                TotalSize: totalSize));
-        }
-        catch (InvalidDataException ex)
-        {
-            logger.LogInternalWarning(ex, "Invalid tar.gz format in upload request");
-            return BadRequest(new { error = "Invalid tar.gz format" });
-        }
-        catch (Exception ex)
-        {
-            logger.LogInternalError(ex, "Failed to upload session insights for ThreadId: {ThreadId}", threadId?.ToString() ?? "all");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { error = "Failed to upload session insights" });
-        }
-    }
 
     /// <summary>
     /// Downloads session insight files as a tar.gz archive.
@@ -600,11 +517,24 @@ public class WorkspaceMemoryController(
             {
                 if (!string.IsNullOrEmpty(repo))
                 {
-                    foldersToScan.Add(Path.Combine(RepoInstructionsFolderName, repo));
+                    // New path structure: {repo}/.github
+                    foldersToScan.Add(Path.Combine(repo, RepoInstructionsFolderName));
                 }
                 else
                 {
-                    foldersToScan.Add(RepoInstructionsFolderName);
+                    // Scan all repo folders for .github subdirectories
+                    if (Directory.Exists(_localMemoryPath))
+                    {
+                        foreach (var repoDir in Directory.GetDirectories(_localMemoryPath))
+                        {
+                            var githubDir = Path.Combine(repoDir, RepoInstructionsFolderName);
+                            if (Directory.Exists(githubDir))
+                            {
+                                var repoName = Path.GetFileName(repoDir);
+                                foldersToScan.Add(Path.Combine(repoName, RepoInstructionsFolderName));
+                            }
+                        }
+                    }
                 }
             }
 

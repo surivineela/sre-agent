@@ -32,7 +32,7 @@ public static class WorkspaceCommandHandlers
 
         // Determine source path
         // If --path is provided, use it directly without appending subfolders
-        // Otherwise, use default path with subfolders
+        // Otherwise, use default path with subfolders: {repoName}/.github
         string sourcePath;
         if (!string.IsNullOrWhiteSpace(specifiedPath))
         {
@@ -43,10 +43,11 @@ public static class WorkspaceCommandHandlers
             var localPath = WorkspaceCommandOptions.Memory.GetEffectivePath(null);
             if (!string.IsNullOrWhiteSpace(repoName))
             {
-                sourcePath = Path.Combine(localPath, RepoInstructionsFolderName, repoName);
+                sourcePath = Path.Combine(localPath, repoName, RepoInstructionsFolderName);
             }
             else
             {
+                // For backwards compatibility, when no repo is specified, look in root .github
                 sourcePath = Path.Combine(localPath, RepoInstructionsFolderName);
             }
         }
@@ -123,7 +124,7 @@ public static class WorkspaceCommandHandlers
 
         // Determine destination path
         // If --path is provided, use it directly without appending subfolders
-        // Otherwise, use default path with subfolders
+        // Otherwise, use default path with subfolders: {repoName}/.github
         string destPath;
         if (!string.IsNullOrWhiteSpace(specifiedPath))
         {
@@ -134,10 +135,11 @@ public static class WorkspaceCommandHandlers
             var localPath = WorkspaceCommandOptions.Memory.GetEffectivePath(null);
             if (!string.IsNullOrWhiteSpace(repoName))
             {
-                destPath = Path.Combine(localPath, RepoInstructionsFolderName, repoName);
+                destPath = Path.Combine(localPath, repoName, RepoInstructionsFolderName);
             }
             else
             {
+                // For backwards compatibility, when no repo is specified, use root .github
                 destPath = Path.Combine(localPath, RepoInstructionsFolderName);
             }
         }
@@ -222,95 +224,173 @@ public static class WorkspaceCommandHandlers
 
     #endregion
 
-    #region Session Insights Handlers
+    #region Sync Handler
 
     /// <summary>
-    /// Handles the session-insights upload command.
+    /// Handles the workspace sync command. Downloads all workspace memory files.
     /// </summary>
-    public static async Task<int> HandleSessionInsightsUploadCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
+    public static async Task<int> HandleSyncCommand(ParseResult parseResult, CancellationToken cancellationToken = default)
     {
-        DebugLogger.Debug("Command", "Starting session-insights upload command");
+        DebugLogger.Debug("Command", "Starting workspace sync command");
 
         var specifiedPath = parseResult.GetValue(WorkspaceCommandOptions.Memory.PathOption);
-        var threadId = parseResult.GetValue(WorkspaceCommandOptions.Memory.ThreadIdOption);
+        var includeSessionInsights = parseResult.GetValue(WorkspaceCommandOptions.Memory.IncludeSessionInsightsOption);
+        var threadIdStr = parseResult.GetValue(WorkspaceCommandOptions.Memory.ThreadIdOption);
 
-        // Determine source path
-        // If --path is provided, use it directly without appending subfolders
-        // Otherwise, use default path with subfolders
-        string sourcePath;
-        if (!string.IsNullOrWhiteSpace(specifiedPath))
+        Guid? threadId;
+        try
         {
-            sourcePath = specifiedPath;
+            threadId = WorkspaceCommandOptions.Memory.ParseThreadId(threadIdStr);
+        }
+        catch (ArgumentException ex)
+        {
+            ConsoleUI.WriteStatus(false, ex.Message);
+            return 1;
+        }
+
+        var basePath = WorkspaceCommandOptions.Memory.GetEffectivePath(specifiedPath);
+        DebugLogger.Debug("Parameters", $"Path: {basePath}, IncludeSessionInsights: {includeSessionInsights}, ThreadId: {threadId?.ToString() ?? "none"}");
+
+        ConsoleUI.WriteInfo($"Syncing workspace memory to: {basePath}", ConsoleColor.Cyan);
+        Console.WriteLine();
+
+        using var apiService = new ApiService();
+        var totalFiles = 0;
+        var hasErrors = false;
+
+        // 1. Download repo instructions for all repos
+        ConsoleUI.WriteInfo("Downloading repo instructions...", ConsoleColor.Gray);
+        var (repoSuccess, repoList, repoErrorMessage) = await apiService.ListWorkspaceMemoryAsync("repo-instructions");
+        if (repoSuccess && repoList != null)
+        {
+            // Get unique repo names from the file paths (path format: {repoName}/.github/{file})
+            var repoNames = repoList.Files
+                .Select(f => f.Path.Split('/').FirstOrDefault())
+                .Where(r => !string.IsNullOrEmpty(r))
+                .Distinct()
+                .ToList();
+
+            foreach (var repoName in repoNames)
+            {
+                if (string.IsNullOrEmpty(repoName)) continue;
+
+                var (success, tarGzData, errorMessage) = await apiService.DownloadRepoInstructionsAsync(repoName);
+                if (success && tarGzData.Length > 0)
+                {
+                    var destPath = string.IsNullOrWhiteSpace(specifiedPath)
+                        ? Path.Combine(basePath, repoName!, RepoInstructionsFolderName)
+                        : Path.Combine(basePath, repoName!, RepoInstructionsFolderName);
+
+                    try
+                    {
+                        Directory.CreateDirectory(destPath);
+                        await TarGzHelper.ExtractTarGzAsync(tarGzData, destPath, cancellationToken);
+                        var extractedFiles = Directory.GetFiles(destPath, "*", SearchOption.AllDirectories).Length;
+                        totalFiles += extractedFiles;
+                        ConsoleUI.WriteBullet($"Repo '{repoName}': {extractedFiles} file(s)", ConsoleColor.Gray);
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleUI.WriteBullet($"Repo '{repoName}': Failed - {ex.Message}", ConsoleColor.Red);
+                        hasErrors = true;
+                    }
+                }
+                else if (!success)
+                {
+                    ConsoleUI.WriteBullet($"Repo '{repoName}': {errorMessage}", ConsoleColor.Yellow);
+                }
+            }
         }
         else
         {
-            var localPath = WorkspaceCommandOptions.Memory.GetEffectivePath(null);
-            if (threadId.HasValue)
+            ConsoleUI.WriteBullet($"Failed to list repos: {repoErrorMessage}", ConsoleColor.Yellow);
+        }
+
+        // 2. Download synthesized knowledge
+        ConsoleUI.WriteInfo("Downloading synthesized knowledge...", ConsoleColor.Gray);
+        var (skSuccess, skTarGzData, skErrorMessage) = await apiService.DownloadSynthesizedKnowledgeAsync();
+        if (skSuccess && skTarGzData.Length > 0)
+        {
+            var destPath = string.IsNullOrWhiteSpace(specifiedPath)
+                ? Path.Combine(basePath, SynthesizedKnowledgeFolderName)
+                : Path.Combine(basePath, SynthesizedKnowledgeFolderName);
+
+            try
             {
-                sourcePath = Path.Combine(localPath, SessionInsightsFolderName, threadId.Value.ToString());
+                Directory.CreateDirectory(destPath);
+                await TarGzHelper.ExtractTarGzAsync(skTarGzData, destPath, cancellationToken);
+                var extractedFiles = Directory.GetFiles(destPath, "*", SearchOption.AllDirectories).Length;
+                totalFiles += extractedFiles;
+                ConsoleUI.WriteBullet($"Synthesized knowledge: {extractedFiles} file(s)", ConsoleColor.Gray);
+            }
+            catch (Exception ex)
+            {
+                ConsoleUI.WriteBullet($"Synthesized knowledge: Failed - {ex.Message}", ConsoleColor.Red);
+                hasErrors = true;
+            }
+        }
+        else if (!skSuccess && !skErrorMessage.Contains("404") && !skErrorMessage.Contains("not exist", StringComparison.OrdinalIgnoreCase))
+        {
+            ConsoleUI.WriteBullet($"Synthesized knowledge: {skErrorMessage}", ConsoleColor.Yellow);
+        }
+        else
+        {
+            ConsoleUI.WriteBullet("Synthesized knowledge: No files found", ConsoleColor.Gray);
+        }
+
+        // 3. Optionally download session insights
+        if (includeSessionInsights)
+        {
+            var threadDesc = threadId.HasValue ? $"thread {threadId}" : "all threads";
+            ConsoleUI.WriteInfo($"Downloading session insights for {threadDesc}...", ConsoleColor.Gray);
+            var (siSuccess, siTarGzData, siErrorMessage) = await apiService.DownloadSessionInsightsAsync(threadId);
+            if (siSuccess && siTarGzData.Length > 0)
+            {
+                var destPath = string.IsNullOrWhiteSpace(specifiedPath)
+                    ? Path.Combine(basePath, SessionInsightsFolderName, threadId?.ToString() ?? "")
+                    : Path.Combine(basePath, SessionInsightsFolderName, threadId?.ToString() ?? "");
+
+                try
+                {
+                    Directory.CreateDirectory(destPath);
+                    await TarGzHelper.ExtractTarGzAsync(siTarGzData, destPath, cancellationToken);
+                    var extractedFiles = Directory.GetFiles(destPath, "*", SearchOption.AllDirectories).Length;
+                    totalFiles += extractedFiles;
+                    ConsoleUI.WriteBullet($"Session insights: {extractedFiles} file(s)", ConsoleColor.Gray);
+                }
+                catch (Exception ex)
+                {
+                    ConsoleUI.WriteBullet($"Session insights: Failed - {ex.Message}", ConsoleColor.Red);
+                    hasErrors = true;
+                }
+            }
+            else if (!siSuccess && !siErrorMessage.Contains("404") && !siErrorMessage.Contains("not exist", StringComparison.OrdinalIgnoreCase))
+            {
+                ConsoleUI.WriteBullet($"Session insights: {siErrorMessage}", ConsoleColor.Yellow);
             }
             else
             {
-                sourcePath = Path.Combine(localPath, SessionInsightsFolderName);
+                ConsoleUI.WriteBullet("Session insights: No files found", ConsoleColor.Gray);
             }
         }
 
-        DebugLogger.Debug("Parameters", $"Path: {sourcePath}, ThreadId: {threadId?.ToString() ?? "all"}");
-
-        // Validate path exists
-        if (!Directory.Exists(sourcePath))
-        {
-            ConsoleUI.WriteStatus(false, $"Session insights directory not found: {sourcePath}");
-            return 1;
-        }
-
-        // Count files
-        var fileCount = Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories).Length;
-        if (fileCount == 0)
-        {
-            ConsoleUI.WriteStatus(false, "No files found in session insights directory.");
-            return 1;
-        }
-
-        // Show what will be uploaded
-        var threadDesc = threadId.HasValue ? $"thread '{threadId}'" : "all threads";
-        ConsoleUI.WriteInfo($"Uploading session insights ({threadDesc}) from: {sourcePath}", ConsoleColor.Cyan);
-        ConsoleUI.WriteBullet($"{fileCount} file(s) to upload", ConsoleColor.Gray);
         Console.WriteLine();
-
-        // Create tar.gz archive
-        ConsoleUI.WriteInfo("Creating archive...", ConsoleColor.Gray);
-        byte[] tarGzData;
-        try
+        if (hasErrors)
         {
-            tarGzData = await TarGzHelper.CreateTarGzFromFoldersAsync(sourcePath, ["."], cancellationToken);
-            DebugLogger.Debug("Archive", $"Created tar.gz archive: {tarGzData.Length:N0} bytes");
-        }
-        catch (Exception ex)
-        {
-            ConsoleUI.WriteStatus(false, $"Failed to create archive: {ex.Message}");
+            ConsoleUI.WriteStatus(false, $"Sync completed with errors. {totalFiles} file(s) downloaded.");
             return 1;
-        }
-
-        // Upload to server
-        ConsoleUI.WriteInfo($"Uploading ({tarGzData.Length:N0} bytes)...", ConsoleColor.Gray);
-        using var apiService = new ApiService();
-        var (success, response) = await apiService.UploadSessionInsightsAsync(tarGzData, threadId);
-
-        if (success)
-        {
-            Console.WriteLine();
-            ConsoleUI.WriteStatus(true, $"Session insights ({threadDesc}) uploaded successfully.");
-            ConsoleUI.WriteInfo(response, ConsoleColor.Gray);
-            return 0;
         }
         else
         {
-            Console.WriteLine();
-            ConsoleUI.WriteStatus(false, response);
-            return 1;
+            ConsoleUI.WriteStatus(true, $"Workspace sync completed. {totalFiles} file(s) downloaded.");
+            ConsoleUI.WriteKeyValue("Location", basePath, 0);
+            return 0;
         }
     }
+
+    #endregion
+
+    #region Session Insights Handlers
 
     /// <summary>
     /// Handles the session-insights download command.
@@ -320,7 +400,18 @@ public static class WorkspaceCommandHandlers
         DebugLogger.Debug("Command", "Starting session-insights download command");
 
         var specifiedPath = parseResult.GetValue(WorkspaceCommandOptions.Memory.PathOption);
-        var threadId = parseResult.GetValue(WorkspaceCommandOptions.Memory.ThreadIdOption);
+        var threadIdStr = parseResult.GetValue(WorkspaceCommandOptions.Memory.ThreadIdOption);
+
+        Guid? threadId;
+        try
+        {
+            threadId = WorkspaceCommandOptions.Memory.ParseThreadId(threadIdStr);
+        }
+        catch (ArgumentException ex)
+        {
+            ConsoleUI.WriteStatus(false, ex.Message);
+            return 1;
+        }
 
         // Determine destination path
         // If --path is provided, use it directly without appending subfolders
@@ -392,7 +483,18 @@ public static class WorkspaceCommandHandlers
     {
         DebugLogger.Debug("Command", "Starting session-insights delete command");
 
-        var threadId = parseResult.GetValue(WorkspaceCommandOptions.Memory.ThreadIdOption);
+        var threadIdStr = parseResult.GetValue(WorkspaceCommandOptions.Memory.ThreadIdOption);
+
+        Guid? threadId;
+        try
+        {
+            threadId = WorkspaceCommandOptions.Memory.ParseThreadId(threadIdStr);
+        }
+        catch (ArgumentException ex)
+        {
+            ConsoleUI.WriteStatus(false, ex.Message);
+            return 1;
+        }
 
         DebugLogger.Debug("Parameters", $"ThreadId: {threadId?.ToString() ?? "all"}");
 

@@ -300,7 +300,7 @@ public class LocalWorkspaceContext : IWorkspaceContext
     }
 
     /// <summary>
-    /// Loads copilot instruction files from codeRefs/ folder.
+    /// Loads copilot instruction files from codeRefs/ folder and memories/{repo}/.github/ folders.
     /// Separates:
     /// - Full content files: copilot-instructions.md, AGENTS.md (content loaded)
     /// - Metadata-only files: *.instructions.md (only file path + frontmatter parsed)
@@ -312,47 +312,80 @@ public class LocalWorkspaceContext : IWorkspaceContext
         var sandboxPaths = await _sandboxPaths.GetSandboxPathsAsync();
         var sandboxRoot = sandboxPaths.SandboxRoot;
         var codeRefsPath = sandboxPaths.CodeRefsPath;
+        var memoriesPath = sandboxPaths.MemoriesPath;
 
-        if (!Directory.Exists(codeRefsPath))
+        // Collect all paths to scan for instruction files
+        var pathsToScan = new List<string>();
+
+        // 1. Add codeRefs path if it exists
+        if (Directory.Exists(codeRefsPath))
+        {
+            pathsToScan.Add(codeRefsPath);
+        }
+
+        // 2. Add memories/{repo}/.github paths (repo instructions synced from remote)
+        if (Directory.Exists(memoriesPath))
+        {
+            try
+            {
+                foreach (var repoDir in Directory.GetDirectories(memoriesPath))
+                {
+                    var githubPath = Path.Combine(repoDir, ".github");
+                    if (Directory.Exists(githubPath))
+                    {
+                        pathsToScan.Add(githubPath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to scan memories path for repo instructions: {Path}", memoriesPath);
+            }
+        }
+
+        if (pathsToScan.Count == 0)
         {
             return new InstructionFilesResult(fullContentFiles, metadataOnlyFiles);
         }
 
-        try
+        foreach (var scanPath in pathsToScan)
         {
-            // Pattern 1: copilot-instructions.md (full content)
-            foreach (var file in Directory.GetFiles(codeRefsPath, "copilot-instructions.md", SearchOption.AllDirectories))
+            try
             {
-                var relativePath = Path.GetRelativePath(sandboxRoot, file);
-                var content = await File.ReadAllTextAsync(file, ct);
-                fullContentFiles.Add(new InstructionFileContent(relativePath, content));
-            }
-
-            // Pattern 2: AGENTS.md (full content)
-            foreach (var file in Directory.GetFiles(codeRefsPath, "AGENTS.md", SearchOption.AllDirectories))
-            {
-                var relativePath = Path.GetRelativePath(sandboxRoot, file);
-                var content = await File.ReadAllTextAsync(file, ct);
-                fullContentFiles.Add(new InstructionFileContent(relativePath, content));
-            }
-
-            // Pattern 3: *.instructions.md (metadata only, NOT full content)
-            foreach (var file in Directory.GetFiles(codeRefsPath, "*.instructions.md", SearchOption.AllDirectories))
-            {
-                // Skip if it's copilot-instructions.md (already handled)
-                if (Path.GetFileName(file).Equals("copilot-instructions.md", StringComparison.OrdinalIgnoreCase))
+                // Pattern 1: copilot-instructions.md (full content)
+                foreach (var file in Directory.GetFiles(scanPath, "copilot-instructions.md", SearchOption.AllDirectories))
                 {
-                    continue;
+                    var relativePath = Path.GetRelativePath(sandboxRoot, file);
+                    var content = await File.ReadAllTextAsync(file, ct);
+                    fullContentFiles.Add(new InstructionFileContent(relativePath, content));
                 }
 
-                var relativePath = Path.GetRelativePath(sandboxRoot, file);
-                var (description, applyTo) = await ParseInstructionMetadataAsync(file, ct);
-                metadataOnlyFiles.Add(new InstructionFileMetadata(relativePath, description, applyTo));
+                // Pattern 2: AGENTS.md (full content)
+                foreach (var file in Directory.GetFiles(scanPath, "AGENTS.md", SearchOption.AllDirectories))
+                {
+                    var relativePath = Path.GetRelativePath(sandboxRoot, file);
+                    var content = await File.ReadAllTextAsync(file, ct);
+                    fullContentFiles.Add(new InstructionFileContent(relativePath, content));
+                }
+
+                // Pattern 3: *.instructions.md (metadata only, NOT full content)
+                foreach (var file in Directory.GetFiles(scanPath, "*.instructions.md", SearchOption.AllDirectories))
+                {
+                    // Skip if it's copilot-instructions.md (already handled)
+                    if (Path.GetFileName(file).Equals("copilot-instructions.md", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var relativePath = Path.GetRelativePath(sandboxRoot, file);
+                    var (description, applyTo) = await ParseInstructionMetadataAsync(file, ct);
+                    metadataOnlyFiles.Add(new InstructionFileMetadata(relativePath, description, applyTo));
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalWarning(ex, "Failed to load instruction files from {Path}", codeRefsPath);
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to load instruction files from {Path}", scanPath);
+            }
         }
 
         return new InstructionFilesResult(fullContentFiles, metadataOnlyFiles);

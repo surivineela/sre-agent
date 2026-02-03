@@ -308,7 +308,7 @@ public class TsgConnectorCloneService : BackgroundService
         }
 
         var status = isExisting ? CloneStatus.Syncing : CloneStatus.Cloning;
-        await _repository.UpdateCloneStatusAsync(connector.Name, status, localPath);
+        await _repository.UpdateCloneStatusAsync(connector.Name, status, localPath, errorMessage: null);
 
         bool success;
         string? error;

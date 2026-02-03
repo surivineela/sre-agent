@@ -606,6 +606,7 @@ public class Program
             })
             .AddSingleton<IAgentFileStorageService, AgentFileStorageService>()
             .AddHostedService<WorkspaceSyncService>()
+            .AddHostedService<MemoryUploadBackgroundService>()
             .AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>()
             .AddTransient<ToolOutputRetrieverPluginDefinition>()
             .AddSingleton<IToolOutputProcessService, ToolOutputProcessService>()
