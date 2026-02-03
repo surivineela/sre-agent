@@ -411,6 +411,9 @@ public class ReasoningLoop : IDisposable
             if (e.CancellationToken == _userCancellationTokenSource.Token)
             {
                 _logger.LogInternalInformation("[{threadId}]{RunInternalAsync} was canceled by user.", _context.ThreadId, nameof(RunInternalAsync));
+
+                // Add cancellation marker to chat history so LLM knows not to retry the cancelled operation
+                await AddCancellationMarkerToChatHistoryAsync();
             }
             else
             {
@@ -2676,6 +2679,37 @@ public class ReasoningLoop : IDisposable
             $"AddReasoningMessageToChatHistory for message {reasoningMessage.Id}");
 
         RecordUserActionResults(chatMessage);
+    }
+
+    /// <summary>
+    /// Adds a cancellation marker to the chat history to inform the LLM that the
+    /// previous operation was intentionally cancelled by the user.
+    /// This prevents the LLM from retrying cancelled operations when the user sends a new message.
+    /// </summary>
+    private async Task AddCancellationMarkerToChatHistoryAsync()
+    {
+        try
+        {
+            var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+            if (agentChatHistory == null)
+            {
+                _logger.LogInternalWarning("[{threadId}]Could not add cancellation marker - AgentChatHistory is null", _context.ThreadId);
+                return;
+            }
+
+            var cancelMessage = new ChatMessage(
+                ChatRole.User,
+                "<system_notice>The user cancelled the previous operation. Do not automatically retry the same operation. If the user's next message clarifies or modifies the cancelled request, incorporate that feedback. If they've moved on to something else, respond to their new topic.</system_notice>");
+
+            await PersistReasoningMessageAsync(agentChatHistory, cancelMessage);
+
+            _logger.LogInternalInformation("[{threadId}]Added cancellation marker to chat history", _context.ThreadId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "[{threadId}]Failed to add cancellation marker to chat history", _context.ThreadId);
+            // Don't throw - this is a best-effort operation
+        }
     }
 
     private async Task PersistReasoningMessagesAsync(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessages)
