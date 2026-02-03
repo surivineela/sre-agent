@@ -433,8 +433,37 @@ public class ReasoningLoop : IDisposable
         finally
         {
             await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: _userCancellationTokenSource.Token);
+
+            await UpdateInvestigationStatusIfNeededAsync(_userCancellationTokenSource.Token);
+
             _semaphore.Release();
         }
+    }
+
+    /// <summary>
+    /// Updates the investigation status for ICM incidents based on pending user actions.
+    /// Only ICM incidents use this status tracking; PagerDuty and ServiceNow incidents are not affected.
+    /// </summary>
+    /// <remarks>
+    /// Investigation status rules:
+    /// - PendingUserInput: if there are pending user actions from the last iteration
+    /// - Complete: if no pending actions (investigation work is done for this cycle)
+    /// </remarks>
+    private async Task UpdateInvestigationStatusIfNeededAsync(CancellationToken cancellationToken)
+    {
+        var thread = await _threadRepository.GetThreadAsync(_context.ThreadId);
+        if (thread?.IncidentSource?.IncidentType != IncidentType.Icm)
+        {
+            return;
+        }
+
+        var hasPendingUserActions = LastIterationResult != null && !LastIterationResult.AreUserActionsCompleted;
+
+        var newStatus = hasPendingUserActions
+            ? InvestigationStatus.PendingUserInput
+            : InvestigationStatus.Complete;
+
+        await _outboundCommunicationService.UpdateInvestigationStatusAsync(_context.ThreadId, newStatus, cancellationToken);
     }
 
     private async Task RunAsync(CancellationToken cancellationToken)

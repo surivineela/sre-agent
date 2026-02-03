@@ -65,6 +65,11 @@ public record DetectedEventMapping
     /// Discussion entries that triggered this event (for DiscussionEntry events).
     /// </summary>
     public List<DiscussionEntryInfo> TriggeredDiscussionEntries { get; init; } = new();
+
+    /// <summary>
+    /// HitCount change information (for HitCountIncreased events).
+    /// </summary>
+    public HitCountChangeInfo? HitCountChange { get; init; }
 }
 
 /// <summary>
@@ -118,7 +123,8 @@ public class IncidentCentricScannerHelper
             document.Id,
             document.State.ToString(),  // Ensure State is converted to string for consistent comparison
             document.CreatedDate,
-            document.LastModifiedDate);
+            document.LastModifiedDate,
+            document.HitCount);
     }
 
     /// <summary>
@@ -130,7 +136,8 @@ public class IncidentCentricScannerHelper
             incident.Id.ToString(),
             incident.State.ToString(),
             incident.CreatedDate,
-            incident.LastModifiedDate);
+            incident.LastModifiedDate,
+            incident.HitCount);
     }
 
     /// <summary>
@@ -218,7 +225,10 @@ public class IncidentCentricScannerHelper
                 ScanContext = context,
                 TriggeredDiscussionEntries = detectedEvent == IcmIncidentTriggerEvent.DiscussionEntry
                     ? detectionResult.TriggeredDiscussionEntries
-                    : new List<DiscussionEntryInfo>()
+                    : new List<DiscussionEntryInfo>(),
+                HitCountChange = detectedEvent == IcmIncidentTriggerEvent.HitCountIncreased
+                    ? detectionResult.HitCountChange
+                    : null
             });
         }
 

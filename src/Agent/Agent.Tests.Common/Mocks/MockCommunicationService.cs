@@ -253,6 +253,13 @@ public class MockCommunicationService : IAgentOutboundCommunicationService
         return Task.FromResult(Guid.NewGuid());
     }
 
+    public Task UpdateInvestigationStatusAsync(Guid threadId, InvestigationStatus status, CancellationToken cancellationToken = default)
+    {
+        _logger?.LogInternalInformation($"ThreadId: {threadId}, InvestigationStatus: {status}");
+        Messages.Add($"InvestigationStatus: {status}");
+        return Task.CompletedTask;
+    }
+
     public Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

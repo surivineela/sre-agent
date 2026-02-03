@@ -128,7 +128,7 @@ export const getColumnInfo = (column: IncidentsListColumnKey | 'modifiedTimestam
             return {
                 columnType: 'string',
                 columnPath: 'incidentStatus',
-                getColumnValue: (thread: Thread) => thread.status?.incidentStatus?.status ?? '-',
+                getColumnValue: (thread: Thread) => thread.status?.incidentStatus?.status ?? thread.incidentDetails?.incidentStatus ?? '-',
             };
         case IncidentsListColumnKey.agentStatus:
             return {

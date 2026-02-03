@@ -81,13 +81,20 @@ public class IncidentEventDetector : IIncidentEventDetector
                 mentionEntries.Count);
         }
 
+        // 5. Detect HitCountIncreased (correlation)
+        var hitCountChange = DetectHitCountIncreased(currentState, previousState);
+        if (hitCountChange != null)
+        {
+            events.Add(IcmIncidentTriggerEvent.HitCountIncreased);
+        }
+
         _logger.LogInternalInformation(
             "[EventDetector] Event detection complete for incident {IncidentId}: {EventCount} events detected [{Events}]",
             currentState.IncidentId,
             events.Count,
             events.Count > 0 ? string.Join(", ", events) : "none");
 
-        return new IncidentEventDetectionResult(events, entriesWithMention);
+        return new IncidentEventDetectionResult(events, entriesWithMention, hitCountChange);
     }
 
     private bool DetectCreatedOrTransferred(
@@ -285,5 +292,44 @@ public class IncidentEventDetector : IIncidentEventDetector
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Detects if the incident HitCount has increased (indicating incident correlation).
+    /// Only triggers when HitCount > 1 AND has increased from the previous value.
+    /// </summary>
+    private HitCountChangeInfo? DetectHitCountIncreased(
+        IncidentStateSnapshot current,
+        IncidentStateSnapshot? previous)
+    {
+        // For new incidents (no previous state), don't trigger
+        // We only want to detect when correlation actually happens
+        if (previous == null)
+        {
+            return null;
+        }
+
+        // Need both current and previous HitCount values
+        if (!current.HitCount.HasValue || !previous.HitCount.HasValue)
+        {
+            return null;
+        }
+
+        var currentHitCount = current.HitCount.Value;
+        var previousHitCount = previous.HitCount.Value;
+
+        // Only trigger when HitCount > 1 (meaning correlation has occurred)
+        // AND the count has actually increased
+        if (currentHitCount > 1 && currentHitCount > previousHitCount)
+        {
+            _logger.LogInternalInformation(
+                "[EventDetector] HitCountIncreased detected for {IncidentId}: HitCount changed from {PreviousHitCount} to {CurrentHitCount}",
+                current.IncidentId,
+                previousHitCount,
+                currentHitCount);
+            return new HitCountChangeInfo(previousHitCount, currentHitCount);
+        }
+
+        return null;
     }
 }

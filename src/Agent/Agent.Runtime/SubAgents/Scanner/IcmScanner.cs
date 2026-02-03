@@ -621,7 +621,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
     /// <summary>
     /// Processes a single event mapping. Handles thread creation and event dispatching
     /// for all trigger types: IncidentCreatedOrTransferred, DiscussionEntry, IncidentMitigated,
-    /// IncidentResolved, and IncidentReactivated.
+    /// IncidentResolved, IncidentReactivated, and HitCountIncreased.
     /// </summary>
     private async Task ProcessSingleEventAsync(DetectedEventMapping eventMapping, CancellationToken cancellationToken)
     {
@@ -629,6 +629,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         var filter = eventMapping.SelectedFilter;
         var triggerEvent = eventMapping.Event;
         var triggeredDiscussionEntries = eventMapping.TriggeredDiscussionEntries;
+        var hitCountChange = eventMapping.HitCountChange;
 
         logger.LogInternalInformation(
             "[IcmScanner] Processing event {eventType} for incident {incidentId} with filter {filterId}",
@@ -735,7 +736,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         foreach (var thread in threadsToProcess)
         {
             var threadHandlerId = thread.IncidentDetails?.HandlerId ?? filter.HandlingAgent;
-            await ProcessEventForThreadAsync(thread, incidentDocument, triggerEvent, triggeredDiscussionEntries, threadHandlerId);
+            await ProcessEventForThreadAsync(thread, incidentDocument, triggerEvent, triggeredDiscussionEntries, hitCountChange, threadHandlerId);
         }
     }
 
@@ -791,6 +792,7 @@ public class IcmScanner(ILogger<IcmScanner> logger,
         IcmIncidentDocument incidentDocument,
         IcmIncidentTriggerEvent triggerEvent,
         List<DiscussionEntryInfo>? triggeredDiscussionEntries,
+        HitCountChangeInfo? hitCountChange,
         string? handlerId)
     {
         switch (triggerEvent)
@@ -850,6 +852,19 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     Guid.Parse(thread.Id),
                     "The incident has been reactivated.",
                     handlerId);
+                break;
+
+            case IcmIncidentTriggerEvent.HitCountIncreased:
+                if (hitCountChange != null)
+                {
+                    logger.LogInternalInformation(
+                        "[IcmScanner] HitCountIncreased: Triggering event for thread {threadId} (HitCount: {previousHitCount} -> {currentHitCount})",
+                        thread.Id, hitCountChange.PreviousHitCount, hitCountChange.CurrentHitCount);
+                    await TriggerIncidentEventInternalAsync(
+                        Guid.Parse(thread.Id),
+                        $"Incident Correlated. Hit Count increased from {hitCountChange.PreviousHitCount} to {hitCountChange.CurrentHitCount}.",
+                        handlerId);
+                }
                 break;
 
             default:
@@ -996,10 +1011,14 @@ public class IcmScanner(ILogger<IcmScanner> logger,
             }
         }
 
-        // 2. Sync IncidentDetails (title, priority, investigation status)
+        // 2. Sync IncidentDetails (title, priority, incident status for display)
+        // InvestigationStatus is primarily controlled by ReasoningLoop, but we mark it Complete
+        // when incident transitions to mitigated/resolved and the investigation is still InProgress.
+        // This handles the case where an incident gets resolved externally while the agent is idle.
         if (thread.IncidentDetails != null)
         {
             var detailsChanged = false;
+            var investigationStatus = thread.IncidentDetails.InvestigationStatus;
 
             if (thread.IncidentDetails.IncidentTitle != incident.Title)
             {
@@ -1010,14 +1029,23 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                 detailsChanged = true;
             }
 
-            // Set InvestigationStatus to Complete for mitigated/resolved
-            var newInvestigationStatus = (normalizedStatus == "mitigated" || normalizedStatus == "resolved")
-                ? InvestigationStatus.Complete
-                : thread.IncidentDetails.InvestigationStatus;
-
-            if (thread.IncidentDetails.InvestigationStatus != newInvestigationStatus)
+            // Check if incident status display value changed (case-insensitive)
+            var incidentStatusChanged = !string.Equals(thread.IncidentDetails.IncidentStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase);
+            if (incidentStatusChanged)
             {
                 detailsChanged = true;
+
+                // When incident transitions to mitigated/resolved and investigation is not yet Complete,
+                // mark the investigation as Complete since there's no more active incident to investigate.
+                // This covers both InProgress and PendingUserInput states.
+                if ((normalizedStatus == "mitigated" || normalizedStatus == "resolved") &&
+                    investigationStatus != InvestigationStatus.Complete)
+                {
+                    logger.LogInternalInformation(
+                        "[IcmScanner] Marking investigation Complete for thread {threadId} as incident transitioned to {status} (was {previousInvestigationStatus})",
+                        thread.Id, normalizedStatus, investigationStatus);
+                    investigationStatus = InvestigationStatus.Complete;
+                }
             }
 
             if (detailsChanged)
@@ -1029,8 +1057,9 @@ public class IcmScanner(ILogger<IcmScanner> logger,
                     thread.IncidentDetails.ImpactedService,
                     thread.IncidentDetails.FilterId,
                     thread.IncidentDetails.HandlerId,
-                    newInvestigationStatus,
-                    thread.IncidentDetails.TriggerEvent);
+                    investigationStatus,
+                    thread.IncidentDetails.TriggerEvent,
+                    normalizedStatus);  // Update incident status for UI display
                 needsUpsert = true;
             }
         }

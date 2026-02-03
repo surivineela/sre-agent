@@ -25,6 +25,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     private readonly IStreamingService _streamingService;
     private readonly AgentTaskToolResultHelper _agentTaskHelper;
     private readonly IStreamingMessageRepository _streamingMessageRepository;
+    private readonly IThreadRepository _threadRepository;
     private readonly JsonSerializerOptions _serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -57,6 +58,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _streamingService = streamingService;
         _agentTaskHelper = agentTaskHelper;
         _streamingMessageRepository = streamingMessageRepository;
+        _threadRepository = threadRepository;
         _azCliKubectlSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 
@@ -1251,6 +1253,64 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         if (context == null) return null;
         return context.AgentHandoffChain?.LastOrDefault() ?? context.CurrentAgent;
     }
+
+    /// <summary>
+    /// Updates the InvestigationStatus for an incident thread.
+    /// Called when the reasoning loop completes to transition status from InProgress to Complete/PendingUserInput.
+    /// </summary>
+    public async Task UpdateInvestigationStatusAsync(Guid threadId, InvestigationStatus status, CancellationToken cancellationToken = default)
+    {
+        if (threadId == Guid.Empty)
+        {
+            _logger.LogInternalWarning("UpdateInvestigationStatusAsync called with empty threadId, skipping");
+            return;
+        }
+        try
+        {
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var thread = await _threadRepository.GetThreadAsync(threadId);
+            if (thread == null)
+            {
+                _logger.LogInternalWarning("UpdateInvestigationStatusAsync: Thread {ThreadId} not found", threadId);
+                return;
+            }
+
+            // Only update if the thread has IncidentDetails (i.e., it's an incident thread)
+            if (thread.IncidentDetails == null)
+            {
+                _logger.LogInternalInformation("UpdateInvestigationStatusAsync: Thread {ThreadId} has no IncidentDetails, skipping status update", threadId);
+                return;
+            }
+
+            // Skip if status is already the same
+            if (thread.IncidentDetails.InvestigationStatus == status)
+            {
+                _logger.LogInternalInformation("UpdateInvestigationStatusAsync: Thread {ThreadId} already has status {Status}, skipping", threadId, status);
+                return;
+            }
+
+            _logger.LogInternalInformation("UpdateInvestigationStatusAsync: Updating thread {ThreadId} from {OldStatus} to {NewStatus}",
+                threadId, thread.IncidentDetails.InvestigationStatus, status);
+
+            // Use repository method to update investigation status
+            await _threadRepository.UpdateThreadInvestigationStatusAsync(threadId, status);
+
+            _logger.LogInternalInformation("UpdateInvestigationStatusAsync: Successfully updated thread {ThreadId} to status {Status}", threadId, status);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("UpdateInvestigationStatusAsync cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow - cancellation is expected
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "UpdateInvestigationStatusAsync: Failed to update status for thread {ThreadId}", threadId);
+            // Don't rethrow - status update failure shouldn't break the flow
+        }
+    }
+
 
     public async Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {

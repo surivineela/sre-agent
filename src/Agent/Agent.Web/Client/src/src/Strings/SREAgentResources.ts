@@ -2159,6 +2159,11 @@ export const IncidentManagementResources = defineMessages({
         defaultMessage: 'Trigger when the incident state changes to Resolved.',
         id: 'hCwKXB',
     },
+    triggerHitCountIncreased: { defaultMessage: 'IncidentCorrelated (Hit Count Increase)', id: 'WagodG' },
+    triggerHitCountIncreasedDescription: {
+        defaultMessage: 'Trigger when the incident HitCount increases, indicating that another incident was correlated to this one.',
+        id: 'kz2R65',
+    },
     discussionEntryRequiresOwningTeam: {
         defaultMessage: 'Discussion entry trigger requires an owning team to be selected.',
         id: 'XfQMoL',

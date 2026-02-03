@@ -470,6 +470,10 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threadDoc = ThreadDocument.FromDomainModel(thread);
 
         threadDoc.IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty;
+        // Ensure IncidentStatus is set with fallback to IncidentDetails.IncidentStatus
+        threadDoc.IncidentStatus = thread.Status?.IncidentStatus?.Status
+            ?? thread.IncidentDetails?.IncidentStatus
+            ?? string.Empty;
 
         await _client.GetContainer<ThreadDocument>(_databaseName).CreateItemAsync(threadDoc, new PartitionKey(threadDoc.PartitionKey));
 
@@ -910,6 +914,58 @@ public class CosmosDbThreadRepository : IThreadRepository
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error updating incident test mode for thread {ThreadId}", threadId);
+            throw;
+        }
+    }
+
+    public async Task<Thread?> UpdateThreadInvestigationStatusAsync(Guid threadId, InvestigationStatus status)
+    {
+        var threadIdStr = threadId.ToString();
+
+        try
+        {
+            var threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+
+            if (threadDoc == null)
+            {
+                _logger.LogInternalWarning("Cannot update investigation status: Thread {ThreadId} not found", threadId);
+                return null;
+            }
+
+            // Skip if no incident details
+            if (threadDoc.IncidentDetails == null)
+            {
+                _logger.LogInternalInformation("Cannot update investigation status: Thread {ThreadId} has no incident details", threadId);
+                return await GetThreadAsync(threadId);
+            }
+
+            // Create new IncidentDetails with updated status (record is immutable)
+            var updatedIncidentDetails = threadDoc.IncidentDetails with { InvestigationStatus = status };
+
+            var updatedThreadDoc = threadDoc with
+            {
+                IncidentDetails = updatedIncidentDetails,
+            };
+
+            await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                updatedThreadDoc,
+                updatedThreadDoc.Id,
+                new PartitionKey(updatedThreadDoc.PartitionKey)
+            );
+
+            var updatedThread = await GetThreadAsync(threadId);
+
+            _logger.LogInternalInformation("Successfully updated investigation status for thread {ThreadId} to {Status}", threadId, status);
+            return updatedThread;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning("Cannot update investigation status: Thread {ThreadId} not found", threadId);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error updating investigation status for thread {ThreadId}", threadId);
             throw;
         }
     }
@@ -1748,7 +1804,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             status.IncidentStatus = new IncidentStatus
                             {
                                 IncidentId = incidentId,
-                                Status = pagerDutyIncident.Status
+                                Status = pagerDutyIncident.Status?.ToLowerInvariant() ?? string.Empty
                             };
                         }
                         break;
@@ -1772,7 +1828,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             status.IncidentStatus = new IncidentStatus
                             {
                                 IncidentId = incidentId,
-                                Status = icmIncident.State  // ICM uses "State" instead of "Status"
+                                Status = icmIncident.State?.ToLowerInvariant() ?? string.Empty  // ICM uses "State" instead of "Status", normalize to lowercase for UI
                             };
                         }
                         break;
@@ -1784,7 +1840,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             status.IncidentStatus = new IncidentStatus
                             {
                                 IncidentId = incidentId,
-                                Status = serviceNowIncident.Status
+                                Status = serviceNowIncident.Status?.ToLowerInvariant() ?? string.Empty
                             };
                         }
                         break;

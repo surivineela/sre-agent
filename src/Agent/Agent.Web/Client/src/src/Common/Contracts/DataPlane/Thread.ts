@@ -56,6 +56,8 @@ export interface IncidentDetails {
     filterId?: string;
     handlerId?: string;
     investigationStatus?: InvestigationStatus;
+    triggerEvent?: string;
+    incidentStatus?: string;
 }
 
 export interface StatusCount {

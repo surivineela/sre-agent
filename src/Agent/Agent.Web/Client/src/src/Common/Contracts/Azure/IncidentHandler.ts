@@ -15,6 +15,8 @@ export enum IncidentTriggerEvent {
     IncidentReactivated = 'IncidentReactivated',
     /** Fires when incident state changes to Resolved. */
     IncidentResolved = 'IncidentResolved',
+    /** Fires when incident HitCount increases (incident correlation). */
+    HitCountIncreased = 'HitCountIncreased',
 }
 
 export interface InstructionGenerationRequest {

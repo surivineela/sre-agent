@@ -479,6 +479,35 @@ namespace Agent.Data.Repositories
             return Task.FromResult<Thread?>(updatedThread);
         }
 
+        public Task<Thread?> UpdateThreadInvestigationStatusAsync(Guid threadId, InvestigationStatus status)
+        {
+            if (!_threads.TryGetValue(threadId, out var thread))
+            {
+                _logger.LogInternalWarning("Cannot update investigation status: Thread {ThreadId} not found", threadId);
+                return Task.FromResult<Thread?>(null);
+            }
+
+            // Skip if no incident details
+            if (thread.IncidentDetails == null)
+            {
+                _logger.LogInternalInformation("Cannot update investigation status: Thread {ThreadId} has no incident details", threadId);
+                return Task.FromResult<Thread?>(thread);
+            }
+
+            // Create new IncidentDetails with updated status (record is immutable)
+            var updatedIncidentDetails = thread.IncidentDetails with { InvestigationStatus = status };
+
+            var updatedThread = thread with
+            {
+                IncidentDetails = updatedIncidentDetails,
+            };
+
+            _threads[threadId] = updatedThread;
+
+            _logger.LogInternalInformation("Successfully updated investigation status for thread {ThreadId} to {Status}", threadId, status);
+            return Task.FromResult<Thread?>(updatedThread);
+        }
+
         #endregion
 
         #region Helper Functions
@@ -516,7 +545,7 @@ namespace Agent.Data.Repositories
                         status.IncidentStatus = new IncidentStatus
                         {
                             IncidentId = incidentId,
-                            Status = pagerDutyIncident.Status
+                            Status = pagerDutyIncident.Status?.ToLowerInvariant() ?? string.Empty
                         };
                     }
                     else
@@ -529,7 +558,7 @@ namespace Agent.Data.Repositories
                             status.IncidentStatus = new IncidentStatus
                             {
                                 IncidentId = incidentId,
-                                Status = azMonIncident.Status
+                                Status = azMonIncident.Status?.ToLowerInvariant() ?? string.Empty
                             };
                         }
                     }

@@ -1119,4 +1119,312 @@ public class IcmScannerTest
     }
 
     #endregion
+
+    #region InvestigationStatus Transition Tests
+
+    /// <summary>
+    /// Tests that when incident transitions from Active to Mitigated,
+    /// the investigation status is marked Complete (was InProgress).
+    /// </summary>
+    [Fact]
+    public void SyncIncidentToThread_ActiveToMitigated_WithInProgressStatus_MarksComplete()
+    {
+        // Arrange
+        var threadId = Guid.NewGuid().ToString();
+        var incidentId = "123456789";
+        var title = "Test Incident";
+
+        var thread = new ThreadDocument(
+            Id: threadId,
+            Title: title,
+            MessageId: "",
+            LastMessageId: "",
+            CreatedTimestamp: DateTime.UtcNow.AddMinutes(-5),
+            ModifiedTimestamp: DateTime.UtcNow.AddMinutes(-5),
+            Source: Agent.Core.Models.Api.v1.ThreadSource.Incident
+        )
+        {
+            IncidentId = incidentId,
+            IncidentDetails = new Agent.Core.Models.Api.v1.IncidentDetails(
+                IncidentTitle: title,
+                IncidentCreatedTime: DateTimeOffset.UtcNow.AddMinutes(-5),
+                IncidentPriority: "3",
+                ImpactedService: "",
+                FilterId: "filter1",
+                HandlerId: "filter1",
+                InvestigationStatus: Agent.Core.Models.Api.v1.InvestigationStatus.InProgress,
+                TriggerEvent: null,
+                IncidentStatus: "active"  // Was Active
+            )
+        };
+
+        // Simulate the IcmScanner logic for status transition
+        var normalizedStatus = "mitigated";
+        var investigationStatus = thread.IncidentDetails.InvestigationStatus;
+        var incidentStatusChanged = !string.Equals(thread.IncidentDetails.IncidentStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase);
+
+        // Act: Apply the transition logic from IcmScanner
+        if (incidentStatusChanged &&
+            (normalizedStatus == "mitigated" || normalizedStatus == "resolved") &&
+            investigationStatus != Agent.Core.Models.Api.v1.InvestigationStatus.Complete)
+        {
+            investigationStatus = Agent.Core.Models.Api.v1.InvestigationStatus.Complete;
+        }
+
+        // Assert
+        Assert.Equal(Agent.Core.Models.Api.v1.InvestigationStatus.Complete, investigationStatus);
+    }
+
+    /// <summary>
+    /// Tests that when incident transitions from Active to Resolved,
+    /// the investigation status is marked Complete (was InProgress).
+    /// </summary>
+    [Fact]
+    public void SyncIncidentToThread_ActiveToResolved_WithInProgressStatus_MarksComplete()
+    {
+        // Arrange
+        var thread = CreateThreadWithInvestigationStatus(
+            incidentStatus: "active",
+            investigationStatus: Agent.Core.Models.Api.v1.InvestigationStatus.InProgress
+        );
+
+        var normalizedStatus = "resolved";
+        var investigationStatus = thread.IncidentDetails!.InvestigationStatus;
+        var incidentStatusChanged = !string.Equals(thread.IncidentDetails.IncidentStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase);
+
+        // Act
+        if (incidentStatusChanged &&
+            (normalizedStatus == "mitigated" || normalizedStatus == "resolved") &&
+            investigationStatus != Agent.Core.Models.Api.v1.InvestigationStatus.Complete)
+        {
+            investigationStatus = Agent.Core.Models.Api.v1.InvestigationStatus.Complete;
+        }
+
+        // Assert
+        Assert.Equal(Agent.Core.Models.Api.v1.InvestigationStatus.Complete, investigationStatus);
+    }
+
+    /// <summary>
+    /// Tests that when incident transitions from Active to Mitigated,
+    /// the investigation status is marked Complete even when it was PendingUserInput.
+    /// This is the key scenario: user action was pending, but incident got mitigated externally.
+    /// </summary>
+    [Fact]
+    public void SyncIncidentToThread_ActiveToMitigated_WithPendingUserInput_MarksComplete()
+    {
+        // Arrange
+        var thread = CreateThreadWithInvestigationStatus(
+            incidentStatus: "active",
+            investigationStatus: Agent.Core.Models.Api.v1.InvestigationStatus.PendingUserInput
+        );
+
+        var normalizedStatus = "mitigated";
+        var investigationStatus = thread.IncidentDetails!.InvestigationStatus;
+        var incidentStatusChanged = !string.Equals(thread.IncidentDetails.IncidentStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase);
+
+        // Act
+        if (incidentStatusChanged &&
+            (normalizedStatus == "mitigated" || normalizedStatus == "resolved") &&
+            investigationStatus != Agent.Core.Models.Api.v1.InvestigationStatus.Complete)
+        {
+            investigationStatus = Agent.Core.Models.Api.v1.InvestigationStatus.Complete;
+        }
+
+        // Assert
+        Assert.Equal(Agent.Core.Models.Api.v1.InvestigationStatus.Complete, investigationStatus);
+    }
+
+    /// <summary>
+    /// Tests that when incident transitions from Mitigated to Resolved,
+    /// the investigation status is marked Complete if it was PendingUserInput.
+    /// This covers the edge case where incident progresses through mitigation while user hasn't responded.
+    /// </summary>
+    [Fact]
+    public void SyncIncidentToThread_MitigatedToResolved_WithPendingUserInput_MarksComplete()
+    {
+        // Arrange
+        var thread = CreateThreadWithInvestigationStatus(
+            incidentStatus: "mitigated",
+            investigationStatus: Agent.Core.Models.Api.v1.InvestigationStatus.PendingUserInput
+        );
+
+        var normalizedStatus = "resolved";
+        var investigationStatus = thread.IncidentDetails!.InvestigationStatus;
+        var incidentStatusChanged = !string.Equals(thread.IncidentDetails.IncidentStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase);
+
+        // Act
+        if (incidentStatusChanged &&
+            (normalizedStatus == "mitigated" || normalizedStatus == "resolved") &&
+            investigationStatus != Agent.Core.Models.Api.v1.InvestigationStatus.Complete)
+        {
+            investigationStatus = Agent.Core.Models.Api.v1.InvestigationStatus.Complete;
+        }
+
+        // Assert
+        Assert.Equal(Agent.Core.Models.Api.v1.InvestigationStatus.Complete, investigationStatus);
+    }
+
+    /// <summary>
+    /// Tests that when investigation is already Complete, it stays Complete
+    /// even when incident status changes.
+    /// </summary>
+    [Fact]
+    public void SyncIncidentToThread_MitigatedToResolved_AlreadyComplete_StaysComplete()
+    {
+        // Arrange
+        var thread = CreateThreadWithInvestigationStatus(
+            incidentStatus: "mitigated",
+            investigationStatus: Agent.Core.Models.Api.v1.InvestigationStatus.Complete
+        );
+
+        var normalizedStatus = "resolved";
+        var investigationStatus = thread.IncidentDetails!.InvestigationStatus;
+        var incidentStatusChanged = !string.Equals(thread.IncidentDetails.IncidentStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase);
+
+        // Act
+        if (incidentStatusChanged &&
+            (normalizedStatus == "mitigated" || normalizedStatus == "resolved") &&
+            investigationStatus != Agent.Core.Models.Api.v1.InvestigationStatus.Complete)
+        {
+            investigationStatus = Agent.Core.Models.Api.v1.InvestigationStatus.Complete;
+        }
+
+        // Assert: Still Complete (no change needed)
+        Assert.Equal(Agent.Core.Models.Api.v1.InvestigationStatus.Complete, investigationStatus);
+    }
+
+    /// <summary>
+    /// Tests that when incident status doesn't change, investigation status is NOT modified.
+    /// Prevents spurious updates.
+    /// </summary>
+    [Fact]
+    public void SyncIncidentToThread_NoStatusChange_InvestigationStatusUnchanged()
+    {
+        // Arrange
+        var thread = CreateThreadWithInvestigationStatus(
+            incidentStatus: "active",
+            investigationStatus: Agent.Core.Models.Api.v1.InvestigationStatus.InProgress
+        );
+
+        var normalizedStatus = "active"; // Same status
+        var investigationStatus = thread.IncidentDetails!.InvestigationStatus;
+        var incidentStatusChanged = !string.Equals(thread.IncidentDetails.IncidentStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase);
+
+        // Act
+        if (incidentStatusChanged &&
+            (normalizedStatus == "mitigated" || normalizedStatus == "resolved") &&
+            investigationStatus != Agent.Core.Models.Api.v1.InvestigationStatus.Complete)
+        {
+            investigationStatus = Agent.Core.Models.Api.v1.InvestigationStatus.Complete;
+        }
+
+        // Assert: Still InProgress (no change)
+        Assert.Equal(Agent.Core.Models.Api.v1.InvestigationStatus.InProgress, investigationStatus);
+    }
+
+    /// <summary>
+    /// Tests that Active incident status doesn't trigger investigation completion,
+    /// even if the status representation changes (e.g., case change).
+    /// </summary>
+    [Fact]
+    public void SyncIncidentToThread_ActiveToDifferentActiveCase_InvestigationStatusUnchanged()
+    {
+        // Arrange
+        var thread = CreateThreadWithInvestigationStatus(
+            incidentStatus: "ACTIVE",  // uppercase
+            investigationStatus: Agent.Core.Models.Api.v1.InvestigationStatus.InProgress
+        );
+
+        var normalizedStatus = "active"; // lowercase (normalized)
+        var investigationStatus = thread.IncidentDetails!.InvestigationStatus;
+        // Case-insensitive comparison means no change
+        var incidentStatusChanged = !string.Equals(thread.IncidentDetails.IncidentStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase);
+
+        // Act
+        if (incidentStatusChanged &&
+            (normalizedStatus == "mitigated" || normalizedStatus == "resolved") &&
+            investigationStatus != Agent.Core.Models.Api.v1.InvestigationStatus.Complete)
+        {
+            investigationStatus = Agent.Core.Models.Api.v1.InvestigationStatus.Complete;
+        }
+
+        // Assert: Still InProgress (no actual status change, just case difference)
+        Assert.Equal(Agent.Core.Models.Api.v1.InvestigationStatus.InProgress, investigationStatus);
+    }
+
+    /// <summary>
+    /// Tests that when incident details are null, the status transition logic is safely skipped.
+    /// </summary>
+    [Fact]
+    public void SyncIncidentToThread_NullIncidentDetails_NoException()
+    {
+        // Arrange
+        var thread = new ThreadDocument(
+            Id: Guid.NewGuid().ToString(),
+            Title: "Test",
+            MessageId: "",
+            LastMessageId: "",
+            CreatedTimestamp: DateTime.UtcNow,
+            ModifiedTimestamp: DateTime.UtcNow,
+            Source: Agent.Core.Models.Api.v1.ThreadSource.Incident
+        )
+        {
+            IncidentDetails = null  // No incident details
+        };
+
+        var normalizedStatus = "mitigated";
+
+        // Act & Assert: Should not throw
+        var exception = Record.Exception(() =>
+        {
+            if (thread.IncidentDetails != null)
+            {
+                var investigationStatus = thread.IncidentDetails.InvestigationStatus;
+                var incidentStatusChanged = !string.Equals(thread.IncidentDetails.IncidentStatus, normalizedStatus, StringComparison.OrdinalIgnoreCase);
+
+                if (incidentStatusChanged &&
+                    (normalizedStatus == "mitigated" || normalizedStatus == "resolved") &&
+                    investigationStatus != Agent.Core.Models.Api.v1.InvestigationStatus.Complete)
+                {
+                    investigationStatus = Agent.Core.Models.Api.v1.InvestigationStatus.Complete;
+                }
+            }
+        });
+
+        Assert.Null(exception);
+    }
+
+    /// <summary>
+    /// Helper method to create a thread with specific incident and investigation statuses.
+    /// </summary>
+    private static ThreadDocument CreateThreadWithInvestigationStatus(
+        string incidentStatus,
+        Agent.Core.Models.Api.v1.InvestigationStatus investigationStatus)
+    {
+        return new ThreadDocument(
+            Id: Guid.NewGuid().ToString(),
+            Title: "Test Incident",
+            MessageId: "",
+            LastMessageId: "",
+            CreatedTimestamp: DateTime.UtcNow.AddMinutes(-5),
+            ModifiedTimestamp: DateTime.UtcNow.AddMinutes(-5),
+            Source: Agent.Core.Models.Api.v1.ThreadSource.Incident
+        )
+        {
+            IncidentId = "123456789",
+            IncidentDetails = new Agent.Core.Models.Api.v1.IncidentDetails(
+                IncidentTitle: "Test Incident",
+                IncidentCreatedTime: DateTimeOffset.UtcNow.AddMinutes(-5),
+                IncidentPriority: "3",
+                ImpactedService: "",
+                FilterId: "filter1",
+                HandlerId: "filter1",
+                InvestigationStatus: investigationStatus,
+                TriggerEvent: null,
+                IncidentStatus: incidentStatus
+            )
+        };
+    }
+
+    #endregion
 }

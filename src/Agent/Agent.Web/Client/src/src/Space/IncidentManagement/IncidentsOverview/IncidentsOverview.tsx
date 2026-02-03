@@ -541,17 +541,18 @@ const IncidentsOverview: FC<IncidentsOverviewProps> = ({ agentAppInsightsAppId, 
             createTableColumn<Thread>({
                 columnId: IncidentsListColumnKey.incidentStatus,
                 compare: (a, b) => {
-                    const aVal = a.status?.incidentStatus?.status ?? '';
-                    const bVal = b.status?.incidentStatus?.status ?? '';
+                    const aVal = a.status?.incidentStatus?.status ?? a.incidentDetails?.incidentStatus ?? '';
+                    const bVal = b.status?.incidentStatus?.status ?? b.incidentDetails?.incidentStatus ?? '';
                     return aVal.localeCompare(bVal);
                 },
                 renderHeaderCell: () => (
                     <span style={{ fontWeight: 600 }}>{intl.formatMessage(platformSpecificStrings.incidentOrAlertStatusLabel)}</span>
                 ),
                 renderCell: item => {
+                    const incidentStatus = (item.status?.incidentStatus?.status ?? item.incidentDetails?.incidentStatus) as IncidentStatus;
                     return (
                         <TableCellLayout truncate>
-                            <StatusLabel type="incidentStatus" status={item.status?.incidentStatus?.status as IncidentStatus} />
+                            <StatusLabel type="incidentStatus" status={incidentStatus} />
                         </TableCellLayout>
                     );
                 },
