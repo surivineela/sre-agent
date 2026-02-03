@@ -137,7 +137,7 @@ const useStyles = makeStyles({
         overflowY: 'hidden',
         scrollbarWidth: 'thin',
         scrollbarColor: `${tokens.colorNeutralStroke2} transparent`,
-        paddingBottom: '4px',
+        paddingBottom: '10px',
         // Fade edges when scrollable
         maskImage: 'linear-gradient(to right, transparent 0px, black 8px, black calc(100% - 8px), transparent 100%)',
         WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 8px, black calc(100% - 8px), transparent 100%)',
