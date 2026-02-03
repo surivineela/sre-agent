@@ -36,7 +36,7 @@ public class RunResultWithHandoff<TContext> where TContext : class
 
 public static class Runner
 {
-    private const int DefaultMaxTurns = 50;
+    private const int DefaultMaxTurns = 100;
     private const int Gpt5InputWindow = 272000;
     private const int TokenThreshold = Gpt5InputWindow * 4 / 10;
     private const int ToolCountHardMax = 128;

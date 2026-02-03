@@ -56,7 +56,7 @@ public record AgentDocumentModel(
         Tools = Spec.Tools ?? [],
         McpTools = Spec.McpTools ?? [],
         Connectors = Spec.Connectors ?? [],
-        AllowParallelToolCalls = Spec.AllowParallelToolCalls ?? false,
+        AllowParallelToolCalls = Spec.AllowParallelToolCalls ?? true,
         MaxReflectionCount = Spec.MaxReflectionCount ?? 0,
         CriticPromptPath = Spec.CriticPromptPath ?? string.Empty,
         CriticOnHandOff = Spec.CriticOnHandOff ?? false,

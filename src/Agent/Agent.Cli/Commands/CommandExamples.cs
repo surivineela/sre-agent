@@ -10,11 +10,11 @@ namespace Agent.Cli.Commands;
 /// </summary>
 public static class CommandExamples
 {
-  #region Agent Command Examples
+    #region Agent Command Examples
 
-  public static class Agent
-  {
-    public const string CreateDescription = @"Create a new agent YAML configuration file
+    public static class Agent
+    {
+        public const string CreateDescription = @"Create a new agent YAML configuration file
 
 Examples:
   # Create a basic agent
@@ -34,7 +34,7 @@ Examples:
     --temperature 0.7 \
     --max-reflection-count 3";
 
-    public const string ValidateDescription = @"Validate agent YAML configuration files
+        public const string ValidateDescription = @"Validate agent YAML configuration files
 
 Examples:
   # Validate by agent name (searches in agents/ folder)
@@ -52,7 +52,7 @@ Examples:
   # Alternative: Validate a specific agent file path
   srectl agent validate --file agents/MyAgent/MyAgent.yaml";
 
-    public const string ApplyDescription = @"Apply an agent configuration to the remote server
+        public const string ApplyDescription = @"Apply an agent configuration to the remote server
 
 Examples:
   # Apply an agent to the server
@@ -64,7 +64,7 @@ Examples:
   # Apply with debug logging
   srectl agent apply --name MyAgent --debug";
 
-    public const string DeleteDescription = @"Delete an agent from the remote server
+        public const string DeleteDescription = @"Delete an agent from the remote server
 
 Examples:
   # Delete an agent from the server
@@ -73,7 +73,7 @@ Examples:
   # Delete with debug logging
   srectl agent delete --name TestAgent --debug";
 
-    public const string TestDescription = @"Test an agent with a specific message (starts interactive session)
+        public const string TestDescription = @"Test an agent with a specific message (starts interactive session)
 
 Examples:
   # Test an agent interactively
@@ -88,7 +88,7 @@ Examples:
 Note: This command is equivalent to 'srectl thread new --agent <name> --message <message>'
       and will start an interactive chat session unless --no-wait is specified.";
 
-    public const string DiffDescription = @"Compare local and remote agent configurations
+        public const string DiffDescription = @"Compare local and remote agent configurations
 
 Examples:
   # Compare default using git-diff (default)
@@ -100,7 +100,7 @@ Examples:
   # Show inline diff
   srectl agent diff --name MyAgent --raw";
 
-    public const string MigrateDescription = @"Migrate V1 agent format to V2
+        public const string MigrateDescription = @"Migrate V1 agent format to V2
 
 Examples:
   # Migrate a specific agent
@@ -115,7 +115,7 @@ Examples:
   # Migrate specific agent with dry run
   srectl agent migrate --name MyAgent --dry-run";
 
-    public const string ListDescription = @"List remote extended agents from the server
+        public const string ListDescription = @"List remote extended agents from the server
 
 Examples:
   # List all agents
@@ -129,17 +129,17 @@ Examples:
 
   # Search for specific agents
   srectl agent list --search devops";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Tool Command Examples
+    #region Tool Command Examples
 
-  public static class Tool
-  {
-    public const string CreateDescription = "Create a new tool YAML configuration file";
+    public static class Tool
+    {
+        public const string CreateDescription = "Create a new tool YAML configuration file";
 
-    public const string ValidateDescription = @"Validate tool YAML configuration files
+        public const string ValidateDescription = @"Validate tool YAML configuration files
 
 Examples:
   # Validate a specific tool
@@ -151,7 +151,7 @@ Examples:
   # Validate with debug output
   srectl tool validate --name MyTool --debug";
 
-    public const string ApplyDescription = @"Apply a tool configuration to the remote server
+        public const string ApplyDescription = @"Apply a tool configuration to the remote server
 
 Examples:
   # Apply a tool to the server
@@ -163,7 +163,7 @@ Examples:
   # Apply with debug logging
   srectl tool apply --name CustomTool --debug";
 
-    public const string DeleteDescription = @"Delete a tool from the remote server
+        public const string DeleteDescription = @"Delete a tool from the remote server
 
 Examples:
   # Delete a tool from the server
@@ -175,7 +175,7 @@ Examples:
   # Delete with debug logging
   srectl tool delete --name UnusedTool --debug";
 
-    public const string ShowTypesDescription = @"Display available tool types and their details
+        public const string ShowTypesDescription = @"Display available tool types and their details
 
 Examples:
   # List all available tool types
@@ -190,13 +190,13 @@ Examples:
   # Show specific type with verbose details
   srectl tool show-types --type AzureTool --verbose";
 
-    public const string ShowConnectorsDescription = @"Display configured data connectors (names to use in YAML) and available connector types
+        public const string ShowConnectorsDescription = @"Display configured data connectors (names to use in YAML) and available connector types
 
 Examples:
   # List all available connectors
   srectl tool show-connectors";
 
-    public const string DiffDescription = @"Compare local and remote tool configurations
+        public const string DiffDescription = @"Compare local and remote tool configurations
 
 Examples:
   # Compare default using git
@@ -208,7 +208,7 @@ Examples:
   # Show inline diff
   srectl tool diff --name MyTool --raw";
 
-    public const string MigrateDescription = @"Migrate V1 tool configurations to V2 format
+        public const string MigrateDescription = @"Migrate V1 tool configurations to V2 format
 
 Examples:
   # Migrate a specific tool
@@ -223,7 +223,7 @@ Examples:
   # Preview migration without making changes (dry run)
   srectl tool migrate --all --dry-run";
 
-    public const string ListDescription = @"List all tools from the remote server
+        public const string ListDescription = @"List all tools from the remote server
 
 Examples:
   # List all tools
@@ -237,15 +237,15 @@ Examples:
 
   # Search for specific tools
   srectl tool list --search kusto";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Common Prompt Command Examples
+    #region Common Prompt Command Examples
 
-  public static class CommonPrompt
-  {
-    public const string CreateDescription = @"Create a new common prompt YAML configuration file
+    public static class CommonPrompt
+    {
+        public const string CreateDescription = @"Create a new common prompt YAML configuration file
 
 Examples:
   # Create a livesite investigation prompt
@@ -260,7 +260,7 @@ Examples:
   # Create a common prompt in flat structure
   srectl common-prompt create --name QuickGuard --path """" --prompt ""This agent only handles critical production alerts""";
 
-    public const string GetDescription = @"List or get common prompts from the remote server
+        public const string GetDescription = @"List or get common prompts from the remote server
 
 Examples:
   # List all common prompts
@@ -275,7 +275,7 @@ Examples:
   # Search for specific common prompts
   srectl common-prompt get --search troubleshoot";
 
-    public const string ApplyDescription = @"Apply a common prompt configuration to the remote server
+        public const string ApplyDescription = @"Apply a common prompt configuration to the remote server
 
 Examples:
   # Apply a common prompt to the server
@@ -287,7 +287,7 @@ Examples:
   # Apply with debug logging
   srectl common-prompt apply --name CustomPrompt --debug";
 
-    public const string DeleteDescription = @"Delete a common prompt from the remote server
+        public const string DeleteDescription = @"Delete a common prompt from the remote server
 
 Examples:
   # Delete a common prompt from the server
@@ -299,7 +299,7 @@ Examples:
   # Delete with debug logging
   srectl common-prompt delete --name UnusedPrompt --debug";
 
-    public const string MigrateDescription = @"Migrate common prompt configurations from V1 to V2 format
+        public const string MigrateDescription = @"Migrate common prompt configurations from V1 to V2 format
 
 Examples:
   # Migrate all common prompts in the CommonPrompts directory
@@ -310,15 +310,15 @@ Examples:
 
   # Preview migration without making changes
   srectl common-prompt migrate --all --dry-run";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Skill Command Examples
+    #region Skill Command Examples
 
-  public static class Skill
-  {
-    public const string CreateDescription = @"Create a new skill directory with template files
+    public static class Skill
+    {
+        public const string CreateDescription = @"Create a new skill directory with template files
 
 Examples:
   # Create a new skill with default template
@@ -327,7 +327,7 @@ Examples:
   # Create with custom description
   srectl skill create --name my-skill --description ""Handles database queries and analysis""";
 
-    public const string ApplyDescription = @"Apply a skill configuration to the remote server
+        public const string ApplyDescription = @"Apply a skill configuration to the remote server
 
 Examples:
   # Apply a skill to the server
@@ -339,7 +339,7 @@ Examples:
   # Apply with debug logging
   srectl skill apply --name my-skill --debug";
 
-    public const string ConvertDescription = @"Convert an existing agent to a skill
+        public const string ConvertDescription = @"Convert an existing agent to a skill
 
 Examples:
   # Convert an agent to a skill
@@ -351,7 +351,7 @@ Examples:
   # Specify custom output path
   srectl skill convert --agent-name my-agent --output-path custom/path";
 
-    public const string ListDescription = @"List all available skills from the remote server
+        public const string ListDescription = @"List all available skills from the remote server
 
 Examples:
   # List all skills
@@ -366,7 +366,7 @@ Examples:
   # Search for specific skills
   srectl skill list --search database";
 
-    public const string SyncDescription = @"Sync skill(s) from the server to local directory
+        public const string SyncDescription = @"Sync skill(s) from the server to local directory
 
 Examples:
   # Sync a single skill
@@ -381,7 +381,7 @@ Examples:
   # Sync all skills to a specific directory
   srectl skill sync --all --path my-skills";
 
-    public const string DeleteDescription = @"Delete a skill from the server
+        public const string DeleteDescription = @"Delete a skill from the server
 
 Examples:
   # Delete a skill from the server
@@ -393,7 +393,7 @@ Examples:
   # Delete with debug logging
   srectl skill delete --name unused-skill --debug";
 
-    public const string MigrateDescription = @"Migrate skills from metadata.yaml to SKILL.md frontmatter format
+        public const string MigrateDescription = @"Migrate skills from metadata.yaml to SKILL.md frontmatter format
 
 Examples:
   # Migrate a specific skill
@@ -407,15 +407,15 @@ Examples:
 
   # Migrate all skills with dry run
   srectl skill migrate --all --dry-run";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region General Command Examples
+    #region General Command Examples
 
-  public static class General
-  {
-    public const string InitDescription = @"Initialize SREAgent CLI configuration and workspace
+    public static class General
+    {
+        public const string InitDescription = @"Initialize SREAgent CLI configuration and workspace
 
 Examples:
   # Initialize with local development server
@@ -427,7 +427,7 @@ Examples:
   # Initialize with production environment
   srectl init --resource-url https://my-sreagent-prod.2abcdef.eastus2.azuresre.ai";
 
-    public const string ListDescription = @"List various resources from the remote server
+        public const string ListDescription = @"List various resources from the remote server
 
 Examples:
   # List all agents on the server
@@ -442,7 +442,7 @@ Examples:
   # List data connectors
   srectl list data-connectors";
 
-    public const string ApplyYamlDescription = @"Apply YAML configuration files to the server
+        public const string ApplyYamlDescription = @"Apply YAML configuration files to the server
 Supports multi-document YAML files (separated by ---) similar to Kubernetes manifests.
 Automatically detects and applies tools, agents, and common prompts.
 
@@ -459,7 +459,7 @@ Examples:
   # Apply a common prompt YAML file
   srectl apply-yaml --file CommonPrompts/prompt.yaml";
 
-    public const string ChatDescription = @"Start an interactive chat session with the SRE Agent
+        public const string ChatDescription = @"Start an interactive chat session with the SRE Agent
 
 Examples:
   # Start interactive chat
@@ -471,13 +471,13 @@ Examples:
   # Start chat with minimal output
   srectl chat --quiet";
 
-    public const string WelcomeDescription = "Show welcome screen and getting started guide";
+        public const string WelcomeDescription = "Show welcome screen and getting started guide";
 
-    public const string VersionDescription = "Show version information and build details";
+        public const string VersionDescription = "Show version information and build details";
 
-    public const string StatusDescription = "Show workspace status and health check";
+        public const string StatusDescription = "Show workspace status and health check";
 
-    public const string SyncDescription = @"Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)
+        public const string SyncDescription = @"Sync agents and tools YAML from the remote server into the local workspace (agents/, tools/)
 
 Examples:
   # Sync all remote configurations
@@ -485,7 +485,7 @@ Examples:
 
 Note: Requires prior 'srectl init --resource-url <url>'";
 
-    public const string HelpDescription = @"Show help information or export command reference to markdown
+        public const string HelpDescription = @"Show help information or export command reference to markdown
 
 Examples:
   # Show help (same as srectl --help)
@@ -493,15 +493,15 @@ Examples:
 
   # Export all command documentation to a markdown file
   srectl help --output docs/command-reference.md";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Thread Command Examples
+    #region Thread Command Examples
 
-  public static class Thread
-  {
-    public const string NewDescription = @"Start an interactive chat session with a new conversation thread
+    public static class Thread
+    {
+        public const string NewDescription = @"Start an interactive chat session with a new conversation thread
 
 Examples:
   # Start session with default agent
@@ -510,7 +510,7 @@ Examples:
   # Start session with specific agent
   srectl thread new --agent general --message ""Check the status of pods in production namespace""";
 
-    public const string ContinueDescription = @"Continue an existing conversation thread
+        public const string ContinueDescription = @"Continue an existing conversation thread
 
 Examples:
   # Continue the last thread
@@ -519,26 +519,26 @@ Examples:
   # Continue a specific thread
   srectl thread continue --thread-id 7f3a9c2b-1e4d-4c8a-9b5f-2d6e8a1c4b7e --message ""What about the network?""";
 
-    public const string ListDescription = @"List all conversation threads
+        public const string ListDescription = @"List all conversation threads
 
 Examples:
   # View threads sorted by most recently modified
   srectl thread list";
 
-    public const string DeleteDescription = @"Delete a conversation thread
+        public const string DeleteDescription = @"Delete a conversation thread
 
 Examples:
   # Delete a specific thread
   srectl thread delete --thread-id 7f3a9c2b-1e4d-4c8a-9b5f-2d6e8a1c4b7e";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Document Command Examples
+    #region Document Command Examples
 
-  public static class Document
-  {
-    public const string UploadDescription = @"Upload documents to the server for knowledge base
+    public static class Document
+    {
+        public const string UploadDescription = @"Upload documents to the server for knowledge base
 
 Examples:
   # Upload a single document
@@ -550,7 +550,7 @@ Examples:
   # Upload an entire folder (searches recursively)
   srectl doc upload --file ./docs";
 
-    public const string SearchDescription = @"Search documents in the knowledge base
+        public const string SearchDescription = @"Search documents in the knowledge base
 
 Examples:
   # Search for documents containing specific terms
@@ -562,7 +562,7 @@ Examples:
   # Search for deployment documentation
   srectl doc search --query ""deployment procedures""";
 
-    public const string GetDescription = @"List uploaded documents
+        public const string GetDescription = @"List uploaded documents
 
 Examples:
   # List all documents
@@ -571,26 +571,26 @@ Examples:
   # List documents with a specific prefix
   srectl doc get --prefix runbook";
 
-    public const string DeleteDescription = @"Delete a document from the knowledge base
+        public const string DeleteDescription = @"Delete a document from the knowledge base
 
 Examples:
   # Delete a specific document
   srectl doc delete --name runbook.md";
 
-    public const string ReindexDescription = @"Reindex all documents in the knowledge base
+        public const string ReindexDescription = @"Reindex all documents in the knowledge base
 
 Examples:
   # Reindex all documents
   srectl doc reindex";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Profile Command Examples
+    #region Profile Command Examples
 
-  public static class Profile
-  {
-    public const string ListDescription = @"List all available profiles and show the active one
+    public static class Profile
+    {
+        public const string ListDescription = @"List all available profiles and show the active one
 
 Examples:
   # List all profiles
@@ -599,7 +599,7 @@ Examples:
   # List with detailed information
   srectl profile list --verbose";
 
-    public const string GetDescription = @"Get details of a specific profile or the current active profile
+        public const string GetDescription = @"Get details of a specific profile or the current active profile
 
 Examples:
   # Get current active profile
@@ -611,7 +611,7 @@ Examples:
   # Get profile with debug info
   srectl profile get --name local --debug";
 
-    public const string CreateDescription = @"Create a new connection profile
+        public const string CreateDescription = @"Create a new connection profile
 
 Examples:
   # Create a local development profile
@@ -623,7 +623,7 @@ Examples:
   # Create a profile with authentication
   srectl profile create --name staging --url https://staging.company.com --set-current";
 
-    public const string SetDescription = @"Set the active profile
+        public const string SetDescription = @"Set the active profile
 
 Examples:
   # Switch to local development
@@ -635,7 +635,7 @@ Examples:
   # Switch with confirmation
   srectl profile set --name staging --debug";
 
-    public const string DeleteDescription = @"Delete a profile
+        public const string DeleteDescription = @"Delete a profile
 
 Examples:
   # Delete an unused profile
@@ -643,15 +643,15 @@ Examples:
 
   # Delete with confirmation
   srectl profile delete --name test --debug";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Repo Command Examples
+    #region Repo Command Examples
 
-  public static class Repo
-  {
-    public const string AddDescription = @"Add a new Azure DevOps repository connector
+    public static class Repo
+    {
+        public const string AddDescription = @"Add a new Azure DevOps repository connector
 
 Examples:
   # Add a repository with automatic PAT generation
@@ -663,7 +663,7 @@ Examples:
   # Add a repository using visualstudio.com URL format
   srectl repo add --name legacy-repo --url https://myorg.visualstudio.com/myproject/_git/myrepo";
 
-    public const string UpdateDescription = @"Update an existing repository connector's credentials
+        public const string UpdateDescription = @"Update an existing repository connector's credentials
 
 Note: The repository URL cannot be changed. To change the URL, delete and recreate the connector.
 
@@ -674,7 +674,7 @@ Examples:
   # Regenerate PAT using Azure CLI
   srectl repo update --name my-tsg-repo --regenerate";
 
-    public const string RemoveDescription = @"Remove a repository connector
+        public const string RemoveDescription = @"Remove a repository connector
 
 Examples:
   # Remove a connector (with confirmation)
@@ -683,20 +683,20 @@ Examples:
   # Remove without confirmation
   srectl repo remove --name my-tsg-repo --force";
 
-    public const string ListDescription = @"List all repository connectors
+        public const string ListDescription = @"List all repository connectors
 
 Examples:
   # List all connectors
   srectl repo list";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Scheduled Task Command Examples
+    #region Scheduled Task Command Examples
 
-  public static class ScheduledTask
-  {
-    public const string CreateDescription = @"Create a new scheduled task for automated agent operations
+    public static class ScheduledTask
+    {
+        public const string CreateDescription = @"Create a new scheduled task for automated agent operations
 
 Examples:
   # Create a daily task
@@ -708,7 +708,7 @@ Examples:
   # Create a task with specific agent
   srectl scheduledtask create --name ""Agent Task"" --cron ""0 10 * * *"" --prompt ""Run daily checks"" --agent ""ProductionAgent""";
 
-    public const string ListDescription = @"List all scheduled tasks from the remote server
+        public const string ListDescription = @"List all scheduled tasks from the remote server
 
 Examples:
   # List all scheduled tasks
@@ -720,7 +720,7 @@ Examples:
   # List with status filter
   srectl scheduledtask list --status Active";
 
-    public const string GetDescription = @"Get detailed information about a specific scheduled task
+        public const string GetDescription = @"Get detailed information about a specific scheduled task
 
 Examples:
   # Get details of a task
@@ -729,7 +729,7 @@ Examples:
   # Get details by name
   srectl scheduledtask get --id daily-health-check";
 
-    public const string PauseDescription = @"Pause a scheduled task to stop its execution
+        public const string PauseDescription = @"Pause a scheduled task to stop its execution
 
 Examples:
   # Pause a task
@@ -738,7 +738,7 @@ Examples:
   # Pause by name
   srectl scheduledtask pause --id daily-health-check";
 
-    public const string ResumeDescription = @"Resume a paused scheduled task
+        public const string ResumeDescription = @"Resume a paused scheduled task
 
 Examples:
   # Resume a task
@@ -747,7 +747,7 @@ Examples:
   # Resume by name
   srectl scheduledtask resume --id daily-health-check";
 
-    public const string DeleteDescription = @"Permanently delete a scheduled task
+        public const string DeleteDescription = @"Permanently delete a scheduled task
 
 Examples:
   # Delete a task
@@ -755,15 +755,15 @@ Examples:
 
   # Delete an old task
   srectl scheduledtask delete --id old-maintenance-task";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Incident Handler Command Examples
+    #region Incident Handler Command Examples
 
-  public static class IncidentHandler
-  {
-    public const string CreateDescription = @"Create a new incident filter with specified criteria
+    public static class IncidentHandler
+    {
+        public const string CreateDescription = @"Create a new incident filter with specified criteria
 
 Examples:
   # Create a simple filter
@@ -775,7 +775,7 @@ Examples:
   # Create a filter with impacted service
   srectl incidenthandler create --id APIFilter --impacted-service ""Web API"" --max-attempts 5";
 
-    public const string MapAgentDescription = @"Map a YAML agent to an incident filter
+        public const string MapAgentDescription = @"Map a YAML agent to an incident filter
 
 Examples:
   # Map an agent to a filter
@@ -784,7 +784,7 @@ Examples:
   # Map a specialized agent
   srectl incidenthandler map-agent --name StorageIssues --handling-agent StorageAgent";
 
-    public const string ListDescription = @"List all incident handlers from the remote server
+        public const string ListDescription = @"List all incident handlers from the remote server
 
 Examples:
   # List all incident handlers
@@ -792,15 +792,15 @@ Examples:
 
   # List with detailed information
   srectl incidenthandler list --verbose";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Extension Command Examples
+    #region Extension Command Examples
 
-  public static class Extension
-  {
-    public const string GenerateEv2Description = @"Generate EV2 deployment files by copying templates and processing agent/tool configurations
+    public static class Extension
+    {
+        public const string GenerateEv2Description = @"Generate EV2 deployment files by copying templates and processing agent/tool configurations
 
 Examples:
   # Generate Bicep and ARM templates only
@@ -808,18 +808,18 @@ Examples:
 
   # Generate with full EV2 deployment artifacts
   srectl extension generate-ev2 --tools-folder ./tools --agent-folder ./agents --output ./deployment --service-identifier ""00000000-0000-0000-0000-000000000000"" --service-group ""MyServiceGroup"" --environment ""Test"" --tenant-id ""72f988bf-86f1-41af-91ab-2d7cd011db47"" --subscription-key ""Production"" --subscription-id ""00000000-0000-0000-0000-000000000000"" --resource-group ""my-resource-group""";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Real-World Examples
+    #region Real-World Examples
 
-  /// <summary>
-  /// Real-world examples and complete workflows demonstrating practical usage
-  /// </summary>
-  public static class RealWorld
-  {
-    public const string KubernetesSREAgent = @"
+    /// <summary>
+    /// Real-world examples and complete workflows demonstrating practical usage
+    /// </summary>
+    public static class RealWorld
+    {
+        public const string KubernetesSREAgent = @"
 Real-World Example: Kubernetes SRE Agent
 
 This example shows how to create a comprehensive SRE agent for Kubernetes troubleshooting:
@@ -854,7 +854,7 @@ This example shows how to create a comprehensive SRE agent for Kubernetes troubl
    srectl agent test --name KubernetesSREAgent \
      --message ""Production pods are failing in the payment-service namespace""";
 
-    public const string IncidentResponseAgent = @"
+        public const string IncidentResponseAgent = @"
 Real-World Example: Incident Response Agent
 
 Complete workflow for setting up an incident response automation agent:
@@ -883,7 +883,7 @@ Complete workflow for setting up an incident response automation agent:
    srectl agent test --name IncidentResponseAgent \
      --message ""Service degradation detected in payment API - 500 errors increasing""";
 
-    public const string DatabaseSREAgent = @"
+        public const string DatabaseSREAgent = @"
 Real-World Example: Database SRE Agent
 
 Setting up a database performance and reliability agent:
@@ -913,25 +913,25 @@ Setting up a database performance and reliability agent:
    srectl agent apply --name DatabaseSREAgent
    srectl agent test --name DatabaseSREAgent \
      --message ""Database queries are slow and connection timeouts are increasing""";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Usage Patterns
+    #region Usage Patterns
 
-  /// <summary>
-  /// Common usage patterns and workflows
-  /// </summary>
-  public static class Workflows
-  {
-    public const string QuickStart = @"
+    /// <summary>
+    /// Common usage patterns and workflows
+    /// </summary>
+    public static class Workflows
+    {
+        public const string QuickStart = @"
 Quick Start Workflow:
 1. srectl init --resource-url https://localhost:7023
 2. srectl agent create --name MyFirstAgent --smart
 3. srectl agent apply --name MyFirstAgent
 4. srectl agent test --name MyFirstAgent --message ""Hello""";
 
-    public const string DevelopmentWorkflow = @"
+        public const string DevelopmentWorkflow = @"
 Development Workflow:
 1. srectl tool create --name MyTool --type KustoTool
 2. srectl tool validate --name MyTool
@@ -940,7 +940,7 @@ Development Workflow:
 5. srectl agent create --name TestAgent --tools MyTool
 6. srectl agent test --name TestAgent --message ""Test message""";
 
-    public const string DeploymentWorkflow = @"
+        public const string DeploymentWorkflow = @"
 Deployment Workflow:
 1. srectl agent validate --all --check-tools
 2. srectl tool validate --all
@@ -948,7 +948,7 @@ Deployment Workflow:
 4. srectl agent apply --name ProductionAgent
 5. srectl list agents  # Verify deployment";
 
-    public const string TeamCollaborationWorkflow = @"
+        public const string TeamCollaborationWorkflow = @"
 Team Collaboration Workflow:
 1. Setup profiles for different environments:
    srectl profile create --name local --resource-url https://localhost:7023
@@ -970,7 +970,7 @@ Team Collaboration Workflow:
    srectl agent validate --name NewFeatureAgent --check-tools
    srectl agent apply --name NewFeatureAgent";
 
-    public const string TroubleshootingWorkflow = @"
+        public const string TroubleshootingWorkflow = @"
 Troubleshooting Workflow:
 1. Enable debug logging:
    srectl agent validate --name MyAgent --debug
@@ -987,7 +987,7 @@ Troubleshooting Workflow:
 5. Use interactive chat for investigation:
    srectl chat --debug";
 
-    public const string MaintenanceWorkflow = @"
+        public const string MaintenanceWorkflow = @"
 Maintenance Workflow:
 1. List current deployments:
    srectl list agents
@@ -1006,15 +1006,15 @@ Maintenance Workflow:
 4. Validate all configurations:
    srectl agent validate --all --check-tools
    srectl tool validate --all";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region MCP Command Examples
+    #region MCP Command Examples
 
-  public static class Mcp
-  {
-    public const string StartDescription = @"Start the MCP (Model Context Protocol) server using stdio transport
+    public static class Mcp
+    {
+        public const string StartDescription = @"Start the MCP (Model Context Protocol) server using stdio transport
 
 The MCP server provides tools for AI assistants to help build SRE agents,
 scheduled tasks, incident handlers, and custom subagents. It includes
@@ -1074,7 +1074,7 @@ Available MCP Tools:
     - add_note: Add notes to agent/subagent context
     - clear_session: Clear session memory";
 
-    public const string InfoDescription = @"Display SRE Agent documentation for various topics
+        public const string InfoDescription = @"Display SRE Agent documentation for various topics
 
 Examples:
   # Show overview
@@ -1109,17 +1109,17 @@ Available Topics:
   platform-subagents  - Platform-provided subagents
   quickstart          - Getting started guide
   all                 - All documentation";
-  }
+    }
 
-  #endregion
+    #endregion
 
-  #region Workspace Command Examples
+    #region Workspace Command Examples
 
-  public static class Workspace
-  {
-    #region Sync
+    public static class Workspace
+    {
+        #region Sync
 
-    public const string SyncDescription = @"Sync all workspace memory from the remote agent
+        public const string SyncDescription = @"Sync all workspace memory from the remote agent
 
 Downloads all workspace memory (repo instructions and synthesized knowledge) from the remote SRE Agent instance.
 Optionally includes session insights when --include-session-insights is specified.
@@ -1137,11 +1137,11 @@ Examples:
   # Sync to a custom path
   srectl workspace sync --path ./output";
 
-    #endregion
+        #endregion
 
-    #region Repo Instructions
+        #region Repo Instructions
 
-    public const string RepoInstructionsUploadDescription = @"Upload repo instructions to the remote agent
+        public const string RepoInstructionsUploadDescription = @"Upload repo instructions to the remote agent
 
 Uploads local .github repo instructions folder for a specific repository connector to the remote SRE Agent instance.
 
@@ -1152,7 +1152,7 @@ Examples:
   # Upload from a custom path (path used directly)
   srectl workspace repo-instructions upload --repo my-connector --path ./custom-folder";
 
-    public const string RepoInstructionsDownloadDescription = @"Download repo instructions from the remote agent
+        public const string RepoInstructionsDownloadDescription = @"Download repo instructions from the remote agent
 
 Downloads .github repo instructions folder for a specific repository connector from the remote SRE Agent instance.
 
@@ -1163,7 +1163,7 @@ Examples:
   # Download to a custom path
   srectl workspace repo-instructions download --repo my-connector --path ./output";
 
-    public const string RepoInstructionsDeleteDescription = @"Delete repo instructions from the remote agent
+        public const string RepoInstructionsDeleteDescription = @"Delete repo instructions from the remote agent
 
 Deletes .github repo instructions folder for a specific repository connector from the remote SRE Agent instance.
 
@@ -1171,11 +1171,11 @@ Examples:
   # Delete repo instructions for a connector
   srectl workspace repo-instructions delete --repo my-connector";
 
-    #endregion
+        #endregion
 
-    #region Session Insights
+        #region Session Insights
 
-    public const string SessionInsightsDownloadDescription = @"Download session insights from the remote agent
+        public const string SessionInsightsDownloadDescription = @"Download session insights from the remote agent
 
 Downloads sessionInsights folder from the remote SRE Agent instance.
 
@@ -1189,7 +1189,7 @@ Examples:
   # Download to a custom path
   srectl workspace session-insights download --path ./output";
 
-    public const string SessionInsightsDeleteDescription = @"Delete session insights from the remote agent
+        public const string SessionInsightsDeleteDescription = @"Delete session insights from the remote agent
 
 Deletes sessionInsights folder from the remote SRE Agent instance.
 
@@ -1200,11 +1200,11 @@ Examples:
   # Delete session insights for a specific thread
   srectl workspace session-insights delete --thread-id abc123";
 
-    #endregion
+        #endregion
 
-    #region Synthesized Knowledge
+        #region Synthesized Knowledge
 
-    public const string SynthesizedKnowledgeUploadDescription = @"Upload synthesized knowledge to the remote agent
+        public const string SynthesizedKnowledgeUploadDescription = @"Upload synthesized knowledge to the remote agent
 
 Uploads local synthesizedKnowledge folder to the remote SRE Agent instance.
 
@@ -1215,7 +1215,7 @@ Examples:
   # Upload from a custom path (path used directly)
   srectl workspace synthesized-knowledge upload --path ./custom-folder";
 
-    public const string SynthesizedKnowledgeDownloadDescription = @"Download synthesized knowledge from the remote agent
+        public const string SynthesizedKnowledgeDownloadDescription = @"Download synthesized knowledge from the remote agent
 
 Downloads synthesizedKnowledge folder from the remote SRE Agent instance.
 
@@ -1226,7 +1226,7 @@ Examples:
   # Download to a custom path
   srectl workspace synthesized-knowledge download --path ./output";
 
-    public const string SynthesizedKnowledgeDeleteDescription = @"Delete synthesized knowledge from the remote agent
+        public const string SynthesizedKnowledgeDeleteDescription = @"Delete synthesized knowledge from the remote agent
 
 Deletes synthesizedKnowledge folder from the remote SRE Agent instance.
 
@@ -1234,16 +1234,16 @@ Examples:
   # Delete synthesized knowledge
   srectl workspace synthesized-knowledge delete";
 
+        #endregion
+    }
+
     #endregion
-  }
 
-  #endregion
+    #region Incident Filter Command Examples
 
-  #region Incident Filter Command Examples
-
-  public static class IncidentFilter
-  {
-    public const string CreateDescription = @"Create a new incident filter YAML configuration file
+    public static class IncidentFilter
+    {
+        public const string CreateDescription = @"Create a new incident filter YAML configuration file
 
 Examples:
   # Create a basic IcM incident filter
@@ -1283,7 +1283,7 @@ Platform-specific options:
     --target-resource-type Target resource type (e.g., Microsoft.Compute/virtualMachines)
     --target-resource      Target resource path";
 
-    public const string GetDescription = @"List or get incident filters from the remote server
+        public const string GetDescription = @"List or get incident filters from the remote server
 
 Examples:
   # List all incident filters
@@ -1295,7 +1295,7 @@ Examples:
   # Get a specific incident filter by name (full YAML output)
   srectl incident-filter get --name MyIcmFilter";
 
-    public const string ApplyDescription = @"Apply an incident filter configuration to the remote server
+        public const string ApplyDescription = @"Apply an incident filter configuration to the remote server
 
 Examples:
   # Apply an incident filter to the server
@@ -1307,7 +1307,7 @@ Examples:
   # Apply with debug logging
   srectl incident-filter apply --name MyIcmFilter --debug";
 
-    public const string DeleteDescription = @"Delete an incident filter from the remote server
+        public const string DeleteDescription = @"Delete an incident filter from the remote server
 
 Examples:
   # Delete an incident filter from the server
@@ -1318,7 +1318,7 @@ Examples:
 
   # Delete with debug logging
   srectl incident-filter delete --name UnusedFilter --debug";
-  }
+    }
 
-  #endregion
+    #endregion
 }

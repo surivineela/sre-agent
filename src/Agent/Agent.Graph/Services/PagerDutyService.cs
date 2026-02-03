@@ -520,7 +520,7 @@ public class PagerDutyService : IPagerDutyService
 
         // Fetch the latest incident details to check the current status
         var incident = await GetPagerDutyIncidentAsync(incidentId);
-        
+
         // Only acknowledge incidents in "triggered" status
         if (!incident.Status.Equals("triggered", StringComparison.OrdinalIgnoreCase))
         {

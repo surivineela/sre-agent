@@ -23,6 +23,14 @@ public class PagerDutyApiClientTests
         var mockHttpClientFactory = new Mock<IHttpClientFactory>();
         _mockIncidentManagementSettings = new Mock<IOptionsMonitor<IncidentManagementSettings>>();
 
+        // Configure mock to return PagerDuty settings
+        var settings = new IncidentManagementSettings
+        {
+            Type = IncidentManagementType.PagerDuty,
+            ConnectionKey = "test-pagerduty-api-key"
+        };
+        _mockIncidentManagementSettings.Setup(m => m.CurrentValue).Returns(settings);
+
         mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() =>
         {
             var client = new HttpClient(_mockHttpMessageHandler.Object);
@@ -96,10 +104,10 @@ public class PagerDutyApiClientTests
         // Setup: Mock incident in triggered state
         var getIncidentResponse = await ReadJsonFromFileAsync("GetIncident_Triggered.json");
         var acknowledgeResponse = "{}";
-        
+
         var mockHandler = new Mock<HttpMessageHandler>();
         var mockHttpClientFactory = new Mock<IHttpClientFactory>();
-        
+
         // Setup mock to return different responses based on the request
         mockHandler
             .Protected()
@@ -111,7 +119,7 @@ public class PagerDutyApiClientTests
             {
                 Content = new StringContent(getIncidentResponse, System.Text.Encoding.UTF8, "application/json")
             });
-        
+
         mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -122,17 +130,17 @@ public class PagerDutyApiClientTests
             {
                 Content = new StringContent(acknowledgeResponse, System.Text.Encoding.UTF8, "application/json")
             });
-        
+
         mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() =>
         {
             var client = new HttpClient(mockHandler.Object);
             return client;
         });
-        
+
         var mockCosmosClient = new Mock<CosmosClient>();
         var mockCosmosDbSettings = new Mock<CosmosDBSettings>();
         var pagerDutyService = new PagerDutyService(_mockLogger.Object, mockHttpClientFactory.Object, _mockIncidentManagementSettings.Object, mockCosmosClient.Object, mockCosmosDbSettings.Object);
-        
+
         // Act & Assert - should not throw
         await pagerDutyService.AcknowledgeIncident("Q2HZ36TE0J5I8P");
     }
@@ -142,10 +150,10 @@ public class PagerDutyApiClientTests
     {
         // Setup: Mock incident in resolved state
         var getIncidentResponse = await ReadJsonFromFileAsync("GetIncident.json");
-        
+
         var mockHandler = new Mock<HttpMessageHandler>();
         var mockHttpClientFactory = new Mock<IHttpClientFactory>();
-        
+
         mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -156,17 +164,17 @@ public class PagerDutyApiClientTests
             {
                 Content = new StringContent(getIncidentResponse, System.Text.Encoding.UTF8, "application/json")
             });
-        
+
         mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() =>
         {
             var client = new HttpClient(mockHandler.Object);
             return client;
         });
-        
+
         var mockCosmosClient = new Mock<CosmosClient>();
         var mockCosmosDbSettings = new Mock<CosmosDBSettings>();
         var pagerDutyService = new PagerDutyService(_mockLogger.Object, mockHttpClientFactory.Object, _mockIncidentManagementSettings.Object, mockCosmosClient.Object, mockCosmosDbSettings.Object);
-        
+
         // Act & Assert - should throw InvalidOperationException
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => pagerDutyService.AcknowledgeIncident("Q2HZ36TE0J5I8P"));
         Assert.Contains("resolved", exception.Message);
@@ -178,10 +186,10 @@ public class PagerDutyApiClientTests
     {
         // Setup: Mock incident in acknowledged state
         var getIncidentResponse = await ReadJsonFromFileAsync("GetIncident_Acknowledged.json");
-        
+
         var mockHandler = new Mock<HttpMessageHandler>();
         var mockHttpClientFactory = new Mock<IHttpClientFactory>();
-        
+
         mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -192,17 +200,17 @@ public class PagerDutyApiClientTests
             {
                 Content = new StringContent(getIncidentResponse, System.Text.Encoding.UTF8, "application/json")
             });
-        
+
         mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() =>
         {
             var client = new HttpClient(mockHandler.Object);
             return client;
         });
-        
+
         var mockCosmosClient = new Mock<CosmosClient>();
         var mockCosmosDbSettings = new Mock<CosmosDBSettings>();
         var pagerDutyService = new PagerDutyService(_mockLogger.Object, mockHttpClientFactory.Object, _mockIncidentManagementSettings.Object, mockCosmosClient.Object, mockCosmosDbSettings.Object);
-        
+
         // Act & Assert - should throw InvalidOperationException
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => pagerDutyService.AcknowledgeIncident("Q2HZ36TE0J5I8P"));
         Assert.Contains("acknowledged", exception.Message);
