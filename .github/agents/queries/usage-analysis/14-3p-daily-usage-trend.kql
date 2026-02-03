@@ -1,0 +1,33 @@
+// 3P Subscriptions - Daily Usage Trend
+// Shows customer name, subscription ID, number of agents, and daily active usage
+// Date range: November 1, 2025 to January 31, 2026
+//
+// Output: CustomerName, CloudCustomerGuid, SubscriptionId, NumAgents, Day, DailyDurationMinutes
+
+let StartDate = datetime(2025-11-01);
+let EndDate = datetime(2026-02-01);
+
+// Excluded agents (team testing accounts)
+let ExcludedAgents = dynamic(["saziz-115--59688f2c"]);
+
+// Get 3P agent metadata with CloudCustomerGuid extracted from CloudCustomerDisplayName
+let Metadata = ExtendedAgentDocumentDBState()
+| where CustomerCategory == "ThirdParty"
+| where not(AgentUniqueName in (ExcludedAgents))
+| extend CloudCustomerGuid = extract(@"\(([0-9a-fA-F-]{36})\)$", 1, CloudCustomerDisplayName)
+| project AgentName = AgentUniqueName, CustomerName, CloudCustomerGuid, SubscriptionId;
+
+// Get agent counts per subscription
+let AgentCounts = Metadata
+| summarize NumAgents = dcount(AgentName) by CustomerName, CloudCustomerGuid, SubscriptionId;
+
+// Calculate daily usage per subscription
+All('AgentActionEvents')
+| where PreciseTimeStamp >= StartDate and PreciseTimeStamp < EndDate
+| where Action == "GenerateModelResponse"
+| where Duration > 0
+| join kind=inner (Metadata) on AgentName
+| summarize DailyDurationMinutes = round(sum(Duration) / 60000.0, 2) by CustomerName, CloudCustomerGuid, SubscriptionId, Day = bin(PreciseTimeStamp, 1d)
+| join kind=inner (AgentCounts) on CustomerName, CloudCustomerGuid, SubscriptionId
+| project CustomerName, CloudCustomerGuid, SubscriptionId, NumAgents, Day, DailyDurationMinutes
+| order by CustomerName asc, SubscriptionId asc, Day asc
