@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Models;
 using Agent.Framework.Skills;
 using Agent.Plugins;
@@ -1208,6 +1209,7 @@ public class TestAgent1Descriptor : IAgentDescriptor
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
     public List<string>? AllowedSkills { get; set; } = null;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }
 
 public class TestAgent2Descriptor : IAgentDescriptor
@@ -1243,6 +1245,7 @@ public class TestAgent2Descriptor : IAgentDescriptor
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
     public List<string>? AllowedSkills { get; set; } = null;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }
 
 public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
@@ -1277,6 +1280,7 @@ public class TestAgent3WithOptionalToolsDescriptor : IAgentDescriptor
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
     public List<string>? AllowedSkills { get; set; } = null;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }
 
 public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
@@ -1311,6 +1315,7 @@ public class TestAgent4WithOptionalToolsOnlyDescriptor : IAgentDescriptor
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
     public List<string>? AllowedSkills { get; set; } = null;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }
 
 public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
@@ -1345,6 +1350,7 @@ public class TestAgent5WithMultipleOptionalToolsDescriptor : IAgentDescriptor
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
     public List<string>? AllowedSkills { get; set; } = null;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }
 
 public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
@@ -1379,6 +1385,7 @@ public class TestAgent6WithEmptyConditionDescriptor : IAgentDescriptor
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
     public List<string>? AllowedSkills { get; set; } = null;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }
 
 public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
@@ -1413,6 +1420,7 @@ public class TestAgent7WithDataConnectorConditionDescriptor : IAgentDescriptor
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
     public List<string>? AllowedSkills { get; set; } = null;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }
 
 public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
@@ -1447,6 +1455,7 @@ public class TestAgent8WithMissingDataConnectorDescriptor : IAgentDescriptor
     public bool EnableSkills { get; set; } = false;
     public bool AddSystemSkills { get; set; } = false;
     public List<string>? AllowedSkills { get; set; } = null;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }
 
 public class TestAgentWithSkillsEnabledDescriptor : IAgentDescriptor
@@ -1481,6 +1490,7 @@ public class TestAgentWithSkillsEnabledDescriptor : IAgentDescriptor
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableVanillaMode { get; set; } = false;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }
 
 public class TestAgentWithSkillsAndReadSkillFileToolDescriptor : IAgentDescriptor
@@ -1515,4 +1525,5 @@ public class TestAgentWithSkillsAndReadSkillFileToolDescriptor : IAgentDescripto
     public string? ResultSummarizationPrompt { get; set; } = string.Empty;
     public List<NextAgentMapping> NextAgentMappings { get; set; } = [];
     public bool EnableVanillaMode { get; set; } = false;
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; } = null;
 }

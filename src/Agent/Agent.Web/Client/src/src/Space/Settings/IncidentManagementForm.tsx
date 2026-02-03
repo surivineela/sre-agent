@@ -22,6 +22,7 @@ import {
     Tooltip,
     tokens,
 } from '@fluentui/react-components';
+import { Copy16Regular, Warning16Filled } from '@fluentui/react-icons';
 import { FC, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { SpecialControlValue } from '../../Common/AzPortalProxy/Models/IAmplitude';
@@ -44,7 +45,7 @@ import {
     SreAgentTabResources,
 } from '../../Strings/SREAgentResources';
 import { CopilotCheckbox as Checkbox } from '../Components/Common/CopilotCheckbox';
-import { IncidentManagementFormProps } from '../Contracts/IncidentManagement';
+import { IncidentManagementFormProps, ServiceNowAuthType } from '../Contracts/IncidentManagement';
 import { PlatformConnectionIndicator } from '../IncidentManagement/Common/PlatformConnectionIndicator';
 import { PlatformConnectionMessageBar } from '../IncidentManagement/Common/PlatformConnectionMessageBar';
 import { DirtyStateConfirmationWrapper } from '../IncidentManagement/CreateIncidentHandler/DirtyStateConfirmationDialog';
@@ -63,6 +64,10 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     close,
     keepOpen,
     isUsingAgentSpaceIdentity,
+    agent,
+    setupServiceNowOAuth,
+    isServiceNowOAuthConnected,
+    cleanupPendingOAuthConnection,
 }: IncidentManagementFormProps) => {
     const intl = useIntl();
     const styles = useSettingsStyles();
@@ -70,11 +75,40 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
     const { setFieldValue, setFieldTouched, submitForm, resetForm, values, isValid, isValidating, isSubmitting, dirty, initialValues } =
         formikProps;
     const [editingApiKey, setEditingApiKey] = useState(false);
+    const [authorizing, setAuthorizing] = useState(false);
+    const [authorizationError, setAuthorizationError] = useState<string | undefined>();
     const isSetupScenario = useMemo(() => initialValues.platform === IncidentManagementType.None, [initialValues.platform]);
     const isApiKeyEditable = useMemo(() => isSetupScenario || editingApiKey, [isSetupScenario, editingApiKey]);
 
+    // Check if OAuth has been authorized (apiConnectionName is set in form values - immediate after authorize)
+    const isOAuthAuthorized = useMemo(() => !!values.apiConnectionName, [values.apiConnectionName]);
+
+    // Check if OAuth is fully connected (apiConnectionName set AND connection verified)
+    // Use the prop from parent which checks connection state, OR the immediate form value for just-authorized case
+    const isServiceNowOAuthFullyConnected = useMemo(
+        () => isServiceNowOAuthConnected || (!!values.apiConnectionName && isSetupScenario),
+        [isServiceNowOAuthConnected, values.apiConnectionName, isSetupScenario]
+    );
+
     const azPortalContext = useContext(AzPortalContext);
     const { canWriteAgent } = useUserPermissions();
+
+    // Auth type dropdown options for ServiceNow
+    const authTypeDropdownOptions: { key: ServiceNowAuthType; text: string }[] = useMemo(
+        () => [
+            { key: 'basic', text: intl.formatMessage(ServiceNowResources.basicAuthentication) },
+            { key: 'oauth2', text: intl.formatMessage(ServiceNowResources.oauth2) },
+        ],
+        [intl]
+    );
+
+    const selectedAuthTypeDisplayName = useMemo(() => {
+        const selectedAuthType = authTypeDropdownOptions.find(option => option.key === values.authType);
+        return selectedAuthType?.text || '';
+    }, [authTypeDropdownOptions, values.authType]);
+
+    // Check if OAuth is selected based on authType field
+    const useOAuth = values.authType === 'oauth2';
 
     const incidentPlatformDropdownOptions = useMemo(() => {
         const options = [
@@ -372,6 +406,102 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     <PlatformConnectionIndicator includeHandlersMessage={true} style={{ marginBottom: 20 }} />
                                 )}
 
+                                {/* Authentication Type dropdown */}
+                                {(isSetupScenario || editingApiKey) && (
+                                    <Field
+                                        id="authTypeField"
+                                        label={intl.formatMessage(ServiceNowResources.authenticationType)}
+                                        orientation="horizontal"
+                                        required={true}
+                                        style={{ maxWidth: '80%', marginBottom: 16 }}
+                                    >
+                                        <Dropdown
+                                            id="authType"
+                                            style={styles.dropdownStyles}
+                                            value={selectedAuthTypeDisplayName}
+                                            placeholder={intl.formatMessage(ServiceNowResources.basicAuthentication)}
+                                            onOptionSelect={(_event, data) => {
+                                                setFieldTouched('authType', true, false);
+                                                setFieldValue('authType', data?.optionValue as ServiceNowAuthType);
+                                                // Clear the other auth type's fields when switching
+                                                if (data?.optionValue === 'oauth2') {
+                                                    setFieldValue('username', undefined, false);
+                                                    setFieldValue('password', undefined, false);
+                                                } else {
+                                                    setFieldValue('clientId', undefined, false);
+                                                    setFieldValue('clientSecret', undefined, false);
+                                                }
+
+                                                azPortalContext.logAmplitudeControlEvent({
+                                                    targetType: 'dropdown',
+                                                    targetAction: 'changed',
+                                                    targetName: 'serviceNowAuthType',
+                                                    targetFriendlyName: 'ServiceNow Authentication Type',
+                                                    valueObjectName: data?.optionValue ?? '',
+                                                    valueObjectFriendlyName: data?.optionValue ?? '',
+                                                });
+                                            }}
+                                            disabled={loading || !!loadFailure || saving || !canWriteAgent || isOAuthAuthorized}
+                                        >
+                                            {authTypeDropdownOptions.map(option => (
+                                                <Option key={option.key} value={option.key} checkIcon={null}>
+                                                    {option.text}
+                                                </Option>
+                                            ))}
+                                        </Dropdown>
+                                    </Field>
+                                )}
+
+                                {/* OAuth setup info box - only show for OAuth mode before fully connected */}
+                                {useOAuth && (isSetupScenario || editingApiKey) && !isServiceNowOAuthFullyConnected && (
+                                    <div
+                                        style={{
+                                            marginBottom: 16,
+                                            padding: 16,
+                                            backgroundColor: '#FFF8E5',
+                                            borderRadius: 8,
+                                            border: '1px solid #FFECB3',
+                                            maxWidth: 'calc(30% + 300px)', // Label width (~30%) + input width (300px)
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+                                            <Warning16Filled style={{ color: '#D97706', flexShrink: 0, marginTop: 2 }} />
+                                            <Text weight="semibold">{intl.formatMessage(ServiceNowResources.oauthSetupTitle)}</Text>
+                                        </div>
+                                        <Text style={{ display: 'block', marginBottom: 12, marginLeft: 24 }}>
+                                            {intl.formatMessage(ServiceNowResources.oauthSetupInstructions)}
+                                        </Text>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 24 }}>
+                                            <div
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '10px 14px',
+                                                    backgroundColor: tokens.colorNeutralBackground1,
+                                                    borderRadius: 6,
+                                                    border: `1px solid ${tokens.colorNeutralStroke2}`,
+                                                    fontFamily: 'Consolas, Monaco, monospace',
+                                                    fontSize: 13,
+                                                    wordBreak: 'break-all',
+                                                    color: tokens.colorNeutralForeground1,
+                                                }}
+                                            >
+                                                {`https://logic-apis-${agent?.location || 'eastus2'}.consent.azure-apim.net/redirect`}
+                                            </div>
+                                            <Tooltip content={intl.formatMessage(SreAgentResources.copy)} relationship="label">
+                                                <Button
+                                                    appearance="subtle"
+                                                    icon={<Copy16Regular />}
+                                                    onClick={() => {
+                                                        const url = `https://logic-apis-${agent?.location || 'eastus2'}.consent.azure-apim.net/redirect`;
+                                                        navigator.clipboard.writeText(url);
+                                                    }}
+                                                />
+                                            </Tooltip>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Endpoint field - common to both OAuth and basic auth */}
                                 <Field
                                     id="endpointField"
                                     label={intl.formatMessage(ServiceNowResources.serviceNowEndpoint)}
@@ -391,59 +521,120 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                             setFieldTouched('endpoint', true, false);
                                             setFieldValue('endpoint', newValue?.value);
                                         }}
-                                        disabled={saving || !isApiKeyEditable}
+                                        disabled={saving || !isApiKeyEditable || (useOAuth && isOAuthAuthorized)}
                                         contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
                                     />
                                 </Field>
 
-                                <Field
-                                    id="usernameField"
-                                    label={intl.formatMessage(ServiceNowResources.serviceNowUsername)}
-                                    orientation="horizontal"
-                                    required={true}
-                                    validationMessage={
-                                        formikProps.touched.username && !isValidating ? formikProps.errors.username : undefined
-                                    }
-                                    style={{ maxWidth: '80%', marginTop: 16 }}
-                                >
-                                    <Input
-                                        style={styles.plainTextFieldStyles}
-                                        id="username"
-                                        value={isApiKeyEditable ? values.username : undefined}
-                                        placeholder={isApiKeyEditable ? undefined : ''}
-                                        onChange={(_event, newValue) => {
-                                            setFieldTouched('username', true, false);
-                                            setFieldValue('username', newValue?.value);
-                                        }}
-                                        disabled={saving || !isApiKeyEditable}
-                                        contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
-                                    />
-                                </Field>
+                                {/* OAuth fields - show when useOAuth is true AND editing/setup AND not yet authorized */}
+                                {useOAuth && (isSetupScenario || editingApiKey) && !isOAuthAuthorized && (
+                                    <>
+                                        <Field
+                                            id="clientIdField"
+                                            label={intl.formatMessage(ServiceNowResources.serviceNowClientId)}
+                                            orientation="horizontal"
+                                            required={true}
+                                            validationMessage={
+                                                formikProps.touched.clientId && !isValidating ? formikProps.errors.clientId : undefined
+                                            }
+                                            style={{ maxWidth: '80%', marginTop: 16 }}
+                                        >
+                                            <Input
+                                                style={styles.plainTextFieldStyles}
+                                                id="clientId"
+                                                value={isApiKeyEditable ? values.clientId : undefined}
+                                                placeholder={isApiKeyEditable ? 'Enter OAuth Client ID' : ''}
+                                                onChange={(_event, newValue) => {
+                                                    setFieldTouched('clientId', true, false);
+                                                    setFieldValue('clientId', newValue?.value);
+                                                }}
+                                                disabled={saving || !isApiKeyEditable}
+                                                contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
+                                            />
+                                        </Field>
 
-                                <Field
-                                    id="passwordField"
-                                    label={intl.formatMessage(ServiceNowResources.serviceNowPassword)}
-                                    orientation="horizontal"
-                                    required={true}
-                                    validationMessage={
-                                        formikProps.touched.password && !isValidating ? formikProps.errors.password : undefined
-                                    }
-                                    style={{ maxWidth: '80%', marginTop: 16 }}
-                                >
-                                    <Input
-                                        style={styles.secureTextFieldStyles}
-                                        id="password"
-                                        type="password"
-                                        value={isApiKeyEditable ? values.password : undefined}
-                                        placeholder={isApiKeyEditable ? undefined : ''}
-                                        onChange={(_event, newValue) => {
-                                            setFieldTouched('password', true, false);
-                                            setFieldValue('password', newValue?.value);
-                                        }}
-                                        disabled={saving || !isApiKeyEditable}
-                                        contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
-                                    />
-                                </Field>
+                                        <Field
+                                            id="clientSecretField"
+                                            label={intl.formatMessage(ServiceNowResources.serviceNowClientSecret)}
+                                            orientation="horizontal"
+                                            required={true}
+                                            validationMessage={
+                                                formikProps.touched.clientSecret && !isValidating
+                                                    ? formikProps.errors.clientSecret
+                                                    : undefined
+                                            }
+                                            style={{ maxWidth: '80%', marginTop: 16 }}
+                                        >
+                                            <Input
+                                                style={styles.secureTextFieldStyles}
+                                                id="clientSecret"
+                                                type="password"
+                                                value={isApiKeyEditable ? values.clientSecret : undefined}
+                                                placeholder={isApiKeyEditable ? 'Enter OAuth Client Secret' : ''}
+                                                onChange={(_event, newValue) => {
+                                                    setFieldTouched('clientSecret', true, false);
+                                                    setFieldValue('clientSecret', newValue?.value);
+                                                }}
+                                                disabled={saving || !isApiKeyEditable}
+                                                contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
+                                            />
+                                        </Field>
+                                    </>
+                                )}
+
+                                {/* Basic auth fields - show when useOAuth is false AND (setup scenario OR editing) */}
+                                {!useOAuth && (isSetupScenario || editingApiKey) && (
+                                    <>
+                                        <Field
+                                            id="usernameField"
+                                            label={intl.formatMessage(ServiceNowResources.serviceNowUsername)}
+                                            orientation="horizontal"
+                                            required={true}
+                                            validationMessage={
+                                                formikProps.touched.username && !isValidating ? formikProps.errors.username : undefined
+                                            }
+                                            style={{ maxWidth: '80%', marginTop: 16 }}
+                                        >
+                                            <Input
+                                                style={styles.plainTextFieldStyles}
+                                                id="username"
+                                                value={isApiKeyEditable ? values.username : undefined}
+                                                placeholder={isApiKeyEditable ? undefined : ''}
+                                                onChange={(_event, newValue) => {
+                                                    setFieldTouched('username', true, false);
+                                                    setFieldValue('username', newValue?.value);
+                                                }}
+                                                disabled={saving || !isApiKeyEditable}
+                                                contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
+                                            />
+                                        </Field>
+
+                                        <Field
+                                            id="passwordField"
+                                            label={intl.formatMessage(ServiceNowResources.serviceNowPassword)}
+                                            orientation="horizontal"
+                                            required={true}
+                                            validationMessage={
+                                                formikProps.touched.password && !isValidating ? formikProps.errors.password : undefined
+                                            }
+                                            style={{ maxWidth: '80%', marginTop: 16 }}
+                                        >
+                                            <Input
+                                                style={styles.secureTextFieldStyles}
+                                                id="password"
+                                                type="password"
+                                                value={isApiKeyEditable ? values.password : undefined}
+                                                placeholder={isApiKeyEditable ? undefined : ''}
+                                                onChange={(_event, newValue) => {
+                                                    setFieldTouched('password', true, false);
+                                                    setFieldValue('password', newValue?.value);
+                                                }}
+                                                disabled={saving || !isApiKeyEditable}
+                                                contentAfter={isValidating && !isSubmitting ? <Spinner size={'tiny'} /> : null}
+                                            />
+                                        </Field>
+                                    </>
+                                )}
                             </>
                         )}
 
@@ -515,6 +706,11 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                         disabledReason={saving}
                                         onClick={() => {
                                             setEditingApiKey(true);
+                                            // Clear the apiConnectionName to reset OAuth authorization state
+                                            // This allows the user to re-enter credentials and re-authorize
+                                            if (initialValues.platform === IncidentManagementType.ServiceNow) {
+                                                setFieldValue('apiConnectionName', undefined, false);
+                                            }
                                         }}
                                     >
                                         {initialValues.platform === IncidentManagementType.PagerDuty
@@ -523,7 +719,83 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     </PermissionedButton>
                                 )}
 
-                            {(isSetupScenario || editingApiKey) && (
+                            {/* Authorize/Save button - for ServiceNow OAuth */}
+                            {(isSetupScenario || editingApiKey) && values.platform === IncidentManagementType.ServiceNow && useOAuth && (
+                                <>
+                                    {authorizing && (
+                                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10, width: '100%' }}>
+                                            <Spinner size="tiny" style={{ marginRight: 8 }} />
+                                            <span>{intl.formatMessage(ServiceNowResources.oauthAuthorizingWaitMessage)}</span>
+                                        </div>
+                                    )}
+                                    <PermissionedButton
+                                        appearance={isOAuthAuthorized ? 'primary' : 'secondary'}
+                                        style={{ borderRadius: 5, marginRight: 10 }}
+                                        canPerform={canWriteAgent}
+                                        noPermissionTooltip={intl.formatMessage(SreAgentResources.noPermissionIncidentManagement)}
+                                        disabledReason={
+                                            authorizing ||
+                                            saving ||
+                                            isValidating ||
+                                            !values.endpoint ||
+                                            !values.clientId ||
+                                            !values.clientSecret ||
+                                            (isOAuthAuthorized && (!isDirty || !isValid))
+                                        }
+                                        onClick={async () => {
+                                            if (isOAuthAuthorized) {
+                                                // Already authorized - save the form
+                                                setEditingApiKey(false);
+                                                submitForm();
+
+                                                azPortalContext.logAmplitudeControlEvent({
+                                                    targetType: 'button',
+                                                    targetAction: 'clicked',
+                                                    targetName: 'save',
+                                                    targetFriendlyName: 'Save',
+                                                    valueObjectName: values.platform ?? '',
+                                                    valueObjectFriendlyName: values.platform ?? '',
+                                                });
+                                            } else {
+                                                // Not authorized yet - start OAuth flow
+                                                if (!setupServiceNowOAuth) return;
+
+                                                setAuthorizing(true);
+                                                setAuthorizationError(undefined);
+
+                                                azPortalContext.logAmplitudeControlEvent({
+                                                    targetType: 'button',
+                                                    targetAction: 'clicked',
+                                                    targetName: 'authorize',
+                                                    targetFriendlyName: 'Authorize',
+                                                    valueObjectName: values.platform ?? '',
+                                                    valueObjectFriendlyName: values.platform ?? '',
+                                                });
+
+                                                const result = await setupServiceNowOAuth(values);
+                                                setAuthorizing(false);
+
+                                                if (result.success && result.connectionName) {
+                                                    // Set the apiConnectionName in form values
+                                                    setFieldValue('apiConnectionName', result.connectionName);
+                                                    setAuthorizationError(undefined);
+                                                } else {
+                                                    setAuthorizationError(result.errorMessage || 'Authorization failed');
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        {authorizing
+                                            ? intl.formatMessage(SreAgentResources.authorizing)
+                                            : isOAuthAuthorized
+                                              ? intl.formatMessage(SreAgentResources.save)
+                                              : intl.formatMessage(ServiceNowResources.authorize)}
+                                    </PermissionedButton>
+                                </>
+                            )}
+
+                            {/* Save button - for non-OAuth platforms (PagerDuty, AzMonitor, Icm, ServiceNow basic auth) */}
+                            {(isSetupScenario || editingApiKey) && !(values.platform === IncidentManagementType.ServiceNow && useOAuth) && (
                                 <PermissionedButton
                                     appearance="primary"
                                     style={{ borderRadius: 5, marginRight: 10 }}
@@ -532,6 +804,7 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                     disabledReason={
                                         !isDirty ||
                                         saving ||
+                                        authorizing ||
                                         isValidating ||
                                         !isValid ||
                                         (values.platform === IncidentManagementType.PagerDuty && !values.connectionKey) ||
@@ -556,15 +829,27 @@ const IncidentManagementFormInner: FC<IncidentManagementFormProps> = ({
                                 </PermissionedButton>
                             )}
 
+                            {/* Authorization error message */}
+                            {authorizationError && (
+                                <MessageBar intent="error" style={{ marginBottom: 10, maxWidth: '80%' }}>
+                                    {authorizationError}
+                                </MessageBar>
+                            )}
+
                             {(isSetupScenario || editingApiKey) && (
                                 <Button
                                     appearance="secondary"
                                     style={{ borderRadius: 5, marginRight: 10 }}
-                                    onClick={() => {
+                                    onClick={async () => {
+                                        // If OAuth was authorized but not saved, cleanup the pending connection
+                                        if (useOAuth && isOAuthAuthorized && values.apiConnectionName && cleanupPendingOAuthConnection) {
+                                            await cleanupPendingOAuthConnection(values.apiConnectionName);
+                                        }
                                         setEditingApiKey(false);
+                                        setAuthorizationError(undefined);
                                         resetForm();
                                     }}
-                                    disabled={(!isDirty && !editingApiKey) || saving}
+                                    disabled={(!isDirty && !editingApiKey) || saving || authorizing}
                                 >
                                     {intl.formatMessage(SreAgentResources.cancel)}
                                 </Button>

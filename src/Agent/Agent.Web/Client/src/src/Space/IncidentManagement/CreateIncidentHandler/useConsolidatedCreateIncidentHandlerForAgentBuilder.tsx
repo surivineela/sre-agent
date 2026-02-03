@@ -626,7 +626,7 @@ export const useConsolidatedCreateIncidentHandlerforAgentBuilder = (
     }, [handler]);
 
     const goToFullEditMode = useCallback(() => {
-        setCurrentStep(IncidentHandlerCreateSteps.IncidentsAndGuidanceStep);
+        setCurrentStep(IncidentHandlerCreateSteps.DefineAgentLearningStep);
         setHandlerMode('edit');
     }, []);
 

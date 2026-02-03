@@ -25,8 +25,6 @@ interface ExtendedAgentToolbarProps {
     onCreateItem: (itemType: EntityTypeExt) => void;
     isLoading: boolean;
     disableCreateMetaAgent: boolean;
-    disableCreateSubagent: boolean;
-    disableCreateSkill: boolean;
 }
 
 export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
@@ -36,8 +34,6 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
     onCreateItem,
     isLoading,
     disableCreateMetaAgent,
-    disableCreateSubagent,
-    disableCreateSkill,
 }) => {
     const { toolbarWrapper, toolbarRefreshButton, toolbarInstallMcpButton } = useExtendedAgentGraphStyles();
     const { isDirty } = useContext(DirtyStateContext);
@@ -52,13 +48,7 @@ export const ExtendedAgentToolbar: FC<ExtendedAgentToolbarProps> = ({
 
     return (
         <div className={mergeClasses(contentHeader, toolbarWrapper)}>
-            <CreateButton
-                handleCreateItemStandalone={onCreateItem}
-                disableCreateMetaAgent={disableCreateMetaAgent}
-                disableCreateSubagent={disableCreateSubagent}
-                disableCreateSkill={disableCreateSkill}
-                disabled={isLoading}
-            />
+            <CreateButton handleCreateItemStandalone={onCreateItem} disableCreateMetaAgent={disableCreateMetaAgent} disabled={isLoading} />
             <DirtyStateOnChangeConfirmationWrapper isDirty={isDirty}>
                 <RadioGroup
                     name="viewToggle"

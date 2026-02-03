@@ -21,6 +21,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
 using Agent.Logging;
 using Agent.Plugins;
@@ -128,10 +129,13 @@ public class ReasoningLoop : IDisposable
     // tool output processing
     private readonly IToolOutputProcessService _toolOutputProcessService;
 
-    private readonly IThreadFileStorageService _threadFileStorageService;
+    private readonly IAgentFileStorageService _agentFileStorageService;
 
     // ambient context provider for VS Code tools integration
     private readonly IAmbientContextProvider _ambientContextProvider;
+
+    // hook manager for executing agent hooks
+    private readonly HookManager _hookManager;
 
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
@@ -157,10 +161,11 @@ public class ReasoningLoop : IDisposable
         IAgentRuntimeModifier<AgentContext> agentRuntimeModifier,
         ISkillRegistry skillRegistry,
         IToolOutputProcessService toolOutputProcessService,
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         IHostEnvironment hostEnvironment,
         IAmbientContextProvider ambientContextProvider,
-        bool modeSwitchEnabled)
+        bool modeSwitchEnabled,
+        HookManager hookManager)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
@@ -196,6 +201,7 @@ public class ReasoningLoop : IDisposable
         _modeSwitchEnabled = modeSwitchEnabled;
         _skillRegistry = skillRegistry;
         _ambientContextProvider = ambientContextProvider;
+        _hookManager = hookManager;
         if (_modeSwitchEnabled)
         {
             // Initialize handler only when feature flag enabled to keep overhead minimal for other agents
@@ -216,7 +222,7 @@ public class ReasoningLoop : IDisposable
             _context.ThreadId,
             FormatExperimentVariants(_agentProvider.GetActiveVariants(_context.ThreadId.ToString())));
         _toolOutputProcessService = toolOutputProcessService;
-        _threadFileStorageService = threadFileStorageService;
+        _agentFileStorageService = agentFileStorageService;
     }
 
     public virtual void CancelCurrentOperation()
@@ -405,6 +411,9 @@ public class ReasoningLoop : IDisposable
             if (e.CancellationToken == _userCancellationTokenSource.Token)
             {
                 _logger.LogInternalInformation("[{threadId}]{RunInternalAsync} was canceled by user.", _context.ThreadId, nameof(RunInternalAsync));
+
+                // Add cancellation marker to chat history so LLM knows not to retry the cancelled operation
+                await AddCancellationMarkerToChatHistoryAsync();
             }
             else
             {
@@ -424,8 +433,37 @@ public class ReasoningLoop : IDisposable
         finally
         {
             await _outboundCommunicationService.SignalProcessingComplete(_context.ThreadId, cancellationToken: _userCancellationTokenSource.Token);
+
+            await UpdateInvestigationStatusIfNeededAsync(_userCancellationTokenSource.Token);
+
             _semaphore.Release();
         }
+    }
+
+    /// <summary>
+    /// Updates the investigation status for ICM incidents based on pending user actions.
+    /// Only ICM incidents use this status tracking; PagerDuty and ServiceNow incidents are not affected.
+    /// </summary>
+    /// <remarks>
+    /// Investigation status rules:
+    /// - PendingUserInput: if there are pending user actions from the last iteration
+    /// - Complete: if no pending actions (investigation work is done for this cycle)
+    /// </remarks>
+    private async Task UpdateInvestigationStatusIfNeededAsync(CancellationToken cancellationToken)
+    {
+        var thread = await _threadRepository.GetThreadAsync(_context.ThreadId);
+        if (thread?.IncidentSource?.IncidentType != IncidentType.Icm)
+        {
+            return;
+        }
+
+        var hasPendingUserActions = LastIterationResult != null && !LastIterationResult.AreUserActionsCompleted;
+
+        var newStatus = hasPendingUserActions
+            ? InvestigationStatus.PendingUserInput
+            : InvestigationStatus.Complete;
+
+        await _outboundCommunicationService.UpdateInvestigationStatusAsync(_context.ThreadId, newStatus, cancellationToken);
     }
 
     private async Task RunAsync(CancellationToken cancellationToken)
@@ -627,6 +665,7 @@ public class ReasoningLoop : IDisposable
                                         var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                             _context.ThreadId,
                                             funcCallName,
+                                            functionResult.CallId,
                                             functionResult.Result?.ToString() ?? "",
                                             cancellationToken);
 
@@ -927,7 +966,9 @@ public class ReasoningLoop : IDisposable
             ThreadId = _context.ThreadId,
             SkillRegistry = _skillRegistry,
             EnablePartialToolOutput = _featureConfig.PartialOutputEnabled,
-            AmbientContextProvider = _ambientContextProvider
+            AmbientContextProvider = _ambientContextProvider,
+            ChatClientProvider = _chatClientProvider,
+            HookManager = _hookManager
         };
 
         List<UserActionRequiredResult> userActionRequiredResults = [];
@@ -1076,6 +1117,7 @@ public class ReasoningLoop : IDisposable
                                             var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                                 _context.ThreadId,
                                                 toolCall.Tool,
+                                                toolCall.FunctionCall.CallId,
                                                 result,
                                                 cancellationToken);
 
@@ -1526,7 +1568,7 @@ public class ReasoningLoop : IDisposable
         try
         {
             // Download the image from thread storage
-            var filePath = await _threadFileStorageService.DownloadThreadFileAsync(
+            var filePath = await _agentFileStorageService.DownloadThreadFileAsync(
                 _context.ThreadId,
                 fileName,
                 cancellationToken);
@@ -1615,10 +1657,11 @@ public class ReasoningLoop : IDisposable
             _currentCompactionSpan.SetAttribute(TraceAttribute.AgentName, agent.Name);
             _currentCompactionSpan.SetAttribute(TraceAttribute.OperationName, "Compaction");
 
-            // Stream compaction feedback to the frontend
-            await _outboundCommunicationService.NotifyIntermediateUpdate(
+            // Stream compaction feedback to the frontend with shimmer effect
+            var compactionFunctionCall = new FunctionCallContent(Guid.NewGuid().ToString(), "CompactConversation");
+            await _outboundCommunicationService.AppendAgentToolCallMessage(
                 _context.ThreadId,
-                "Compacting conversation...");
+                compactionFunctionCall);
         };
 
         hooks.CompactionEnd += (context, agent) =>
@@ -2019,6 +2062,10 @@ public class ReasoningLoop : IDisposable
             hooks.ModelGenerationError += customerLoggerHooks.OnModelGenerationError;
         }
 
+        // Add Task tool (parallel subagent) streaming hooks
+        var taskToolStreamingHelper = new TaskToolStreamingHelper(_outboundCommunicationService, _context.ThreadId);
+        taskToolStreamingHelper.SubscribeTo(hooks);
+
         return hooks;
     }
 
@@ -2184,7 +2231,7 @@ public class ReasoningLoop : IDisposable
             FunctionResultContent result;
             if (_featureConfig.PartialOutputEnabled)
             {
-                var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(_context.ThreadId, aiTool, functionResult, cancellationToken);
+                var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(_context.ThreadId, aiTool, functionCall.CallId, functionResult, cancellationToken);
                 result = new FunctionResultContent(functionCall.CallId, processedOutput);
             }
             else
@@ -2663,6 +2710,37 @@ public class ReasoningLoop : IDisposable
         RecordUserActionResults(chatMessage);
     }
 
+    /// <summary>
+    /// Adds a cancellation marker to the chat history to inform the LLM that the
+    /// previous operation was intentionally cancelled by the user.
+    /// This prevents the LLM from retrying cancelled operations when the user sends a new message.
+    /// </summary>
+    private async Task AddCancellationMarkerToChatHistoryAsync()
+    {
+        try
+        {
+            var agentChatHistory = await _threadRepository.GetAgentChatHistoryAsync(_context.Id);
+            if (agentChatHistory == null)
+            {
+                _logger.LogInternalWarning("[{threadId}]Could not add cancellation marker - AgentChatHistory is null", _context.ThreadId);
+                return;
+            }
+
+            var cancelMessage = new ChatMessage(
+                ChatRole.User,
+                "<system_notice>The user cancelled the previous operation. Do not automatically retry the same operation. If the user's next message clarifies or modifies the cancelled request, incorporate that feedback. If they've moved on to something else, respond to their new topic.</system_notice>");
+
+            await PersistReasoningMessageAsync(agentChatHistory, cancelMessage);
+
+            _logger.LogInternalInformation("[{threadId}]Added cancellation marker to chat history", _context.ThreadId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "[{threadId}]Failed to add cancellation marker to chat history", _context.ThreadId);
+            // Don't throw - this is a best-effort operation
+        }
+    }
+
     private async Task PersistReasoningMessagesAsync(AgentChatHistory agentChatHistory, IEnumerable<ChatMessage> chatMessages)
     {
         _chatHistory!.AddRange(chatMessages);
@@ -2952,9 +3030,10 @@ public class ReasoningLoop : IDisposable
             string? chatHistoryFileKey = null;
             try
             {
-                chatHistoryFileKey = await _threadFileStorageService.SaveToolOutputAsync(
+                chatHistoryFileKey = await _agentFileStorageService.SaveToolOutputAsync(
                     threadId: _context.ThreadId,
                     toolName: "compaction_history",
+                    callId: DateTime.UtcNow.ToString("yyyyMMddHHmmssfff"),
                     content: fullChatTranscript,
                     extension: "txt",
                     cancellationToken: cancellationToken);
@@ -3552,7 +3631,9 @@ public class ReasoningLoop : IDisposable
                 ThreadId = _context.ThreadId,
                 SkillRegistry = _skillRegistry,
                 EnablePartialToolOutput = _featureConfig.PartialOutputEnabled,
-                AmbientContextProvider = _ambientContextProvider
+                AmbientContextProvider = _ambientContextProvider,
+                ChatClientProvider = _chatClientProvider,
+                HookManager = _hookManager
             };
 
             try
@@ -3604,6 +3685,7 @@ public class ReasoningLoop : IDisposable
                             var processedOutput = await _toolOutputProcessService.ProcessToolOutputAsync(
                                 _context.ThreadId,
                                 toolCall.Tool,
+                                toolCall.FunctionCall.CallId,
                                 functionResult?.ToString(),
                                 cancellationToken);
 

@@ -2,6 +2,7 @@ import { AgentTaskMetaData } from './AgentTask';
 import { GrepSearchResult } from './GrepResult';
 import { McpToolExecution } from './McpToolExecution';
 import { ReadFileResult } from './ReadFileResult';
+import { TaskToolExecution, TaskToolExecutionGroup } from './TaskToolExecution';
 import { TerminalExecutionResult } from './TerminalResult';
 import { TodoInfo } from './TodoPlan';
 import { UserQuestion } from './UserQuestion';
@@ -27,7 +28,17 @@ export type MessageType =
     | 'terminal'
     | 'userquestion'
     | 'mcptool'
+    | 'tasktool'
     | null;
+
+export type StreamMessageType =
+    | MessageType
+    | 'TaskToolGroupStart'
+    | 'TaskToolGroupEnd'
+    | 'TaskToolExecutionStart'
+    | 'TaskToolExecutionEnd'
+    | 'TaskToolInvocationStart'
+    | 'TaskToolInvocationEnd';
 
 export interface Message {
     id: string;
@@ -52,6 +63,8 @@ export interface Message {
     terminalResult?: TerminalExecutionResult | null | undefined;
     userQuestion?: UserQuestion | null | undefined;
     mcpToolExecution?: McpToolExecution | null | undefined;
+    taskToolExecution?: TaskToolExecution | null | undefined;
+    taskToolExecutionGroup?: TaskToolExecutionGroup | null | undefined;
 
     isComplete: boolean | null | undefined;
     isImageContent: boolean | null | undefined;

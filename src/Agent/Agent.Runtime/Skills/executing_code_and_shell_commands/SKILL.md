@@ -23,6 +23,7 @@ tools:
   - RunShellCommand
   - ReadSessionFile
   - SearchSessionFiles
+  - UploadFileToSession
 ---
 
 # Python Code Interpreter Skill
@@ -68,6 +69,48 @@ You can output many files in a single script and use ReadSessionFile and SearchS
 - Report composition combining charts, tables, and narrative
 - Light image operations via Pillow; basic scientific operations via scipy if available
 - Simple playwright scripts (import nest_asyncio nest_asyncio.apply() => needed since jupyter kernel)
+
+## Uploading Files for Python Processing
+
+**Best Practice:** When you need to process data in Python, **do NOT embed large data directly in your code**. Instead, use the **Upload → Read** pattern:
+
+1. **Upload first**: Use `UploadFileToSession` to upload the file to the session
+   - For tool output files (from truncated outputs), use the file path shown in the truncation message (e.g., `tmp/ToolOutputs/{threadId}/tool_xyz.json`)
+   - For other sandbox files, use the relative path from sandbox root
+2. **Read in Python**: The file will be available at `/mnt/data/<filename>` in the session
+3. **Process normally**: Read the file using standard Python (pandas, json, etc.)
+
+### Why this pattern?
+- Keeps Python code clean and readable
+- Avoids token limits and context bloat from embedding large data
+- Makes code reusable - the same script works with different input files
+- Allows processing files that exceed inline data limits
+
+### Example workflow:
+
+```
+# Step 1: Upload the data file to session
+UploadFileToSession(filePath="tmp/ToolOutputs/abc123/kusto_results.json")
+# Returns: /mnt/data/kusto_results.json
+
+# Step 2: Process in Python
+ExecutePythonCode:
+import pandas as pd
+import json
+
+# Read the uploaded file
+with open('/mnt/data/kusto_results.json', 'r') as f:
+    data = json.load(f)
+
+df = pd.DataFrame(data)
+# ... analyze and generate reports ...
+```
+
+### When to use Upload → Read pattern:
+- Processing tool outputs (Kusto results, API responses, etc.)
+- Analyzing data files from previous tool calls
+- Working with any data larger than ~50 lines
+- When you want clean, reusable Python code
 
 ## Output and Artifact Guidance
 
@@ -169,6 +212,7 @@ This means your focus should be on **writing the correct code to produce the des
 
 - Write clean, commented code with graceful error handling and clear messages.
 - Prefer deterministic, efficient operations; close figures after saving.
+- **Never embed large data directly in Python code** - use UploadFileToSession first, then read from /mnt/data
 - Images: plt.savefig('/mnt/data/name.png', dpi=150, bbox_inches='tight'); plt.close()
 - CSV: df.to_csv('/mnt/data/name.csv', index=False)
 - Excel: use ExcelWriter, adjust column widths, and freeze the header row.

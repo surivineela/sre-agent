@@ -59,6 +59,8 @@ export type ExtendedAgent = {
     metaAgentOverride?: boolean;
     enableMemory?: boolean;
     enableVanillaMode?: boolean;
+    enableSkills?: boolean;
+    allowedSkills?: string[];
     metadata?: Record<string, any>;
 };
 

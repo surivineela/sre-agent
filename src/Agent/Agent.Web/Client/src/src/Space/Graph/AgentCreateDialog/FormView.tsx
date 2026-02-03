@@ -1,7 +1,7 @@
-import { Button, Divider, Field, Link, Spinner, Switch, Text, Tooltip } from '@fluentui/react-components';
+import { Button, Combobox, Divider, Field, Link, Option, Spinner, Switch, Text, Tooltip } from '@fluentui/react-components';
 import { Info16Regular, LightbulbRegular, PenSparkleRegular, WrenchRegular } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
-import { FC, useContext, useEffect, useState } from 'react';
+import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AgentMemoryClient } from '../../../Common/Clients/AgentMemoryClient';
@@ -29,6 +29,7 @@ export const FormView: FC<FormViewProps> = ({
     isEditScenario,
     isOverrideScenario,
     testPanelProps,
+    skills,
 }) => {
     const intl = useIntl();
     const styles = useAgentCreateDialogStyles();
@@ -37,6 +38,19 @@ export const FormView: FC<FormViewProps> = ({
     const [documentCount, setDocumentCount] = useState<number | null>(null);
 
     const navigate = useAgentSiteNavigate();
+
+    // Skill options for the multi-select
+    const skillOptions = useMemo(() => {
+        return (skills || []).map(skill => ({
+            key: skill.name,
+            text: skill.name,
+        }));
+    }, [skills]);
+
+    // Selected skill names for display
+    const selectedSkillNames = useMemo(() => {
+        return values.allowedSkills || [];
+    }, [values.allowedSkills]);
 
     useEffect(() => {
         if (values.enableMemory) {
@@ -121,6 +135,65 @@ export const FormView: FC<FormViewProps> = ({
                             resize="vertical"
                             rows={3}
                         />
+                    </div>
+                    <div className={styles.formSection}>
+                        <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.skillsLabel)}
+                        </Text>
+                        <Field>
+                            <div className={styles.memoryToggleContainer}>
+                                <Switch
+                                    checked={values.enableSkills === true}
+                                    onChange={(_, data) => {
+                                        setFieldValue('enableSkills', data.checked);
+                                        if (!data.checked) {
+                                            setFieldValue('allowedSkills', []);
+                                        }
+                                    }}
+                                    disabled={disableControls}
+                                />
+                                <span>{intl.formatMessage(ExtendedAgentsGraphResources.enableSkillsLabel)}</span>
+                                <Tooltip
+                                    content={intl.formatMessage(ExtendedAgentsGraphResources.enableSkillsDescription)}
+                                    relationship="description"
+                                >
+                                    <Info16Regular className={styles.memoryInfoIcon} />
+                                </Tooltip>
+                            </div>
+                        </Field>
+                        {values.enableSkills && (
+                            <>
+                                <Text size={200} className={styles.formControl} style={{ color: 'var(--colorNeutralForeground3)' }}>
+                                    {intl.formatMessage(ExtendedAgentsGraphResources.skillsInfoText)}
+                                </Text>
+                                <Field
+                                    label={intl.formatMessage(ExtendedAgentsGraphResources.allowedSkillsLabel)}
+                                    hint={intl.formatMessage(ExtendedAgentsGraphResources.allowedSkillsDescription)}
+                                >
+                                    <Combobox
+                                        multiselect
+                                        placeholder={
+                                            skillOptions.length === 0
+                                                ? intl.formatMessage(ExtendedAgentsGraphResources.noSkillsAvailable)
+                                                : intl.formatMessage(ExtendedAgentsGraphResources.allSkillsAllowed)
+                                        }
+                                        selectedOptions={selectedSkillNames}
+                                        value={selectedSkillNames.join(', ')}
+                                        onOptionSelect={(_, data) => {
+                                            setFieldValue('allowedSkills', data.selectedOptions);
+                                        }}
+                                        disabled={disableControls || skillOptions.length === 0}
+                                        className={styles.formControl}
+                                    >
+                                        {skillOptions.map(option => (
+                                            <Option key={option.key} value={option.key} text={option.text}>
+                                                {option.text}
+                                            </Option>
+                                        ))}
+                                    </Combobox>
+                                </Field>
+                            </>
+                        )}
                     </div>
                     <div className={styles.formSection}>
                         <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>

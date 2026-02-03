@@ -117,6 +117,7 @@ export interface OutboundConnectionConfiguration {
 export interface ApplicationInsightsConfiguration {
     appId: string;
     connectionString: string;
+    applicationInsightsResourceId?: string;
 }
 
 export interface LogConfiguration {
@@ -128,6 +129,8 @@ export interface IncidentManagementConfiguration {
     connectionName?: string;
     connectionUrl?: string;
     connectionKey?: string;
+    // ServiceNow OAuth - apiConnectionName indicates OAuth was used
+    apiConnectionName?: string;
 }
 
 export enum IncidentManagementType {

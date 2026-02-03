@@ -289,7 +289,7 @@ namespace Agent.Web.Controllers.v1
                 }
 
                 var chatOptions = new ChatOptions { Temperature = 1.0f };
-                var chatResponse = await chatClientProvider.GeneralPurposeModel.GetResponseAsync(promptBuilder.ToString(), chatOptions, HttpContext.RequestAborted);
+                var chatResponse = await chatClientProvider.ReasoningHeavyModel.GetResponseAsync(promptBuilder.ToString(), chatOptions, HttpContext.RequestAborted);
                 var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
 
                 logger.LogInternalInformation("Cron generation raw response: {Content}", content);
@@ -370,7 +370,7 @@ Prompt to improve (between <<< and >>>):
                 var prompt = systemPrompt + request.Prompt.Trim() + "\n>>>";
 
                 var chatOptions = new ChatOptions { Temperature = 1.0f };
-                var chatResponse = await chatClientProvider.GeneralPurposeModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
+                var chatResponse = await chatClientProvider.ReasoningHeavyModel.GetResponseAsync(prompt, chatOptions, HttpContext.RequestAborted);
                 var content = chatResponse?.GetMessage()?.Text ?? string.Empty;
 
                 logger.LogInternalInformation("Scheduled task prompt improvement raw response: {Content}", content);

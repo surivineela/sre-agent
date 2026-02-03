@@ -92,7 +92,8 @@ public static class PathSecurityHelper
     {
         safePath = null;
 
-        if (string.IsNullOrWhiteSpace(trustedDirectory) || string.IsNullOrWhiteSpace(untrustedFileName))
+        if (string.IsNullOrWhiteSpace(trustedDirectory)
+            || string.IsNullOrWhiteSpace(untrustedFileName))
         {
             return false;
         }

@@ -65,17 +65,10 @@ public static class DataConnectorRegistrationExtensions
 
             foreach (DataConnectorInstanceSettings dataConnectorInstanceSetting in dataConnectorInstanceSettings.Value)
             {
-                // Priority: ExtendedPropertiesJson > ExtendedProperties (from configuration)
-                // This ensures all data connectors receive a consistent ExtendedProperties dictionary
-                if (!string.IsNullOrWhiteSpace(dataConnectorInstanceSetting.ExtendedPropertiesJson))
+                // If ExtendedPropertiesJson is not provided, fix ExtendedProperties by re-parsing from configuration
+                // to handle arrays and nested objects
+                if (string.IsNullOrWhiteSpace(dataConnectorInstanceSetting.ExtendedPropertiesJson))
                 {
-                    // Parse JSON string to ExtendedProperties
-                    dataConnectorInstanceSetting.ExtendedProperties =
-                        ParseJsonToExtendedProperties(dataConnectorInstanceSetting.ExtendedPropertiesJson);
-                }
-                else
-                {
-                    // Fix ExtendedProperties by re-parsing from configuration to handle arrays and nested objects
                     var configSection = hostBuilder.Configuration
                         .GetSection($"AppSettings:Core:DataConnectors")
                         .GetChildren()
@@ -151,32 +144,6 @@ public static class DataConnectorRegistrationExtensions
                 dict[child.Key] = GetConfigurationValue(child);
             }
             return dict;
-        }
-    }
-
-    /// <summary>
-    /// Parses a JSON string into a dictionary of JsonElement values for use as ExtendedProperties.
-    /// </summary>
-    /// <param name="json">The JSON string to parse.</param>
-    /// <returns>A dictionary mapping property names to JsonElement values.</returns>
-    /// <exception cref="ArgumentException">Thrown if the JSON is null, empty, or invalid.</exception>
-    private static Dictionary<string, JsonElement> ParseJsonToExtendedProperties(string json)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(json);
-
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-            var result = new Dictionary<string, JsonElement>();
-            foreach (var property in doc.RootElement.EnumerateObject())
-            {
-                result[property.Name] = property.Value.Clone();
-            }
-            return result;
-        }
-        catch (JsonException ex)
-        {
-            throw new ArgumentException("ExtendedPropertiesJson is not valid JSON.", ex);
         }
     }
 }

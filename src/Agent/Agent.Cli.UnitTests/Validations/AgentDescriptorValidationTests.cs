@@ -4,6 +4,7 @@
 
 using Agent.Cli.Validations;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Models;
 using Xunit;
 
@@ -687,6 +688,312 @@ add_system_skills: true
 
         // Assert
         Assert.Null(descriptor.AllowedSkills);
+    }
+
+    #endregion
+
+    #region Hook Validation Tests
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithValidPromptHook_ShouldNotAddErrors()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["Stop"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Prompt,
+                    Prompt = "Review the conversation and determine if the agent should stop.",
+                    Timeout = 30
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithValidCommandHook_ShouldNotAddErrors()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["PostToolUse"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Command,
+                    Command = "echo '{\"ok\": true}'",
+                    Matcher = "Edit|Write",
+                    Timeout = 30
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithPromptHookMissingPrompt_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["Stop"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Prompt,
+                    Prompt = null, // Missing prompt
+                    Timeout = 30
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Single(errors);
+        Assert.Contains("Prompt hook", errors[0]);
+        Assert.Contains("must have a prompt defined", errors[0]);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithCommandHookMissingCommand_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["PostToolUse"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Command,
+                    Command = null, // Missing command
+                    Timeout = 30
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Single(errors);
+        Assert.Contains("Command hook", errors[0]);
+        Assert.Contains("must have a command defined", errors[0]);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithInvalidHookEventType_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["InvalidEvent"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Prompt,
+                    Prompt = "Some prompt",
+                    Timeout = 30
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Single(errors);
+        Assert.Contains("Invalid hook event type", errors[0]);
+        Assert.Contains("InvalidEvent", errors[0]);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithEmptyHookDefinitions_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["Stop"] = new List<HookDefinition>() // Empty list
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Single(errors);
+        Assert.Contains("has no hook definitions", errors[0]);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithHookTimeoutTooLow_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["Stop"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Prompt,
+                    Prompt = "Some prompt",
+                    Timeout = 0 // Invalid: must be positive
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Single(errors);
+        Assert.Contains("invalid timeout", errors[0]);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithHookTimeoutTooHigh_ShouldAddError()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["Stop"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Prompt,
+                    Prompt = "Some prompt",
+                    Timeout = 500 // Invalid: max is 300
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Single(errors);
+        Assert.Contains("excessive timeout", errors[0]);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithMultipleHookEvents_ShouldValidateAll()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["Stop"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Prompt,
+                    Prompt = "Stop hook prompt",
+                    Timeout = 30
+                }
+            },
+            ["PostToolUse"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Command,
+                    Command = "validate-tool.sh",
+                    Matcher = "*",
+                    Timeout = 60
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithMultipleHooksInSameEvent_ShouldValidateAll()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["PostToolUse"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Command,
+                    Command = "lint-check.sh",
+                    Matcher = "Edit",
+                    Timeout = 30
+                },
+                new HookDefinition
+                {
+                    Type = HookType.Prompt,
+                    Prompt = "Review the tool output for security issues.",
+                    Timeout = 60
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ValidateAgentDescriptor_WithMultipleHookErrors_ShouldReportAll()
+    {
+        // Arrange
+        var agentDescriptor = CreateValidAgentDescriptor();
+        agentDescriptor.Hooks = new Dictionary<string, List<HookDefinition>>
+        {
+            ["Stop"] = new List<HookDefinition>
+            {
+                new HookDefinition
+                {
+                    Type = HookType.Prompt,
+                    Prompt = null, // Error: missing prompt
+                    Timeout = 30
+                },
+                new HookDefinition
+                {
+                    Type = HookType.Command,
+                    Command = null, // Error: missing command
+                    Timeout = 30
+                }
+            }
+        };
+
+        // Act
+        AgentDescriptorValidation.ValidateAgentDescriptor(agentDescriptor, out var errors);
+
+        // Assert
+        Assert.Equal(2, errors.Count);
+        Assert.Contains(errors, e => e.Contains("Prompt hook") && e.Contains("must have a prompt"));
+        Assert.Contains(errors, e => e.Contains("Command hook") && e.Contains("must have a command"));
     }
 
     #endregion

@@ -151,6 +151,15 @@ public sealed class ReplayToolFactory<TContext> : AsyncInitializerBase, IToolFac
         return _innerFactory.IsToolDisabled(name);
     }
 
+    /// <summary>
+    /// Expands a tool name pattern that may contain wildcards into a list of matching tool names.
+    /// </summary>
+    public List<string> ExpandToolPattern(string pattern)
+    {
+        // Delegate to inner factory
+        return _innerFactory.ExpandToolPattern(pattern);
+    }
+
     public void CheckForReplayFailures()
     {
         if (FunctionCallsWithReplayFailure.Count > 0)

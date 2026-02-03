@@ -1,4 +1,4 @@
-import { Card, mergeClasses, Text } from '@fluentui/react-components';
+import { EntityCard, EntityTitle } from '@fluentui-copilot/react-copilot';
 import { FC, ReactNode, useCallback } from 'react';
 import { useSelectableCardStyles } from './SelectableCard.styles';
 
@@ -11,7 +11,7 @@ export interface SelectableCardProps {
     disabled?: boolean;
 }
 
-export const SelectableCard: FC<SelectableCardProps> = ({ onSelect, icon, title, className, disabled = false }) => {
+export const SelectableCard: FC<SelectableCardProps> = ({ onSelect, icon, title, disabled = false }) => {
     const styles = useSelectableCardStyles();
 
     const handleClick = useCallback(() => {
@@ -21,9 +21,10 @@ export const SelectableCard: FC<SelectableCardProps> = ({ onSelect, icon, title,
     }, [onSelect, disabled]);
 
     return (
-        <Card className={mergeClasses(styles.card, disabled && styles.cardDisabled, className)} onClick={handleClick}>
-            {icon && <div className={styles.iconContainer}>{icon}</div>}
-            <Text className={styles.title}>{title}</Text>
-        </Card>
+        <EntityCard
+            onClick={handleClick}
+            className={styles.card}
+            entityTitle={<EntityTitle media={icon ? <div className={styles.iconContainer}>{icon}</div> : undefined} primaryText={title} />}
+        />
     );
 };

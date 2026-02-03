@@ -134,4 +134,34 @@ public enum StreamMessageType
     /// Terminal command execution results
     /// </summary>
     Terminal,
+
+    /// <summary>
+    /// Task tool execution start event (when a subagent starts running)
+    /// </summary>
+    TaskToolExecutionStart,
+
+    /// <summary>
+    /// Task tool execution end event (when a subagent finishes)
+    /// </summary>
+    TaskToolExecutionEnd,
+
+    /// <summary>
+    /// Task tool execution group start event (when parallel subagents start)
+    /// </summary>
+    TaskToolGroupStart,
+
+    /// <summary>
+    /// Task tool execution group end event (when all parallel subagents finish)
+    /// </summary>
+    TaskToolGroupEnd,
+
+    /// <summary>
+    /// Task tool invocation start event (when a tool starts within a subagent)
+    /// </summary>
+    TaskToolInvocationStart,
+
+    /// <summary>
+    /// Task tool invocation end event (when a tool finishes within a subagent)
+    /// </summary>
+    TaskToolInvocationEnd,
 }

@@ -20,13 +20,13 @@ namespace Agent.Tests.Unit.Reasoning;
 /// </summary>
 public class ToolOutputProcessServiceTests
 {
-    private readonly Mock<IThreadFileStorageService> _mockStorage;
+    private readonly Mock<IAgentFileStorageService> _mockStorage;
     private readonly Mock<ILogger<ToolOutputProcessService>> _mockLogger;
     private readonly ToolOutputProcessService _service;
 
     public ToolOutputProcessServiceTests()
     {
-        _mockStorage = new Mock<IThreadFileStorageService>();
+        _mockStorage = new Mock<IAgentFileStorageService>();
         _mockLogger = new Mock<ILogger<ToolOutputProcessService>>();
 
         var settings = Options.Create(new ToolOutputSettings
@@ -341,15 +341,16 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
+        var callId = "test-call-id";
         var output = "Small output";
         var mockTool = new SimpleTestTool();
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, output);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, callId, output);
 
         // Assert
         result.ShouldBe(output);
-        _mockStorage.Verify(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -357,16 +358,17 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
+        var callId = "test-call-id";
         var mockTool = new SimpleTestTool();
         var largeOutput = new string('x', 2000); // Exceeds default 1000 char limit
         var expectedFileKey = "test-file.yaml";
 
         _mockStorage
-            .Setup(s => s.SaveToolOutputAsync(threadId, mockTool.Name, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.SaveToolOutputAsync(threadId, mockTool.Name, callId, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedFileKey);
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, largeOutput);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, callId, largeOutput);
 
         // Assert
         result.ShouldBeOfType<string>();
@@ -375,7 +377,7 @@ nested:
         resultString.ShouldContain("partial preview");
         resultString.ShouldContain("File Key:");
         // The file key should be in the output somewhere
-        _mockStorage.Verify(s => s.SaveToolOutputAsync(threadId, mockTool.Name, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(threadId, mockTool.Name, callId, largeOutput, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -383,10 +385,11 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
+        var callId = "test-call-id";
         var mockTool = new SimpleTestTool();
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, null);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, callId, null);
 
         // Assert
         result.ShouldBeNull();
@@ -397,15 +400,16 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
+        var callId = "test-call-id";
         var mockTool = new ToolOutputRetrieverTool();
         var largeOutput = new string('x', 2000);
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, largeOutput);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, callId, largeOutput);
 
         // Assert
         result.ShouldBe(largeOutput);
-        _mockStorage.Verify(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -413,17 +417,18 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
+        var callId = "test-call-id";
         var largeOutput = new string('x', 2000);
 
         // Create a mock tool with DisableOutputTruncation = true
         var mockTool = new TestToolWithDisabledTruncation();
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, largeOutput);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, callId, largeOutput);
 
         // Assert
         result.ShouldBe(largeOutput);
-        _mockStorage.Verify(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -431,21 +436,22 @@ nested:
     {
         // Arrange
         var threadId = Guid.NewGuid();
+        var callId = "test-call-id";
         var largeOutput = new string('x', 2000);
-        _mockStorage.Setup(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _mockStorage.Setup(s => s.SaveToolOutputAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("test-file-key");
 
         // Create a mock tool without DisableOutputTruncation (defaults to false)
         var mockTool = new TestToolWithoutDisabledTruncation();
 
         // Act
-        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, largeOutput);
+        var result = await _service.ProcessToolOutputAsync(threadId, mockTool, callId, largeOutput);
 
         // Assert
         result.ShouldNotBe(largeOutput);
         result.ShouldBeOfType<string>();
         ((string)result!).ShouldContain("test-file-key");
-        _mockStorage.Verify(s => s.SaveToolOutputAsync(threadId, mockTool.Name, largeOutput, "txt", default), Times.Once);
+        _mockStorage.Verify(s => s.SaveToolOutputAsync(threadId, mockTool.Name, callId, largeOutput, "txt", default), Times.Once);
     }
 
     #endregion

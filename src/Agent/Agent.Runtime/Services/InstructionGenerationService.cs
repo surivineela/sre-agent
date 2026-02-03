@@ -290,7 +290,7 @@ namespace Agent.Runtime.Services
             {
                 _logger.LogInternalInformation("ExtractKnowledgeFromIncident: Sending incident details to chat client for summarization. IncidentId: {IncidentId}", incident);
 
-                var response = await _chatClientProvider.GeneralPurposeModel.GetResponseAsync(
+                var response = await _chatClientProvider.ReasoningHeavyModel.GetResponseAsync(
                     new ChatMessage(ChatRole.System, systemMessage),
                     new ChatOptions
                     {

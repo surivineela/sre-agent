@@ -60,6 +60,7 @@ type StreamingContextProps = {
     startMessageStreamingOnNewThread: (newThreadId: string, threadCreateRequest: any) => void;
     startMessageStreamingOnExistingThread: (threadId: string, messageCreateRequest: any) => void;
     cancelMessageStreaming: (threadId: string) => void;
+    cancelTaskExecution: (executionId: string) => void;
     submitUserQuestionResponse: (threadId: string, questionId: string, response: UserQuestionResponse) => void;
     subscribeMessageUpdateEvent: (input: {
         handler: (message: StreamingMessage) => void;
@@ -69,6 +70,7 @@ type StreamingContextProps = {
     subscribeThreadUpdateEvent: (handler: (message: StreamingMessage) => void) => () => void;
     subscribeTaskUpdateEvent: (handler: (message: StreamingMessage) => void) => () => void;
     subscribeTodoPlanUpdateEvent: (handler: (message: StreamingMessage) => void) => () => void;
+    subscribeSubagentUpdateEvent: (handler: (message: StreamingMessage) => void) => () => void;
     isConnecting: boolean;
     isConnected: boolean;
     isReconnecting: boolean;
@@ -207,6 +209,7 @@ export const StreamingContext = createContext<StreamingContextProps>({
     startMessageStreamingOnNewThread: (_newThreadId: string, _threadCreateRequest: any) => {},
     startMessageStreamingOnExistingThread: (_threadId: string, _messageCreateRequest: any) => {},
     cancelMessageStreaming: (_threadId: string) => {},
+    cancelTaskExecution: (_executionId: string) => {},
     submitUserQuestionResponse: (_threadId: string, _questionId: string, _response: UserQuestionResponse) => {},
     subscribeMessageUpdateEvent:
         (_: {
@@ -218,6 +221,7 @@ export const StreamingContext = createContext<StreamingContextProps>({
     subscribeThreadUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
     subscribeTaskUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
     subscribeTodoPlanUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
+    subscribeSubagentUpdateEvent: (_handler: (message: StreamingMessage) => void) => () => {},
     isConnecting: true,
     isConnected: false,
     isReconnecting: false,

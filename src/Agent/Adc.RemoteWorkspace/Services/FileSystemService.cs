@@ -1,4 +1,7 @@
-using System.Runtime.InteropServices;
+// ------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Adc.RemoteWorkspace.Protocol;
 using Agent.Common.Services;
 using Grpc.Core;
@@ -39,6 +42,7 @@ public class FileSystemService : FileSystem.FileSystemBase
             var sandboxRoot = GetSandboxRoot();
             var codeRefsPath = Path.Combine(sandboxRoot, "codeRefs");
             var tmpPath = Path.Combine(sandboxRoot, "tmp");
+            var memoriesPath = Path.Combine(sandboxRoot, "memories");
 
             // Ensure directories exist
             if (!Directory.Exists(codeRefsPath))
@@ -53,11 +57,18 @@ public class FileSystemService : FileSystem.FileSystemBase
                 _logger.LogInformation("Created tmp directory: {TmpPath}", tmpPath);
             }
 
+            if (!Directory.Exists(memoriesPath))
+            {
+                Directory.CreateDirectory(memoriesPath);
+                _logger.LogInformation("Created memories directory: {MemoriesPath}", memoriesPath);
+            }
+
             return Task.FromResult(new InitializeSandboxRootResponse
             {
                 SandboxRoot = sandboxRoot,
                 CodeRefsPath = codeRefsPath,
-                TmpPath = tmpPath
+                TmpPath = tmpPath,
+                MemoriesPath = memoriesPath
             });
         }
         catch (Exception ex)
@@ -125,7 +136,7 @@ public class FileSystemService : FileSystem.FileSystemBase
             request.Explanation, request.Replacements.Count);
 
         var replacements = request.Replacements
-            .Select(r => new Common.Services.ReplaceOperation
+            .Select(r => new Common.ApiModels.ReplaceOperation
             {
                 Explanation = r.Explanation,
                 FilePath = r.FilePath,

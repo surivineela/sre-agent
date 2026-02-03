@@ -49,7 +49,6 @@ public class TsgConnectorController : ControllerBase
             Name = document.Name,
             DataSource = document.DataSource,
             RepoType = document.RepoType,
-            HasCredentials = !string.IsNullOrEmpty(document.Pat),
             Status = document.Status,
             LastValidated = document.LastValidated,
             ErrorMessage = document.ErrorMessage,
@@ -250,7 +249,7 @@ public class TsgConnectorController : ControllerBase
                 return NotFound(new { error = $"Connector '{name}' not found" });
             }
 
-            _cloneService.DeleteLocalRepository(name);
+            await _cloneService.DeleteLocalRepositoryAsync(name);
 
             return NoContent();
         }

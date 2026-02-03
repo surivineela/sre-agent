@@ -149,24 +149,26 @@ const SubMenuList = memo(
 
         return (
             <MenuList>
-                {items.map(item => {
-                    const subItemProps = getSubItemProps(item, value, onClickSubNavItem);
-                    return (
-                        <MenuItem
-                            key={subItemProps.key}
-                            ref={subItemProps.ref}
-                            disabled={subItemProps.disabled}
-                            onClick={subItemProps.onClick}
-                            className={
-                                getNavItemIdFromPathName(location.pathname) === subItemProps.value
-                                    ? mergeClasses(styles.selectedNavMenuItem, styles.selectedNavCommon)
-                                    : undefined
-                            }
-                        >
-                            {subItemProps.label}
-                        </MenuItem>
-                    );
-                })}
+                {items
+                    .filter(item => item.isVisible)
+                    .map(item => {
+                        const subItemProps = getSubItemProps(item, value, onClickSubNavItem);
+                        return (
+                            <MenuItem
+                                key={subItemProps.key}
+                                ref={subItemProps.ref}
+                                disabled={subItemProps.disabled}
+                                onClick={subItemProps.onClick}
+                                className={
+                                    getNavItemIdFromPathName(location.pathname) === subItemProps.value
+                                        ? mergeClasses(styles.selectedNavMenuItem, styles.selectedNavCommon)
+                                        : undefined
+                                }
+                            >
+                                {subItemProps.label}
+                            </MenuItem>
+                        );
+                    })}
             </MenuList>
         );
     }

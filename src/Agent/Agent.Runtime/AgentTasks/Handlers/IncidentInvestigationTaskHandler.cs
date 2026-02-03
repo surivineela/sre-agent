@@ -17,6 +17,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.Repositories;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
 using Agent.Logging;
 using Agent.Runtime.AgentTasks.Agents;
@@ -46,7 +47,8 @@ public sealed class IncidentInvestigationTaskHandler(
     OpenAISettings openAISettings,
     AgentTaskToolResultHelper agentTaskToolResultHelper,
     IAgentFactory<AgentContext> agentFactory,
-    IApprovalService approvalService
+    IApprovalService approvalService,
+    HookManager hookManager
 ) : IAgentTaskHandler
 {
     private readonly SemaphoreSlim _stateLock = new(1, 1);
@@ -300,6 +302,10 @@ public sealed class IncidentInvestigationTaskHandler(
 
             // Register the step completion hook once at the beginning
             runHooks.ToolStart += HandleReportStepCompletionToolCallAsync;
+
+            // Subscribe Task tool streaming hooks for real-time subagent execution updates
+            var taskToolStreamingHelper = new TaskToolStreamingHelper(outboundCommunicationService, agentTask.ThreadId);
+            taskToolStreamingHelper.SubscribeTo(runHooks);
 
             runHooks.ResolveFactoryTools += (runContext, agent, additionalToolNames) =>
             {
@@ -1388,7 +1394,9 @@ public sealed class IncidentInvestigationTaskHandler(
                     ChatClient = chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = loggerFactory,
                     SkillRegistry = new EmptySkillRegistry(),
-                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+                    ChatClientProvider = chatClientProvider,
+                    HookManager = hookManager
                 };
 
                 // Inject tool call history into the chat input

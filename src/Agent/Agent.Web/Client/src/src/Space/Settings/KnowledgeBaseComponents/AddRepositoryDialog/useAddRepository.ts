@@ -1,13 +1,11 @@
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { OAuthPopup } from '../../../../Common/Clients/OAuthPopupClient';
-import { OAuthServiceClient } from '../../../../Common/Clients/OAuthService';
-import { ArmResourceDescriptor } from '../../../../Common/Helpers/ResourceDescriptors';
+import { ExtendedAgentClient } from '../../../../Common/Clients/ExtendedAgentClient';
+import { generateKnowledgeName, KnowledgeApiClient } from '../../../../Common/Clients/KnowledgeApiClient';
+import { useOAuthPopup } from '../../../../Common/Hooks/useOAuthPopup';
 import { ResourceInfoResources, SreAgentResources } from '../../../../Strings/SREAgentResources';
-import { useApiConnection } from '../../Connectors/Hooks/useApiConnection';
-import { useConsentLink } from '../../Connectors/Hooks/useConsentLink';
 
 export const githubRepoRegex = /^https:\/\/(?:github\.com|github\.[\w.-]+\.[\w.-]+)\/[\w.-]+\/[\w.-]+(?:\.git)?$/;
 export const azdoRepoRegex =
@@ -38,6 +36,7 @@ export interface UseAddRepositoryResult {
     gitHubAccount: string | null;
     isSigningIn: boolean;
     isAdding: boolean;
+    errorMessage: string | null;
     handleSignInToGitHub: () => Promise<void>;
     handleSignInWithDifferentAccount: () => Promise<void>;
     handleAddRepository: () => Promise<boolean>;
@@ -45,11 +44,10 @@ export interface UseAddRepositoryResult {
     isFormValid: boolean;
 }
 
-export const useAddRepository = (agentName: string | undefined, agentLocation: string | undefined): UseAddRepositoryResult => {
+export const useAddRepository = (_agentName: string | undefined, _agentLocation: string | undefined): UseAddRepositoryResult => {
     const intl = useIntl();
     const { log } = useContext(AzPortalContext);
-    const { resourceId, userInfo } = useContext(EnvironmentContext);
-    const { subscription, resourceGroup } = new ArmResourceDescriptor(resourceId);
+    const { resourceId, sreAgentEndpoint } = useContext(EnvironmentContext);
 
     const [formState, setFormState] = useState<AddRepositoryFormState>({
         repositoryUrl: '',
@@ -58,13 +56,82 @@ export const useAddRepository = (agentName: string | undefined, agentLocation: s
     });
 
     const [validationErrors, setValidationErrors] = useState<AddRepositoryValidationErrors>({});
-    const [isSigningIn, setIsSigningIn] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
-    const [gitHubAccount, setGitHubAccount] = useState<string | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoadingConfig, setIsLoadingConfig] = useState(false);
+    const [oauthUrl, setOauthUrl] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const connectionName = 'github';
-    const { apiConnection, fetchApiConnection, createApiConnection, deleteApiConnection } = useApiConnection();
-    const { consentLink, fetchConsentLink, refreshConsentLink } = useConsentLink(`${agentName}-${connectionName}`);
+    const client = ExtendedAgentClient.getInstance(sreAgentEndpoint);
+
+    const loadGitHubConfig = useCallback(async () => {
+        setIsLoadingConfig(true);
+        setErrorMessage(null);
+
+        const response = await client.getGitHubOAuthConfig();
+        if (!response.isSuccessful) {
+            setErrorMessage(response.error || 'Failed to load GitHub configuration');
+            log({
+                action: 'loadGitHubConfig',
+                actionModifier: 'failed',
+                resourceId,
+                logLevel: 'error',
+                data: { error: response.error },
+            });
+        } else {
+            setOauthUrl(response.content?.oAuthUrl || null);
+        }
+        setIsLoadingConfig(false);
+    }, [client, log, resourceId]);
+
+    const checkAuthStatus = useCallback(async () => {
+        const response = await client.getConnectorStatus('github');
+        if (response.isSuccessful) {
+            setIsAuthenticated(response.content?.healthy || false);
+        }
+    }, [client]);
+
+    useEffect(() => {
+        loadGitHubConfig();
+        checkAuthStatus();
+    }, [loadGitHubConfig, checkAuthStatus]);
+
+    const handleOAuthSuccess = useCallback(() => {
+        setIsAuthenticated(true);
+        log({
+            action: 'signInToGitHub',
+            actionModifier: 'success',
+            resourceId,
+            logLevel: 'info',
+        });
+    }, [log, resourceId]);
+
+    const handleOAuthError = useCallback(
+        (error: string) => {
+            setErrorMessage(error);
+            log({
+                action: 'signInToGitHub',
+                actionModifier: 'failed',
+                resourceId,
+                logLevel: 'error',
+                data: { error },
+            });
+        },
+        [log, resourceId]
+    );
+
+    const { openPopup, isAuthenticating } = useOAuthPopup({
+        authUrl: oauthUrl || '',
+        popupName: 'GitHubOAuth',
+        messageType: 'github-oauth-complete',
+        onSuccess: handleOAuthSuccess,
+        onError: handleOAuthError,
+        checkAuthStatus,
+    });
+
+    const isSigningIn = isLoadingConfig || isAuthenticating;
+    const isGitHubSignedIn = isAuthenticated;
+    const gitHubAccount: string | null = isAuthenticated ? 'Connected' : null;
 
     const repositoryType = useMemo((): RepositoryType => {
         const url = formState.repositoryUrl.trim();
@@ -73,10 +140,6 @@ export const useAddRepository = (agentName: string | undefined, agentLocation: s
         if (azdoRepoRegex.test(url)) return 'azuredevops';
         return null;
     }, [formState.repositoryUrl]);
-
-    const isGitHubSignedIn = useMemo(() => {
-        return !!apiConnection && !!consentLink && consentLink.status !== 'Unauthenticated' && !!gitHubAccount;
-    }, [apiConnection, consentLink, gitHubAccount]);
 
     const validateRepositoryUrl = useCallback(
         (url: string): string | undefined => {
@@ -124,99 +187,19 @@ export const useAddRepository = (agentName: string | undefined, agentLocation: s
     }, []);
 
     const handleSignInToGitHub = useCallback(async () => {
-        setIsSigningIn(true);
         log({
             action: 'signInToGitHub',
             actionModifier: 'start',
             resourceId,
             logLevel: 'info',
         });
-
-        await createApiConnection({
-            subscriptionId: subscription,
-            resourceGroup,
-            connectionName,
-            location: agentLocation || '',
-            agentName: agentName || '',
-        });
-
-        const consentLinkObject = await fetchConsentLink();
-        if (consentLinkObject?.link) {
-            const oauthPopupClient = new OAuthPopup({ consentUrl: consentLinkObject.link });
-
-            const loginResponse = await oauthPopupClient.loginPromise;
-            if (loginResponse.error) {
-                log({
-                    action: 'signInToGitHub',
-                    actionModifier: 'failed',
-                    resourceId,
-                    logLevel: 'error',
-                    data: { error: loginResponse.error },
-                });
-                setIsSigningIn(false);
-                return;
-            }
-
-            if (loginResponse.code) {
-                await OAuthServiceClient.confirmConsentCodeForConnection({
-                    subscriptionId: subscription,
-                    resourceGroup,
-                    connectionName,
-                    code: loginResponse.code,
-                    tenantId: userInfo?.directoryId || '',
-                    objectId: userInfo?.objectId || '',
-                });
-            }
-
-            const fetchedConnection = await fetchApiConnection({
-                subscriptionId: subscription,
-                resourceGroup,
-                agentName: agentName || '',
-                connectionName,
-            });
-
-            await refreshConsentLink();
-
-            const accountName = fetchedConnection?.properties?.authenticatedUser?.name || '';
-            setGitHubAccount(accountName);
-
-            log({
-                action: 'signInToGitHub',
-                actionModifier: 'success',
-                resourceId,
-                logLevel: 'info',
-                data: { account: accountName },
-            });
-        }
-
-        setIsSigningIn(false);
-    }, [
-        agentLocation,
-        agentName,
-        createApiConnection,
-        fetchApiConnection,
-        fetchConsentLink,
-        log,
-        refreshConsentLink,
-        resourceGroup,
-        resourceId,
-        subscription,
-        userInfo,
-    ]);
+        openPopup();
+    }, [log, openPopup, resourceId]);
 
     const handleSignInWithDifferentAccount = useCallback(async () => {
-        setIsSigningIn(true);
-
-        await deleteApiConnection({
-            subscriptionId: subscription,
-            resourceGroup,
-            agentName: agentName || '',
-            connectionName,
-        });
-
-        setGitHubAccount(null);
-        await handleSignInToGitHub();
-    }, [agentName, deleteApiConnection, handleSignInToGitHub, resourceGroup, subscription]);
+        setIsAuthenticated(false);
+        openPopup();
+    }, [openPopup]);
 
     const handleAddRepository = useCallback(async (): Promise<boolean> => {
         const urlError = validateRepositoryUrl(formState.repositoryUrl);
@@ -251,9 +234,26 @@ export const useAddRepository = (agentName: string | undefined, agentLocation: s
             },
         });
 
-        // TODO: Implement API call to add repository
-        // For now, simulate success
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const knowledgeClient = KnowledgeApiClient.getInstance(sreAgentEndpoint);
+        const response = await knowledgeClient.createRepositoryKnowledge({
+            name: generateKnowledgeName(formState.displayName),
+            displayName: formState.displayName,
+            description: formState.description || undefined,
+            url: formState.repositoryUrl,
+            branch: 'main', // TODO: See if we want to allow branch selection or auto-detect the default (or backend will just handle)
+        });
+
+        if (!response.isSuccessful) {
+            log({
+                action: 'addRepository',
+                actionModifier: 'failed',
+                resourceId,
+                logLevel: 'error',
+                data: { error: response.error },
+            });
+            setIsAdding(false);
+            return false;
+        }
 
         log({
             action: 'addRepository',
@@ -264,7 +264,7 @@ export const useAddRepository = (agentName: string | undefined, agentLocation: s
 
         setIsAdding(false);
         return true;
-    }, [formState, intl, isGitHubSignedIn, log, repositoryType, resourceId, validateDisplayName, validateRepositoryUrl]);
+    }, [formState, intl, isGitHubSignedIn, log, repositoryType, resourceId, sreAgentEndpoint, validateDisplayName, validateRepositoryUrl]);
 
     const resetForm = useCallback(() => {
         setFormState({
@@ -294,6 +294,7 @@ export const useAddRepository = (agentName: string | undefined, agentLocation: s
         gitHubAccount,
         isSigningIn,
         isAdding,
+        errorMessage,
         handleSignInToGitHub,
         handleSignInWithDifferentAccount,
         handleAddRepository,

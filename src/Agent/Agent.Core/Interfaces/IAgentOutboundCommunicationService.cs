@@ -162,4 +162,22 @@ public interface IAgentOutboundCommunicationService
     /// Streams the execution details to the frontend for display.
     /// </summary>
     Task NotifyMcpToolExecution(Guid threadId, McpToolExecution execution, Guid messageId = default);
+
+    /// <summary>
+    /// Updates the InvestigationStatus for an incident thread.
+    /// Called when the reasoning loop completes to transition status from InProgress to Complete/PendingUserInput.
+    /// </summary>
+    Task UpdateInvestigationStatusAsync(Guid threadId, InvestigationStatus status, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Streams a Task tool (subagent) execution update to clients.
+    /// Used for real-time progress display of parallel subagent executions.
+    /// </summary>
+    Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Appends a completed Task tool execution group as a persistent message.
+    /// Called when all subagent executions in a group have completed.
+    /// </summary>
+    Task<Guid> AppendAgentTaskToolExecutionGroupMessage(Guid threadId, TaskToolExecutionGroup executionGroup, Guid messageId = default);
 }

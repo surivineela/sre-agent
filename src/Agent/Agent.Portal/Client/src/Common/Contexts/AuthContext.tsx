@@ -1,12 +1,4 @@
-import {
-    AuthenticationResult,
-    AuthError,
-    EventMessage,
-    EventType,
-    InteractionRequiredAuthError,
-    InteractionStatus,
-    RedirectRequest,
-} from '@azure/msal-browser';
+import { AuthError, InteractionRequiredAuthError, InteractionStatus, RedirectRequest } from '@azure/msal-browser';
 import { useAccount, useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { loginRequest, msalInstance } from '../Auth/msalConfig';
@@ -83,39 +75,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const switchTenant = useCallback(
         async (tenantId: string) => {
+            const targetAuthority = `https://login.microsoftonline.com/${tenantId}`;
+
+            console.log('[Auth:switchTenant] Starting tenant switch', {
+                targetTenantId: tenantId,
+                targetAuthority,
+                currentAccount: account,
+            });
+
+            // Clear the current account from cache to ensure clean tenant switch
+            // This prevents useAccount() from returning the old tenant's account
+            if (account) {
+                await msalInstance.clearCache({ account });
+                console.log('[Auth:switchTenant] Cache cleared for account');
+            }
+
+            console.log('[Auth:switchTenant] Initiating loginRedirect');
             await instance.loginRedirect({
                 ...loginRequest,
-                authority: `https://login.microsoftonline.com/${tenantId}`,
+                authority: targetAuthority,
             });
         },
-        [instance]
+        [instance, account]
     );
-
-    // Handle login success events (including tenant switches) to set the correct active account
-    // This ensures that after a redirect login, the newly authenticated account is set as active
-    useEffect(() => {
-        const callbackId = instance.addEventCallback((event: EventMessage) => {
-            if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
-                const authResult = event.payload as AuthenticationResult;
-                if (authResult.account) {
-                    instance.setActiveAccount(authResult.account);
-                }
-            }
-        });
-
-        return () => {
-            if (callbackId) {
-                instance.removeEventCallback(callbackId);
-            }
-        };
-    }, [instance]);
 
     // If there are accounts but no active account, set one
     useEffect(() => {
         if (!isLoadingAuth) {
             const accounts = instance.getAllAccounts();
-            if (accounts.length > 0 && !instance.getActiveAccount()) {
+            const activeAccount = instance.getActiveAccount();
+
+            console.log('[Auth:setActiveAccount] Checking accounts', {
+                accounts,
+                currentActiveAccount: activeAccount,
+                willSetActive: accounts.length > 0 && !activeAccount,
+            });
+
+            if (accounts.length > 0 && !activeAccount) {
                 instance.setActiveAccount(accounts[0]);
+                console.log('[Auth:setActiveAccount] Set active account to', accounts[0]);
             }
         }
     }, [isLoadingAuth, instance]);
@@ -137,6 +135,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
 
             const activeAccount = msalInstance.getActiveAccount() || accounts[0];
+            // Use the account's tenant-specific authority
+            const authority = `https://login.microsoftonline.com/${activeAccount.tenantId}`;
 
             try {
                 // Attempt silent token acquisition to validate the session
@@ -144,8 +144,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 await msalInstance.acquireTokenSilent({
                     scopes: loginRequest.scopes,
                     account: activeAccount,
+                    authority,
                 });
                 // Session is valid, user can continue
+                console.log('[Auth:validateSession] Result', {
+                    acquireTokenSilent: 'succeeded',
+                    activeAccount,
+                    authority,
+                });
             } catch (error) {
                 const errorName = error instanceof Error ? error.constructor.name : typeof error;
                 // Use errorCode instead of message to avoid potential PII (e.g., user email in error messages)
@@ -166,11 +172,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                         await msalInstance.ssoSilent({
                             scopes: loginRequest.scopes,
                             loginHint: activeAccount.username,
+                            authority,
                         });
                         // SSO succeeded - user has an active Entra session
+                        console.log('[Auth:validateSession] Result', {
+                            acquireTokenSilent: 'failed',
+                            acquireTokenSilentError: errorCode,
+                            ssoSilent: 'succeeded',
+                            activeAccount,
+                            authority,
+                        });
                     } catch (ssoError) {
                         const ssoErrorName = ssoError instanceof Error ? ssoError.constructor.name : typeof ssoError;
                         const ssoErrorCode = ssoError instanceof AuthError ? ssoError.errorCode : 'unknown';
+
+                        console.log('[Auth:validateSession] Result', {
+                            acquireTokenSilent: 'failed',
+                            acquireTokenSilentError: errorCode,
+                            ssoSilent: 'failed',
+                            ssoSilentError: ssoErrorCode,
+                            activeAccount,
+                            authority,
+                            outcome: 'session-expired',
+                        });
 
                         logTelemetryEvent({
                             telemetrySource: TelemetrySource.Auth,
@@ -186,6 +210,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     }
                 } else {
                     // Log non-InteractionRequiredAuthError errors for visibility
+                    console.log('[Auth:validateSession] Result', {
+                        acquireTokenSilent: 'failed',
+                        acquireTokenSilentError: errorCode,
+                        errorType: 'unexpected',
+                        errorName,
+                        activeAccount,
+                        authority,
+                    });
+
                     logTelemetryEvent({
                         telemetrySource: TelemetrySource.Auth,
                         action: 'validateSession',

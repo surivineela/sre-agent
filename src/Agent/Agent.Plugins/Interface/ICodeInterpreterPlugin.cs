@@ -58,8 +58,9 @@ public interface ICodeInterpreterPlugin
     Task<string> GrepSessionFilesAsync(string query, bool isRegexp, string includePattern, int maxResults, int timeoutSeconds);
 
     /// <summary>
-    /// Upload a file to the session's /mnt/data directory using a tool output file key.
-    /// Retrieves the file from tool output storage and uploads it to the session pool.
+    /// Upload a file to the session's /mnt/data directory using a file path relative to sandbox root.
+    /// Validates the path is within the sandbox and uploads the file to the session pool.
     /// </summary>
-    Task<string> UploadFileToSessionAsync(string fileKey);
+    /// <param name="filePath">File path relative to sandbox root (e.g., 'tmp/ToolOutputs/{threadId}/file.json')</param>
+    Task<string> UploadFileToSessionAsync(string filePath);
 }

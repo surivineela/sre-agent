@@ -518,6 +518,17 @@ public class PagerDutyService : IPagerDutyService
     {
         RunBasicValidations(incidentId);
 
+        // Fetch the latest incident details to check the current status
+        var incident = await GetPagerDutyIncidentAsync(incidentId);
+
+        // Only acknowledge incidents in "triggered" status
+        if (!incident.Status.Equals("triggered", StringComparison.OrdinalIgnoreCase))
+        {
+            var message = $"Cannot acknowledge PagerDuty incident ID: {incidentId}. Current status is '{incident.Status}'. Only incidents in 'triggered' status can be acknowledged. Acknowledging a resolved incident will reactivate it.";
+            _logger.LogInternalWarning(message);
+            throw new InvalidOperationException(message);
+        }
+
         using var client = CreateHttpClient();
         using var request = new HttpRequestMessage(HttpMethod.Put, $"https://api.pagerduty.com/incidents/{incidentId}");
         request.Content = JsonContent.Create(CreateAcknowledgeIncidentRequest());

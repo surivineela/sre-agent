@@ -12,6 +12,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
 using Agent.Logging;
 using Agent.Runtime.Workflow;
@@ -41,6 +42,7 @@ public class WorkflowOrchestrator : IDisposable
     private readonly CoreSettings _coreSettings;
     private readonly ModeSwitchHandler _modeSwitchHandler;
     private readonly ISkillRegistry _skillRegistry;
+    private readonly HookManager _hookManager;
 
     // Telemetry spans for workflow tracing
     private readonly TelemetrySpan? _rootSpan;
@@ -72,7 +74,8 @@ public class WorkflowOrchestrator : IDisposable
         Tracer tracer,
         IncidentManagementSettings incidentManagementSettings,
         CoreSettings coreSettings,
-        ISkillRegistry skillRegistry)
+        ISkillRegistry skillRegistry,
+        HookManager hookManager)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<WorkflowOrchestrator>();
@@ -86,6 +89,7 @@ public class WorkflowOrchestrator : IDisposable
         _incidentManagementSettings = incidentManagementSettings;
         _coreSettings = coreSettings;
         _skillRegistry = skillRegistry;
+        _hookManager = hookManager;
 
         // Initialize mode switch handler (kept minimal; only active if feature flag enabled)
         _modeSwitchHandler = new ModeSwitchHandler(
@@ -236,7 +240,9 @@ public class WorkflowOrchestrator : IDisposable
                     ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
                     SkillRegistry = _skillRegistry,
-                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+                    ChatClientProvider = _chatClientProvider,
+                    HookManager = _hookManager
                 },
                 context: _context,
                 hooks: runHooks,
@@ -582,7 +588,9 @@ public class WorkflowOrchestrator : IDisposable
                     ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
                     SkillRegistry = _skillRegistry,
-                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+                    ChatClientProvider = _chatClientProvider,
+                    HookManager = _hookManager
                 },
                 context: _context,
                 hooks: runHooks,
@@ -651,7 +659,9 @@ public class WorkflowOrchestrator : IDisposable
                     ChatClient = _chatClientProvider.GeneralPurposeModel,
                     LoggerFactory = _loggerFactory,
                     SkillRegistry = _skillRegistry,
-                    AmbientContextProvider = DisabledAmbientContextProvider.Instance
+                    AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+                    ChatClientProvider = _chatClientProvider,
+                    HookManager = _hookManager
                 },
                 context: _context,
                 hooks: runHooks,

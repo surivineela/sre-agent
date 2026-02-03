@@ -43,6 +43,19 @@ public static class ToolStatic
     /// Set by IncidentInvestigationTaskHandler to track which investigation phase is executing.
     /// </summary>
     public static readonly AsyncLocal<InvestigationStepContext?> AsyncLocalInvestigationStepContext = new();
+
+    /// <summary>
+    /// Holds the model ID for the current operation.
+    /// AsyncLocal because we want to keep the model ID for the current async context.
+    /// </summary>
+    public static readonly AsyncLocal<string?> AsyncLocalModelId = new();
+
+    /// <summary>
+    /// Holds HTTP headers and path for the current operation.
+    /// Keys: "Request", "Response", "Path", "ThreadId"
+    /// AsyncLocal because we want to keep the headers for the current async context.
+    /// </summary>
+    public static readonly AsyncLocal<Dictionary<string, string>?> AsyncLocalHttpHeaders = new();
 }
 
 /// <summary>

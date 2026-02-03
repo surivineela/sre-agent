@@ -1,10 +1,11 @@
-import { Button, Tab, TabList, tokens } from '@fluentui/react-components';
+import { Button, Tab, TabList } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentHandlerCreateResources } from '../../../../Strings/SREAgentResources';
 import { ChatBoxSidePanelData, ChatBoxSidePanelType } from '../../../Contracts/Activities';
 import useWindowSize from '../../../Hooks/useWindowSize';
+import { useIncidentManagementStyles } from '../../../Styles/IncidentManagement.styles';
 import { ReviewAndTestContent, ReviewAndTestView } from '../Common/ReviewAndTestContent';
 import { DirtyStateConfirmationWrapper } from '../DirtyStateConfirmationDialog';
 import { IncidentHandlerConsolidatedCreateContext, IncidentHandlerCreateSteps } from '../IncidentHandlerConsolidatedCreateContext';
@@ -15,8 +16,9 @@ const tabsDivHeight = 49;
 const tabViewThreshold = 1366;
 
 export const ReviewAndTestStep: FC = () => {
-    const { isValid, dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
-    const { generatingUpdatedTools, exitToHome, setCurrentStep, saveHandler } = useContext(IncidentHandlerConsolidatedCreateContext);
+    const styles = useIncidentManagementStyles();
+    const { dirty } = useFormikContext<IncidentHandlerCreateFormValues>();
+    const { generatingUpdatedTools, exitToHome, setCurrentStep } = useContext(IncidentHandlerConsolidatedCreateContext);
     const [selectedTab, setSelectedTab] = useState<ReviewAndTestView>('review');
     // Set forceShowTabs to true when deep investigation or todo plan panel is open
     const [forceShowTabs, setForceShowTabs] = useState(false);
@@ -80,24 +82,22 @@ export const ReviewAndTestStep: FC = () => {
                     initialSidePanelData={initialSidePanelData}
                 />
             </div>
-            <div
-                style={{
-                    display: 'flex',
-                    gap: 10,
-                    padding: 20,
-                    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
-                }}
-            >
+            <div className={styles.stepFooter}>
                 <Button
                     onClick={() => {
-                        setCurrentStep(IncidentHandlerCreateSteps.IncidentsAndGuidanceStep);
+                        setCurrentStep(IncidentHandlerCreateSteps.DefineAgentLearningStep);
                     }}
                     disabled={generatingUpdatedTools}
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.back)}
                 </Button>
-                <Button appearance="primary" onClick={() => saveHandler()} disabled={!dirty || !isValid}>
-                    {intl.formatMessage(IncidentHandlerCreateResources.save)}
+                <Button
+                    appearance="primary"
+                    onClick={() => {
+                        setCurrentStep(IncidentHandlerCreateSteps.SaveStep);
+                    }}
+                >
+                    {intl.formatMessage(IncidentHandlerCreateResources.next)}
                 </Button>
                 <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={() => exitToHome()}>
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>

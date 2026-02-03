@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -66,6 +67,10 @@ public interface IAgentFactory<TContext> : IAsyncInitializer
 
     // Attempt loading deferred MCP agent descriptors after MCP tools become available
     void AttemptLoadDeferredMcpAgents();
+
+    bool AgentExists(string agentName);
+
+    List<Agent<TContext>> GetAllAgents();
 }
 
 public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory<TContext>
@@ -208,10 +213,38 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
                 $"Supported LLM Model Names are: {string.Join(", ", _chatClientProvider.GetAvailableModels())}");
         }
 
-        if (agentDescriptor.McpTools != null && agentDescriptor.McpTools.Any(tool => !_toolFactory.HasTool(tool)))
+        // Validate MCP tools - wildcards are allowed to match zero tools (deferred loading handles them)
+        if (agentDescriptor.McpTools != null)
         {
-            var missingMcpTools = agentDescriptor.McpTools.Where(tool => !_toolFactory.HasTool(tool)).ToList();
-            throw new Exception($"Agent descriptor {agentDescriptor.Name} has MCP tools that do not exist in the tool factory: {string.Join(", ", missingMcpTools)}");
+            var missingExactTools = new List<string>();
+
+            foreach (var pattern in agentDescriptor.McpTools)
+            {
+                // Wildcard patterns are allowed even if they match nothing (deferred loading will handle)
+                if (pattern.EndsWith("/*", StringComparison.Ordinal))
+                {
+                    var expanded = _toolFactory.ExpandToolPattern(pattern);
+                    if (expanded.Count == 0)
+                    {
+                        _logger.LogInternalDebug(
+                            "Wildcard MCP tool pattern '{Pattern}' in agent '{Agent}' matched no tools (may be deferred)",
+                            pattern,
+                            agentDescriptor.Name);
+                    }
+                }
+                // Exact tool names must exist (unless it's a custom agent)
+                else if (!_toolFactory.HasTool(pattern))
+                {
+                    missingExactTools.Add(pattern);
+                }
+            }
+
+            // Throw error for missing exact tool names (non-wildcard)
+            if (missingExactTools.Count > 0 && !isCustomAgent)
+            {
+                throw new Exception(
+                    $"Agent descriptor {agentDescriptor.Name} has MCP tools that do not exist in the tool factory: {string.Join(", ", missingExactTools)}");
+            }
         }
     }
 
@@ -227,6 +260,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             throw;
         }
 
+        // Expand wildcards in MCP tools to concrete tool names
+        var expandedMcpTools = agentDescriptor.McpTools?
+            .SelectMany(_toolFactory.ExpandToolPattern)
+            .Distinct()
+            .ToList() ?? [];
+
         var agent = new Agent<TContext>(agentDescriptor.Name)
         {
             Instructions = agentDescriptor.Instructions,
@@ -235,7 +274,7 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             CustomReflectionNote = agentDescriptor.CustomReflectionNote,
             Handoffs = [], // Will be populated later to avoid circular references
             CriticOnHandOff = agentDescriptor.CriticOnHandOff,
-            FactoryTools = [.. agentDescriptor.Tools, .. agentDescriptor.McpTools],
+            FactoryTools = [.. agentDescriptor.Tools, .. expandedMcpTools],
             AllowParallelToolCalls = agentDescriptor.AllowParallelToolCalls,
             OutputType = GetOutputType(agentDescriptor),
             UserPromptOverride = agentDescriptor.UserPromptOverride,
@@ -316,6 +355,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
         ConfigureAgentInstructions(agent, agentDescriptor);
+
+        // Load hook configuration if the descriptor defines hooks
+        if (agentDescriptor.Hooks != null)
+        {
+            agent.HookConfiguration = HookManager.CreateFromDictionary(agentDescriptor.Hooks);
+        }
 
         if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent && !overwrite)
         {
@@ -755,7 +800,40 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
     }
 
     private bool ShouldDeferMcpAgent(IAgentDescriptor descriptor)
-        => descriptor.McpTools != null && descriptor.McpTools.Any(t => !_toolFactory.HasTool(t));
+    {
+        if (descriptor.McpTools == null || descriptor.McpTools.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var pattern in descriptor.McpTools)
+        {
+            // For wildcard patterns, check if they match any tools
+            if (pattern.EndsWith("/*", StringComparison.Ordinal))
+            {
+                var expanded = _toolFactory.ExpandToolPattern(pattern);
+                if (expanded.Count == 0)
+                {
+                    _logger.LogInternalDebug(
+                        "Agent {Agent} deferred: wildcard pattern '{Pattern}' matches no tools",
+                        descriptor.Name,
+                        pattern);
+                    return true; // Defer if any wildcard matches nothing
+                }
+            }
+            // For exact tool names, check if tool exists
+            else if (!_toolFactory.HasTool(pattern))
+            {
+                _logger.LogInternalDebug(
+                    "Agent {Agent} deferred: MCP tool '{Tool}' not available",
+                    descriptor.Name,
+                    pattern);
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public void AttemptLoadDeferredMcpAgents()
     {
@@ -770,7 +848,8 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
 
         foreach (var (descriptor, isCustom, overwrite) in _deferredMcpAgentDescriptors)
         {
-            var allMcpToolsReady = descriptor.McpTools != null && descriptor.McpTools.All(t => _toolFactory.HasTool(t));
+            // Check if all MCP tools/patterns are now ready (wildcards must match at least one tool)
+            var allMcpToolsReady = !ShouldDeferMcpAgent(descriptor);
             if (allMcpToolsReady)
             {
                 try
@@ -786,8 +865,26 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
             }
             else
             {
-                var missingTools = descriptor.McpTools?.Where(t => !_toolFactory.HasTool(t)).ToArray() ?? Array.Empty<string>();
-                _logger.LogInternalDebug("Deferred MCP agent '{name}' still missing tools: {missingTools}", descriptor.Name, string.Join(", ", missingTools));
+                // Log which tools/patterns are still not ready
+                var missingItems = new List<string>();
+                if (descriptor.McpTools != null)
+                {
+                    foreach (var pattern in descriptor.McpTools)
+                    {
+                        if (pattern.EndsWith("/*", StringComparison.Ordinal))
+                        {
+                            if (_toolFactory.ExpandToolPattern(pattern).Count == 0)
+                            {
+                                missingItems.Add($"{pattern} (wildcard matches 0 tools)");
+                            }
+                        }
+                        else if (!_toolFactory.HasTool(pattern))
+                        {
+                            missingItems.Add(pattern);
+                        }
+                    }
+                }
+                _logger.LogInternalDebug("Deferred MCP agent '{name}' still missing tools: {missingTools}", descriptor.Name, string.Join(", ", missingItems));
             }
         }
 

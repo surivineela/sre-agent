@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Diagnostics.CodeAnalysis;
+using Agent.Framework.Hooks;
 using Agent.Framework.Models;
 using Microsoft.Extensions.AI;
 
@@ -40,6 +41,12 @@ public class Agent<TContext>(string name) where TContext : class
     public List<string> HandoffNames => [.. Handoffs.Select(h => h.Name)];
 
     public IAgentHooks? Hooks { get; set; }
+
+    /// <summary>
+    /// Claude-style hook configuration for this agent.
+    /// Defines hooks that can intercept events like Stop.
+    /// </summary>
+    public AgentHookConfiguration? HookConfiguration { get; set; }
 
     public int MaxReflectionCount { get; set; } = 0;
 
@@ -173,6 +180,7 @@ public class Agent<TContext>(string name) where TContext : class
             OutputType = OutputType,
             ChatClient = ChatClient,
             Hooks = Hooks, // Hooks can be shared across clones
+            HookConfiguration = HookConfiguration, // Hook configuration can be shared across clones
 
             EnableSkills = EnableSkills,
             AddSystemSkills = AddSystemSkills,

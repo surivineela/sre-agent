@@ -576,7 +576,7 @@ export const useConsolidatedCreateIncidentHandler = (
     }, [handler]);
 
     const goToFullEditMode = useCallback(() => {
-        setCurrentStep(IncidentHandlerCreateSteps.IncidentsAndGuidanceStep);
+        setCurrentStep(IncidentHandlerCreateSteps.DefineAgentLearningStep);
         setHandlerMode('edit');
     }, []);
 
@@ -923,7 +923,7 @@ export const useConsolidatedCreateIncidentHandler = (
                 impactedService: handlerCreateOrEditInfo.filter?.impactedService,
                 priorities: handlerCreateOrEditInfo.filter?.priorities,
                 titleContains: handlerCreateOrEditInfo.filter?.titleContains,
-                agentMode: handlerCreateOrEditInfo.filter?.agentMode || AgentMode.autonomous,
+                agentMode: handlerCreateOrEditInfo.filter?.agentMode || AgentMode.review,
                 deepInvestigationEnabled: handlerCreateOrEditInfo.filter?.deepInvestigationEnabled || false,
                 owningTeamId: handlerCreateOrEditInfo.filter?.owningTeamId || '',
                 createdBy: handlerCreateOrEditInfo.filter?.createdBy || '',

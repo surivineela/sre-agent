@@ -18,20 +18,21 @@ public class CodeExecutionResponseProcessorTests
 {
     private readonly CodeExecutionResponseProcessor _processor;
     private readonly ToolOutputProcessorContext _context;
-    private readonly List<(Guid ThreadId, string ToolName, string Content, string ContentType)> _savedOutputs;
+    private readonly List<(Guid ThreadId, string ToolName, string CallId, string Content, string ContentType)> _savedOutputs;
 
     public CodeExecutionResponseProcessorTests()
     {
         _processor = new CodeExecutionResponseProcessor();
-        _savedOutputs = new List<(Guid, string, string, string)>();
+        _savedOutputs = new List<(Guid, string, string, string, string)>();
 
         _context = new ToolOutputProcessorContext
         {
             ThreadId = Guid.NewGuid(),
             ToolName = "CodeInterpreter",
-            SaveOutput = (threadId, toolName, content, contentType, ct) =>
+            CallId = "test-call-id",
+            SaveOutput = (threadId, toolName, callId, content, contentType, ct) =>
             {
-                _savedOutputs.Add((threadId, toolName, content, contentType));
+                _savedOutputs.Add((threadId, toolName, callId, content, contentType));
                 return Task.FromResult($"saved-file-{_savedOutputs.Count}.{contentType}");
             }
         };

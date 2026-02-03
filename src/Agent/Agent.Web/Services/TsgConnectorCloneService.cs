@@ -4,12 +4,10 @@
 
 using System.Text.RegularExpressions;
 using Agent.Common.Services;
-using Agent.Core;
-using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
-using Agent.Framework;
 using Agent.Plugins.Services;
 
 namespace Agent.Web.Services;
@@ -22,8 +20,9 @@ namespace Agent.Web.Services;
 public class TsgConnectorCloneService : BackgroundService
 {
     private readonly ITsgConnectorRepository _repository;
-    private readonly TerminalSessionManager _terminalManager;
     private readonly ILogger<TsgConnectorCloneService> _logger;
+    private readonly Lazy<Task<SandboxPaths>> _sandboxPaths;
+    private readonly Lazy<Task<TerminalSessionManager>> _terminalManager;
 
     private readonly Lock _lock = new();
     private bool _isRunning;
@@ -41,8 +40,6 @@ public class TsgConnectorCloneService : BackgroundService
         string? CommitHash,
         DateTime? CommitTime);
 
-    public static string CodeRefsPath => new LocalSandboxPaths().SandboxPaths.CodeRefsPath;
-
     /// <summary>
     /// Gets whether this service is enabled. Cached once at startup based on workspace feature flag.
     /// </summary>
@@ -51,18 +48,33 @@ public class TsgConnectorCloneService : BackgroundService
     public TsgConnectorCloneService(
         ITsgConnectorRepository repository,
         ILogger<TsgConnectorCloneService> logger,
-        ExperimentalSettings experimentalSettings,
-        IExperimentLoader experimentLoader)
+        IWorkspaceToolsPlugin workspaceToolsPlugin,
+        ISandboxPaths sandboxPaths)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        var sandboxPaths = new LocalSandboxPaths();
-        _terminalManager = new TerminalSessionManager(logger, sandboxPaths.GetSandboxPathsAsync().Result.SandboxRoot);
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _sandboxPaths = new Lazy<Task<SandboxPaths>>(
+            sandboxPaths.GetSandboxPathsAsync,
+            LazyThreadSafetyMode.ExecutionAndPublication);
+        _terminalManager = new Lazy<Task<TerminalSessionManager>>(
+            async () => new TerminalSessionManager(logger, (await _sandboxPaths.Value).SandboxRoot),
+            LazyThreadSafetyMode.ExecutionAndPublication);
 
         // Cache enabled state once - same pattern as WorkspaceToolsPlugin
-        Enabled = experimentalSettings.EnableWorkspaceTools
-            || experimentLoader.IsFeatureFlagEnabled(Constants.FeatureFlags.EnableWorkspaceTools);
+        Enabled = workspaceToolsPlugin.Enabled;
     }
+
+    /// <summary>
+    /// Helper to get the code refs path asynchronously.
+    /// </summary>
+    private async Task<string> GetCodeRefsPathAsync()
+        => (await _sandboxPaths.Value).CodeRefsPath;
+
+    /// <summary>
+    /// Helper to get the terminal manager asynchronously.
+    /// </summary>
+    private Task<TerminalSessionManager> GetTerminalManagerAsync()
+        => _terminalManager.Value;
 
     /// <summary>
     /// Queue a full code repository update operation. Called by controller and timer.
@@ -95,10 +107,11 @@ public class TsgConnectorCloneService : BackgroundService
             return;
         }
 
-        if (!Directory.Exists(CodeRefsPath))
+        var codeRefsPath = await GetCodeRefsPathAsync();
+        if (!Directory.Exists(codeRefsPath))
         {
-            Directory.CreateDirectory(CodeRefsPath);
-            _logger.LogInternalInformation($"Created codeRefs directory: {CodeRefsPath}");
+            Directory.CreateDirectory(codeRefsPath);
+            _logger.LogInternalInformation($"Created codeRefs directory: {codeRefsPath}");
         }
 
         // Initial update (no delay)
@@ -173,19 +186,23 @@ public class TsgConnectorCloneService : BackgroundService
         connectors = await _repository.GetAllAsync();
 
         // Clean up orphaned folders
-        CleanupOrphanedCodeRefs(connectors);
+        await CleanupOrphanedCodeRefsAsync(connectors);
 
         cancellationToken.ThrowIfCancellationRequested();
 
         var now = DateTime.UtcNow;
 
         // Phase 1: Needs clone (includes Failed for auto-retry)
+        // Also include Unhealthy connectors that failed due to auth errors - they should be retried
+        // since the auth error may have been transient (e.g., container restart, network issue)
         var needsClone = connectors
-            .Where(c => c.Status == ConnectorStatus.Healthy
+            .Where(c => (c.Status == ConnectorStatus.Healthy || c.Status == ConnectorStatus.Unhealthy)
                         && c.CloneStatus is CloneStatus.NotStarted
                                          or CloneStatus.PendingCredentialUpdate
                                          or CloneStatus.Failed)
             .ToList();
+
+        _logger.LogInternalInformation($"Found {connectors.Count} total connectors, {needsClone.Count} need clone (Healthy: {connectors.Count(c => c.Status == ConnectorStatus.Healthy)}, Unhealthy: {connectors.Count(c => c.Status == ConnectorStatus.Unhealthy)})");
 
         // Phase 2: Stale (>1 day), ordered by most stale first
         var stale = connectors
@@ -199,11 +216,13 @@ public class TsgConnectorCloneService : BackgroundService
         var toProcess = needsClone.Concat(stale).ToList();
         if (toProcess.Count == 0)
         {
+            _logger.LogInternalInformation($"No repository connectors found to clone. Skipping sync.");
             return;
         }
 
         _logger.LogInternalInformation($"Processing {toProcess.Count} connectors ({needsClone.Count} need clone, {stale.Count} stale)");
 
+        var terminalManager = await GetTerminalManagerAsync();
         await Parallel.ForEachAsync(toProcess,
             new ParallelOptions { MaxDegreeOfParallelism = MaxParallelClones, CancellationToken = cancellationToken },
             async (connector, ct) =>
@@ -219,7 +238,7 @@ public class TsgConnectorCloneService : BackgroundService
                 }
                 finally
                 {
-                    _terminalManager.DisposeSession(sessionId);
+                    terminalManager.DisposeSession(sessionId);
                 }
             });
     }
@@ -227,9 +246,10 @@ public class TsgConnectorCloneService : BackgroundService
     /// <summary>
     /// Removes codeRefs folders that don't have corresponding connectors.
     /// </summary>
-    private void CleanupOrphanedCodeRefs(IReadOnlyList<TsgConnectorDocument> connectors)
+    private async Task CleanupOrphanedCodeRefsAsync(IReadOnlyList<TsgConnectorDocument> connectors)
     {
-        if (!Directory.Exists(CodeRefsPath))
+        var codeRefsPath = await GetCodeRefsPathAsync();
+        if (!Directory.Exists(codeRefsPath))
         {
             return;
         }
@@ -238,7 +258,7 @@ public class TsgConnectorCloneService : BackgroundService
             .Select(c => SanitizeFolderName(c.Name))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var folderPath in Directory.GetDirectories(CodeRefsPath))
+        foreach (var folderPath in Directory.GetDirectories(codeRefsPath))
         {
             var folderName = Path.GetFileName(folderPath);
 
@@ -262,9 +282,13 @@ public class TsgConnectorCloneService : BackgroundService
     private async Task ProcessConnectorAsync(
         TsgConnectorDocument connector, Guid sessionId, CancellationToken ct)
     {
-        var localPath = Path.Combine(CodeRefsPath, SanitizeFolderName(connector.Name));
+        var codeRefsPath = await GetCodeRefsPathAsync();
+        var localPath = Path.Combine(codeRefsPath, SanitizeFolderName(connector.Name));
         var gitDirPath = Path.Combine(localPath, ".git");
         var isExisting = Directory.Exists(gitDirPath);
+
+        _logger.LogInternalInformation(
+            $"Processing connector: {connector.Name}, RepoType={connector.RepoType}, SyncTarget={localPath}, Existing={isExisting}");
 
         // Clean up corrupt/incomplete directory before clone
         if (Directory.Exists(localPath) && !isExisting)
@@ -304,7 +328,7 @@ public class TsgConnectorCloneService : BackgroundService
         }
 
         var status = isExisting ? CloneStatus.Syncing : CloneStatus.Cloning;
-        await _repository.UpdateCloneStatusAsync(connector.Name, status, localPath);
+        await _repository.UpdateCloneStatusAsync(connector.Name, status, localPath, errorMessage: null);
 
         bool success;
         string? error;
@@ -323,6 +347,12 @@ public class TsgConnectorCloneService : BackgroundService
             await SetupGitCredentialsAsync(sessionId, localPath, repoUrl, connector.Pat, ct);
             var commitHash = await GetCommitHashAsync(sessionId, localPath, ct);
             await _repository.UpdateCloneStatusAsync(connector.Name, CloneStatus.Ready, localPath, commitHash);
+            // If connector was unhealthy due to previous auth failure, mark it healthy now
+            if (connector.Status == ConnectorStatus.Unhealthy)
+            {
+                await _repository.UpdateStatusAsync(connector.Name, ConnectorStatus.Healthy);
+                _logger.LogInternalInformation($"Connector {connector.Name} recovered from unhealthy state");
+            }
             _logger.LogInternalInformation($"Successfully processed connector: {connector.Name}");
         }
         else
@@ -354,9 +384,18 @@ public class TsgConnectorCloneService : BackgroundService
             ForceDeleteDirectory(localPath);
         }
 
+        // Check if PAT is available - if not, fail early with a clear error
+        if (string.IsNullOrEmpty(pat))
+        {
+            _logger.LogInternalWarning($"No PAT available for repository {repoUrl}, clone will fail");
+            return (false, "No PAT/credentials available for repository. Please update the connector with valid credentials.");
+        }
+
+        _logger.LogInternalInformation($"Cloning repository {repoUrl} to {localPath} (PAT length: {pat.Length})");
         var authUrl = BuildAuthenticatedUrl(repoUrl, pat);
         var cmd = $"git clone \"{authUrl}\" \"{localPath}\"";
-        var (output, exitCode) = await _terminalManager.ExecuteCommandAsync(sessionId, cmd, ct);
+        var terminalManager = await GetTerminalManagerAsync();
+        var (output, exitCode) = await terminalManager.ExecuteCommandAsync(sessionId, cmd, ct);
 
         return exitCode == 0
             ? (true, null)
@@ -366,22 +405,26 @@ public class TsgConnectorCloneService : BackgroundService
     private async Task<(bool success, string? error)> GitPullAsync(
         Guid sessionId, string localPath, string? pat, CancellationToken ct)
     {
+        var terminalManager = await GetTerminalManagerAsync();
+
         // Update remote URL with current PAT before fetching
         if (!string.IsNullOrEmpty(pat))
         {
-            var (currentUrl, _) = await _terminalManager.ExecuteCommandAsync(sessionId,
+            _logger.LogInternalInformation($"Updating remote URL with PAT for {localPath}");
+            var (currentUrl, _) = await terminalManager.ExecuteCommandAsync(sessionId,
                 $"git -C \"{localPath}\" config --get remote.origin.url", ct);
 
             if (!string.IsNullOrEmpty(currentUrl?.Trim()))
             {
                 var authUrl = BuildAuthenticatedUrl(currentUrl.Trim(), pat);
-                await _terminalManager.ExecuteCommandAsync(sessionId,
+                await terminalManager.ExecuteCommandAsync(sessionId,
                     $"git -C \"{localPath}\" config remote.origin.url \"{authUrl}\"", ct);
             }
         }
 
         // Fetch
-        var (output, exitCode) = await _terminalManager.ExecuteCommandAsync(sessionId,
+        _logger.LogInternalInformation($"Fetching latest changes for {localPath}");
+        var (output, exitCode) = await terminalManager.ExecuteCommandAsync(sessionId,
             $"git -C \"{localPath}\" fetch origin", ct);
         if (exitCode != 0)
         {
@@ -389,12 +432,14 @@ public class TsgConnectorCloneService : BackgroundService
         }
 
         // Get default branch
-        var (branchOut, _) = await _terminalManager.ExecuteCommandAsync(sessionId,
+        _logger.LogInternalInformation($"Determining default branch for {localPath}");
+        var (branchOut, _) = await terminalManager.ExecuteCommandAsync(sessionId,
             $"git -C \"{localPath}\" symbolic-ref refs/remotes/origin/HEAD --short", ct);
         var branch = branchOut?.Trim().Replace("origin/", "") ?? "main";
 
         // Reset to origin
-        (output, exitCode) = await _terminalManager.ExecuteCommandAsync(sessionId,
+        _logger.LogInternalInformation($"Resetting local branch to origin/{branch} for {localPath}");
+        (output, exitCode) = await terminalManager.ExecuteCommandAsync(sessionId,
             $"git -C \"{localPath}\" reset --hard origin/{branch}", ct);
 
         return exitCode == 0 ? (true, null) : (false, RedactPat(output));
@@ -402,34 +447,42 @@ public class TsgConnectorCloneService : BackgroundService
 
     private async Task<string?> GetCommitHashAsync(Guid sessionId, string localPath, CancellationToken ct)
     {
-        var (output, exitCode) = await _terminalManager.ExecuteCommandAsync(sessionId,
+        var terminalManager = await GetTerminalManagerAsync();
+        var (output, exitCode) = await terminalManager.ExecuteCommandAsync(sessionId,
             $"git -C \"{localPath}\" rev-parse HEAD", ct);
         return exitCode == 0 ? output?.Trim() : null;
     }
 
     private async Task SetupGitCredentialsAsync(
-        Guid sessionId, string localPath, string cleanUrl, string? pat, CancellationToken ct)
+        Guid sessionId, string localPath, string cleanUrl, string pat, CancellationToken ct)
     {
-        if (string.IsNullOrEmpty(pat))
-        {
-            return;
-        }
-
+        var terminalManager = await GetTerminalManagerAsync();
         var credFile = Path.Combine(localPath, ".git", "git-credentials");
 
-        // Configure credential helper for this repo
-        await _terminalManager.ExecuteCommandAsync(sessionId,
-            $"git -C \"{localPath}\" config credential.helper \"store --file {credFile}\"", ct);
-        await _terminalManager.ExecuteCommandAsync(sessionId,
-            $"git -C \"{localPath}\" config credential.useHttpPath true", ct);
-
-        // Write credential entry
+        // Write credential entry FIRST
         var uri = new Uri(cleanUrl);
         var credLine = $"https://pat:{pat}@{uri.Host}{uri.AbsolutePath}";
         File.WriteAllText(credFile, credLine + Environment.NewLine);
 
+        // Clear any inherited credential helpers (e.g., system-level Git Credential Manager)
+        // then add our store helper. This ensures our helper is the only one used.
+        await terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config credential.helper \"\"", ct);
+        await terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config --add credential.helper \"store --file \\\"{credFile}\\\"\"", ct);
+        // Disable useHttpPath - each repo has its own credential file, so host-only matching is sufficient.
+        // Path matching with git-credential-store is unreliable and not needed for per-repo isolation.
+        await terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config credential.useHttpPath false", ct);
+
+        // Configure git user identity for commits
+        await terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config user.name \"Azure SRE Agent\"", ct);
+        await terminalManager.ExecuteCommandAsync(sessionId,
+            $"git -C \"{localPath}\" config user.email \"noreply@microsoft.com\"", ct);
+
         // Set remote URL to clean URL (remove embedded PAT)
-        await _terminalManager.ExecuteCommandAsync(sessionId,
+        await terminalManager.ExecuteCommandAsync(sessionId,
             $"git -C \"{localPath}\" remote set-url origin \"{cleanUrl}\"", ct);
     }
 
@@ -500,7 +553,7 @@ public class TsgConnectorCloneService : BackgroundService
             var uri = new Uri(url);
             var builder = new UriBuilder(uri)
             {
-                UserName = string.Empty,
+                UserName = "sreagent", // any non-empty username
                 Password = pat
             };
 
@@ -530,6 +583,8 @@ public class TsgConnectorCloneService : BackgroundService
     /// </summary>
     private async Task ReconcileConnectorStatesAsync(IReadOnlyList<TsgConnectorDocument> connectors)
     {
+        var codeRefsPath = await GetCodeRefsPathAsync();
+
         foreach (var connector in connectors)
         {
             // Skip non-healthy or actively processing connectors
@@ -545,7 +600,7 @@ public class TsgConnectorCloneService : BackgroundService
                 continue;
             }
 
-            var fsState = GetFilesystemState(connector.Name);
+            var fsState = GetFilesystemState(connector.Name, codeRefsPath);
 
             // Check if status differs
             var statusChanged = fsState.Status != connector.CloneStatus;
@@ -572,7 +627,7 @@ public class TsgConnectorCloneService : BackgroundService
             }
 
             // Update document - use filesystem commit time as LastSuccessfulSync when hash changes
-            var localPath = Path.Combine(CodeRefsPath, SanitizeFolderName(connector.Name));
+            var localPath = Path.Combine(codeRefsPath, SanitizeFolderName(connector.Name));
             await _repository.UpdateCloneStatusAsync(
                 connector.Name,
                 fsState.Status,
@@ -585,9 +640,9 @@ public class TsgConnectorCloneService : BackgroundService
     /// <summary>
     /// Inspects the filesystem to determine the actual clone state for a connector.
     /// </summary>
-    private FilesystemState GetFilesystemState(string connectorName)
+    private FilesystemState GetFilesystemState(string connectorName, string codeRefsPath)
     {
-        var localPath = Path.Combine(CodeRefsPath, SanitizeFolderName(connectorName));
+        var localPath = Path.Combine(codeRefsPath, SanitizeFolderName(connectorName));
         var gitDir = Path.Combine(localPath, ".git");
 
         // No directory or no .git = not cloned
@@ -604,8 +659,22 @@ public class TsgConnectorCloneService : BackgroundService
             return new FilesystemState(CloneStatus.NotStarted, null, null);
         }
 
-        // Get commit time from HEAD ref file
         var commitTime = GetCommitTime(localPath);
+
+        // Check credentials file - PAT is always required
+        var credFile = Path.Combine(gitDir, "git-credentials");
+        try
+        {
+            if (!File.Exists(credFile) || string.IsNullOrWhiteSpace(File.ReadAllText(credFile)))
+            {
+                return new FilesystemState(CloneStatus.PendingCredentialUpdate, commitHash, commitTime);
+            }
+        }
+        catch
+        {
+            // File read error (locked, permission) - treat as missing credentials
+            return new FilesystemState(CloneStatus.PendingCredentialUpdate, commitHash, commitTime);
+        }
 
         return new FilesystemState(CloneStatus.Ready, commitHash, commitTime);
     }
@@ -673,9 +742,10 @@ public class TsgConnectorCloneService : BackgroundService
     /// Delete the local repository for a connector.
     /// Called when a connector is deleted to clean up disk space.
     /// </summary>
-    public void DeleteLocalRepository(string connectorName)
+    public async Task DeleteLocalRepositoryAsync(string connectorName)
     {
-        var localPath = Path.Combine(CodeRefsPath, SanitizeFolderName(connectorName));
+        var codeRefsPath = await GetCodeRefsPathAsync();
+        var localPath = Path.Combine(codeRefsPath, SanitizeFolderName(connectorName));
         if (Directory.Exists(localPath))
         {
             try

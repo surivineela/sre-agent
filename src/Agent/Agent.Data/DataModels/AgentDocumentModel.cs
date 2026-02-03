@@ -4,6 +4,7 @@
 
 using System.Text.Json.Serialization;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Models;
 using YamlDotNet.Serialization;
 
@@ -56,7 +57,7 @@ public record AgentDocumentModel(
         Tools = Spec.Tools ?? [],
         McpTools = Spec.McpTools ?? [],
         Connectors = Spec.Connectors ?? [],
-        AllowParallelToolCalls = Spec.AllowParallelToolCalls ?? false,
+        AllowParallelToolCalls = Spec.AllowParallelToolCalls ?? true,
         MaxReflectionCount = Spec.MaxReflectionCount ?? 0,
         CriticPromptPath = Spec.CriticPromptPath ?? string.Empty,
         CriticOnHandOff = Spec.CriticOnHandOff ?? false,
@@ -80,8 +81,44 @@ public record AgentDocumentModel(
         NextAgentMappings = Spec.NextAgentMappings ?? [],
         EnableSkills = Spec.EnableSkills ?? false,
         AddSystemSkills = Spec.AddSystemSkills ?? false,
-        AllowedSkills = Spec.AllowedSkills
+        AllowedSkills = Spec.AllowedSkills,
+        Hooks = ConvertHooksToFramework(Spec.Hooks)
     };
+
+    /// <summary>
+    /// Converts hooks from DTO format to framework format.
+    /// </summary>
+    private static Dictionary<string, List<HookDefinition>>? ConvertHooksToFramework(
+        Dictionary<string, List<HookDefinitionDto>>? hooks)
+    {
+        if (hooks == null || hooks.Count == 0)
+        {
+            return null;
+        }
+
+        var result = new Dictionary<string, List<HookDefinition>>();
+        foreach (var (eventType, definitions) in hooks)
+        {
+            result[eventType] = definitions.Select(dto => new HookDefinition
+            {
+                Type = Enum.TryParse<HookType>(dto.Type, ignoreCase: true, out var hookType)
+                    ? hookType
+                    : HookType.Prompt,
+                Prompt = dto.Prompt,
+                Command = dto.Command,
+                Script = dto.Script,
+                Matcher = dto.Matcher,
+                Timeout = dto.Timeout,
+                Model = dto.Model,
+                FailMode = Enum.TryParse<HookFailMode>(dto.FailMode, ignoreCase: true, out var failMode)
+                    ? failMode
+                    : HookFailMode.Allow,
+                MaxRejections = dto.MaxRejections
+            }).ToList();
+        }
+
+        return result;
+    }
     # endregion
 }
 
@@ -246,4 +283,11 @@ public class AgentSpec
 
     [YamlMember(Alias = "allowed_skills")]
     public List<string>? AllowedSkills { get; set; } = null;
+
+    /// <summary>
+    /// Hook configurations for this agent, organized by event type.
+    /// Key is the event type name (e.g., "Stop"), value is list of hook definitions.
+    /// </summary>
+    [YamlMember(Alias = "hooks")]
+    public Dictionary<string, List<HookDefinitionDto>>? Hooks { get; set; }
 }

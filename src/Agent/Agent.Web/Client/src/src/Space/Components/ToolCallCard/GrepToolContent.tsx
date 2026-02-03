@@ -1,5 +1,5 @@
-import { Badge, Text, mergeClasses } from '@fluentui/react-components';
-import { ChevronDown20Regular, ChevronRight20Regular, Document20Regular } from '@fluentui/react-icons';
+import { Text, mergeClasses } from '@fluentui/react-components';
+import { ChevronDown12Regular, ChevronRight12Regular, Document16Regular } from '@fluentui/react-icons';
 import { memo, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { CopyButton } from '../../../Common/Components/CopyButton';
@@ -71,19 +71,19 @@ const FileResultItem = memo(({ file, defaultOpen }: { file: GrepFileResult; defa
     return (
         <div>
             <div className={classes.fileHeader} onClick={() => setIsOpen(!isOpen)}>
-                {isOpen ? <ChevronDown20Regular className={classes.fileIcon} /> : <ChevronRight20Regular className={classes.fileIcon} />}
-                <Document20Regular className={classes.fileIcon} />
+                {isOpen ? <ChevronDown12Regular className={classes.fileIcon} /> : <ChevronRight12Regular className={classes.fileIcon} />}
+                <Document16Regular className={classes.fileIcon} />
                 <span className={classes.filePath}>{file.filePath}</span>
-                <Badge appearance="outline" color="informative" className={classes.infoBadge}>
+                <span className={classes.infoBadge}>
                     {file.matchCount} {matchLabel}
-                </Badge>
+                </span>
                 <div className={classes.copyButtonInline} onClick={e => e.stopPropagation()}>
                     <CopyButton textToCopy={copyContent} />
                 </div>
             </div>
 
             {isOpen && (
-                <div className={classes.codeContainer}>
+                <div className={classes.codeContainerScrollable}>
                     {file.matches.map((match: GrepLineMatch, index: number) => (
                         <div key={`${match.lineNumber}-${index}`} className={classes.codeLine}>
                             <div className={classes.lineNumber}>{match.lineNumber}</div>
@@ -114,20 +114,18 @@ const GrepToolContent = ({ result }: GrepToolContentProps) => {
 
     return (
         <>
-            {/* Header with total count and copy button */}
+            {/* Header - minimal */}
             <div className={classes.contentHeader}>
                 <div className={classes.contentHeaderLeft}>
-                    <Text weight="semibold">
+                    <Text size={200}>
                         {intl.formatMessage(SreAgentResources.grepMatchesFound, {
                             count: result.totalMatches,
                             fileCount: result.files.length,
                         })}
+                        {result.isRegex && (
+                            <span style={{ marginLeft: '8px', opacity: 0.6 }}>{intl.formatMessage(SreAgentResources.grepRegex)}</span>
+                        )}
                     </Text>
-                    {result.isRegex && (
-                        <Badge appearance="outline" size="small">
-                            {intl.formatMessage(SreAgentResources.grepRegex)}
-                        </Badge>
-                    )}
                 </div>
                 <CopyButton textToCopy={allContentForCopy} />
             </div>
@@ -140,7 +138,7 @@ const GrepToolContent = ({ result }: GrepToolContentProps) => {
             {/* Truncation notice */}
             {result.isTruncated && (
                 <div className={classes.truncationNotice}>
-                    Results limited to {result.maxResults} matches. Refine your search for more specific results.
+                    {intl.formatMessage(SreAgentResources.grepResultsTruncated, { limit: result.maxResults })}
                 </div>
             )}
         </>

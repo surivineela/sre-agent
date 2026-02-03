@@ -28,7 +28,7 @@ namespace Agent.Runtime.SubAgents
         ];
 
         public BestPracticeScannerAgent(GraphDBQueryAgent graphDBQueryAgent, IChatClientProvider chatClientProvider, ILogger<BestPracticeScannerAgent> logger)
-            : base("BestPracticeScannerAgent", chatClientProvider)
+            : base("BestPracticeScannerAgent", chatClientProvider, chatClient: chatClientProvider.ReasoningHeavyModel)
         {
             _graphDBQueryAgent = graphDBQueryAgent;
             _logger = logger;

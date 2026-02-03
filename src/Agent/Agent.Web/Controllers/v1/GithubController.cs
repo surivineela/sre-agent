@@ -5,7 +5,7 @@ using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
-using Agent.Logging;
+using Agent.Plugins.Interface;
 using Agent.Plugins.Services;
 using Agent.Web.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,22 +13,36 @@ using ArmOperations = Agent.Core.Constants.ArmOperations;
 
 namespace Agent.Web.Controllers.v1;
 
+public record GitHubOAuthConfig(string OAuthUrl);
+
 [ApiController]
 [Route("api/v1/[controller]")]
 public class GithubController(
     ILogger<GithubController> _logger,
     IThreadRepository _threadRepository,
     IGraphDatabaseClient _graphDbClient,
-    ICrawlerTriggerService _crawlerTriggerService) : ControllerBase
+    ICrawlerTriggerService _crawlerTriggerService,
+    IGithubIssuePlugin _githubIssuePlugin) : ControllerBase
 {
+    [HttpGet("config")]
+    [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
+    public IActionResult GetGitHubConfig()
+    {
+        var oauthUrl = _githubIssuePlugin.GenerateLoginLink();
+        return Ok(new GitHubOAuthConfig(oauthUrl));
+    }
+
     [HttpPost("auth/complete")]
 #pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation
-    public async Task<IActionResult> CompleteGitHubAuth([FromForm] string accessToken)
+    public async Task<IActionResult> CompleteGitHubAuth([FromForm] string accessToken, [FromForm] int? expiresIn, [FromForm] string? refreshToken, [FromForm] int? refreshTokenExpiresIn)
 #pragma warning restore CUSTOM004
     {
-        await _threadRepository.CreateOrUpdateGitHubAccessTokenAsync(new GitHubAccessToken(accessToken, ExpiresOn: null));
+        var expiresOn = expiresIn.HasValue ? DateTime.UtcNow.AddSeconds(expiresIn.Value) : (DateTime?)null;
+        var refreshTokenExpiresOn = refreshTokenExpiresIn.HasValue ? DateTime.UtcNow.AddSeconds(refreshTokenExpiresIn.Value) : (DateTime?)null;
 
-        // Return an HTML response with a thank-you message
+        await _threadRepository.CreateOrUpdateGitHubAccessTokenAsync(new GitHubAccessToken(accessToken, expiresOn, refreshToken, refreshTokenExpiresOn));
+
+        // Return an HTML response with a thank-you message and postMessage to opener
         var htmlResponse = @"
         <!DOCTYPE html>
         <html lang='en'>
@@ -50,6 +64,15 @@ public class GithubController(
                     color: #555;
                 }
             </style>
+            <script>
+                // Send postMessage to opener window for Connector page OAuth flow
+                if (window.opener) {
+                    window.opener.postMessage({
+                        type: 'github-oauth-complete',
+                        success: true
+                    }, window.location.origin);
+                }
+            </script>
         </head>
         <body>
             <h1>You are now logged into your GitHub account!</h1>

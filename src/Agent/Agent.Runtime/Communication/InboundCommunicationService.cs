@@ -122,6 +122,12 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             await _reasoningLoopManager.SetHomeAgentAsync(agentContext!, threadMessage.AgentName);
         }
 
+        // Set investigation status to InProgress when agent starts processing a message
+        await _agentOutboundCommunicationService.UpdateInvestigationStatusAsync(
+            threadMessage.ThreadId,
+            InvestigationStatus.InProgress,
+            default);
+
         await _reasoningLoopManager.AppendNewMessageAsync(
             context: agentContext!,
             msg: new ChatMessage(chatRole, threadMessage.Message),
@@ -328,14 +334,15 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             IncidentDetails: incidentDetails
         );
 
-        if (incidentId != string.Empty)
+        // Set Status when we have incidentDetails or incidentId to ensure IncidentStatus is always populated
+        if (incidentDetails != null || incidentId != string.Empty)
         {
             thread.Status = new Status
             {
                 IncidentStatus = new Core.Models.Api.v1.IncidentStatus
                 {
                     IncidentId = incidentId,
-                    Status = incidentDetails?.IncidentStatus
+                    Status = incidentDetails?.IncidentStatus ?? string.Empty
                 }
             };
         }

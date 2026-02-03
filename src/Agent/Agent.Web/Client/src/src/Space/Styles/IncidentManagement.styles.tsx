@@ -25,6 +25,7 @@ export const useIncidentManagementStyles = makeStyles({
         overflowY: 'auto',
         position: 'relative',
         flex: 1,
+        height: '100%',
     },
     navPanelContentWithSidebar: {
         display: 'flex',
@@ -32,6 +33,7 @@ export const useIncidentManagementStyles = makeStyles({
         overflow: 'hidden',
         position: 'relative',
         flex: 1,
+        height: '100%',
     },
     mainFormContent: {
         display: 'flex',
@@ -59,8 +61,9 @@ export const useIncidentManagementStyles = makeStyles({
     breadcrumb: {
         display: 'flex',
         height: '30px',
-        marginTop: '10px',
+        marginTop: '20px',
         marginLeft: '16px',
+        marginBottom: '20px',
     },
     incidentChatWrapper: {
         height: '100%',
@@ -158,7 +161,7 @@ export const useIncidentManagementStyles = makeStyles({
     },
     inputField: {
         minWidth: '75px',
-        maxWidth: '265px',
+        maxWidth: '600px',
     },
     detailsListBase: {
         '& .ms-DetailsHeader': {
@@ -178,11 +181,108 @@ export const useIncidentManagementStyles = makeStyles({
         height: 'calc(100% - 114px)',
         overflowY: 'auto',
     },
+    filterStepContentSection: { display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '644px' },
+    stepContentSection: { display: 'flex', flexDirection: 'column', gap: '16px' },
     stepFooter: {
         display: 'flex',
         gap: '10px',
         padding: '20px',
         borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    // Review and Test Content styles
+    reviewAndTestRoot: {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: tokens.spacingHorizontalL,
+        height: '100%',
+        width: 'calc(100% - 16px)',
+    },
+    reviewAndTestOverlay: {
+        position: 'absolute' as const,
+        inset: '0',
+        backgroundColor: 'rgba(255, 255, 255, 0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+    },
+    reviewPanelLeft: {
+        display: 'flex',
+        flexDirection: 'column',
+        paddingTop: tokens.spacingVerticalXL,
+        height: 'calc(100% - 20px)',
+    },
+    reviewPanelLeftHalf: {
+        width: '50%',
+    },
+    reviewPanelLeftFull: {
+        width: '100%',
+    },
+    reviewSectionHeader: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalL,
+        minHeight: '33%',
+        flex: 'none',
+    },
+    reviewSectionTitle: {
+        margin: '0',
+    },
+    reviewToolsSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalL,
+        height: '0%',
+        flex: '1 1 auto',
+    },
+    reviewToolsTitle: {
+        marginTop: tokens.spacingVerticalXXXL,
+        marginBottom: '0',
+    },
+    formDivider: {
+        backgroundColor: tokens.colorNeutralStroke1,
+        width: '1px',
+        alignSelf: 'stretch',
+        padding: '0px',
+    },
+    testPanelRight: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacingVerticalL,
+        paddingTop: tokens.spacingVerticalXL,
+        height: 'calc(100% - 20px)',
+    },
+    testPanelRightHalf: {
+        width: '50%',
+    },
+    testPanelRightFull: {
+        width: '100%',
+    },
+    testIncidentInputRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: tokens.spacingHorizontalS,
+        alignItems: 'end',
+        position: 'relative' as const,
+    },
+    testIncidentField: {
+        flexBasis: '500px',
+    },
+    testIncidentDropdownContent: {
+        maxHeight: '400px',
+        overflowY: 'auto',
+        overflowX: 'auto',
+    },
+    testIncidentNoResults: {
+        margin: '2px 0px',
+        paddingLeft: tokens.spacingHorizontalS,
+    },
+    testIncidentSpinner: {
+        height: '100%',
+    },
+    testEmptyStateIcon: {
+        height: '100px',
+        width: '100px',
     },
 });
 
@@ -192,5 +292,8 @@ export const generateHandlerStyles = mergeStyleSets({
     },
     textField: {
         maxWidth: '600px',
+    },
+    textArea: {
+        maxWidth: '800px',
     },
 });

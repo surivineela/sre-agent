@@ -12,7 +12,6 @@ const IntentMetScoreCard: FC = () => {
 
     const [totalScore, setTotalScore] = useState<string>('');
     const [trend, setTrend] = useState<{ x: number; y: number }[]>([]);
-    const [percentageChange, setPercentageChange] = useState<number | undefined>(undefined);
     const [isFetching, setIsFetching] = useState<boolean>(false);
 
     const { agentObj, agentLoading } = useContext(SreAgentContext);
@@ -61,18 +60,12 @@ const IntentMetScoreCard: FC = () => {
                         x: index,
                         y: item[1] as number,
                     }));
-
-                    const percentageChange = ((trendData[trendData.length - 1].y - trendData[0].y) / trendData[0].y) * 100;
-
                     setTrend(trendData);
-                    setPercentageChange(Math.round(percentageChange));
                 } else {
                     setTrend([]);
-                    setPercentageChange(undefined);
                 }
             } else {
                 setTotalScore('-');
-                setPercentageChange(undefined);
                 setTrend([]);
             }
         },
@@ -86,7 +79,6 @@ const IntentMetScoreCard: FC = () => {
         return () => {
             signal.cancelled = true;
             setTotalScore('');
-            setPercentageChange(undefined);
             setIsFetching(false);
         };
     }, [fetchIncidentSummaryData]);
@@ -94,8 +86,6 @@ const IntentMetScoreCard: FC = () => {
     return (
         <MetricsCard
             title={intl.formatMessage(OverviewResources.intentMetScore)}
-            subtitle={'Last 30 days'}
-            percentageChange={percentageChange}
             score={totalScore}
             chartData={trend}
             refresh={fetchIncidentSummaryData}

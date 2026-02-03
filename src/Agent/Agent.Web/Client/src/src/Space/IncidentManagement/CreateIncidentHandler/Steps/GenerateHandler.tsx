@@ -301,7 +301,7 @@ export const GenerateHandler = () => {
                     }}
                 />
                 <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
-                    {intl.formatMessage(IncidentHandlerCreateResources.addCustomInstructionTitle)}
+                    {intl.formatMessage(IncidentHandlerCreateResources.addInstructionsTitle)}
                 </Text>
                 <Textarea
                     placeholder={intl.formatMessage(IncidentHandlerCreateResources.customInstructionPlaceholder)}

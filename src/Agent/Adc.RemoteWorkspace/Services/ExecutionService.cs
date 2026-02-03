@@ -156,7 +156,7 @@ public class ExecutionService : Execution.ExecutionBase
         }
     }
 
-    public override async Task<KillTaskResponse> KillTask(KillTaskRequest request, ServerCallContext context)
+    public override Task<KillTaskResponse> KillTask(KillTaskRequest request, ServerCallContext context)
     {
         try
         {
@@ -165,12 +165,12 @@ public class ExecutionService : Execution.ExecutionBase
             _logger.LogInformation("Received KillTask request for JobId: {JobId}", jobId);
 
             _shellManager.KillJob(jobId);
-            return new KillTaskResponse { Success = true, Message = $"Killed job {jobId}" };
+            return Task.FromResult(new KillTaskResponse { Success = true, Message = $"Killed job {jobId}" });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "KillTask failed");
-            return new KillTaskResponse { Success = false, Error = ex.Message };
+            return Task.FromResult(new KillTaskResponse { Success = false, Error = ex.Message });
         }
     }
 }

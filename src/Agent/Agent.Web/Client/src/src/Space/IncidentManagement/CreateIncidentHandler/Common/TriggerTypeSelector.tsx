@@ -46,6 +46,11 @@ const TRIGGER_OPTIONS: TriggerOption[] = [
         labelKey: 'triggerIncidentResolved',
         descriptionKey: 'triggerIncidentResolvedDescription',
     },
+    {
+        value: IncidentTriggerEvent.HitCountIncreased,
+        labelKey: 'triggerHitCountIncreased',
+        descriptionKey: 'triggerHitCountIncreasedDescription',
+    },
 ];
 
 export const TriggerTypeSelector: FC<TriggerTypeSelectorProps> = ({

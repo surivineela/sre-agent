@@ -9,12 +9,15 @@ import { AzPortalContext } from '../Common/AzPortalProxy/Providers/AzPortalProxy
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AppInsightsClient } from '../Common/Clients/AppInsightsClient';
 import { RouteErrorBoundary } from '../Common/Components/RouteErrorBoundary';
+import { TextWithLink } from '../Common/Components/TextWithLink';
 import WarningBanner from '../Common/Components/WarningBanner';
+import { SreAgentFwLinks } from '../Common/Constants/FwLinks';
 import { ArmObj } from '../Common/Contracts/Azure/ArmObj';
 import { Agent, AgentAccessLevel, IncidentManagementType } from '../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { AntUxStringComparison, equals } from '../Common/Helpers/Strings';
 import { SettingNames, useConfigSetting } from '../Common/Hooks/ConfigSettings';
+import useUserPermissions from '../Common/Hooks/useUserPermissions';
 import { useScrollableComponentStyles } from '../Common/Styles/Scrollable';
 import { SreAgentResources } from '../Strings/SREAgentResources';
 import Thread from './Activities/Thread';
@@ -40,7 +43,10 @@ import { useOnboardingVisibility } from './Onboarding/Hooks/useOnboardingVisibil
 import { OnboardingWizard } from './Onboarding/OnboardingWizard';
 import { ScheduledTasks } from './ScheduledTasks/ScheduledTasks.ReactView';
 import SessionInsights from './SessionInsights/SessionInsights';
+import { Connectors } from './Settings/Connectors/Connectors';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
+import KnowledgeBase from './Settings/KnowledgeBaseComponents/KnowledgeBase.ReactView';
+import KnowledgeSettings from './Settings/KnowledgeBaseComponents/KnowledgeSettings';
 import Settings from './Settings/Settings.ReactView';
 import { useCommonStyles } from './Styles/Common.styles';
 import { useSreAgentSpaceStyles } from './Styles/SreAgentSpaceStyles';
@@ -179,6 +185,7 @@ const TabsListWrapper: FC = () => {
         onClickNonThreadSubNavItem,
         ...threadsNavProps
     } = useSreAgentSpace();
+    const { canReadAgent, canReadThreads } = useUserPermissions();
 
     const isAgentStopped = useMemo(
         () => equals(agentObj?.properties?.powerState || '', 'Stopped', AntUxStringComparison.IgnoreCase),
@@ -212,7 +219,7 @@ const TabsListWrapper: FC = () => {
                 <DirtyStateNavigationConfirmDialog isDirty={isDirty} />
                 <WarningBanner />
                 <div className={styles.content}>
-                    {!isAgentStopped && (
+                    {canReadAgent && canReadThreads && !isAgentStopped && (
                         <div>
                             <CopilotNavDrawer
                                 open={true}
@@ -301,34 +308,62 @@ const OutletComponent = memo(
         startAgent: () => Promise<HttpResponseObject<ArmObj<Agent>>>;
     }) => {
         const intl = useIntl();
-        const { stoppedAgentComponentContainer, stoppedAgentComponentFlexBox, outletRoot, outletRootWithNoNavBar } =
-            useSreAgentSpaceStyles();
-        const commonStyles = useCommonStyles();
+        const { outletRoot, outletRootWithNoNavBar } = useSreAgentSpaceStyles();
+        const { canReadAgent, canReadThreads } = useUserPermissions();
+        const { resourceId } = useContext(EnvironmentContext);
+        const az = useContext(AzPortalContext);
 
-        return (
-            <div className={mergeClasses(outletRoot, isNavBarHidden ? outletRootWithNoNavBar : undefined)}>
-                {isAgentStopped ? (
-                    <div className={mergeClasses(stoppedAgentComponentContainer, commonStyles.contentRootBorderAndBackground)}>
-                        <div className={stoppedAgentComponentFlexBox}>
-                            <img
-                                src={'ChatDismissSpotIllustration.svg'}
-                                style={{ width: '120px', height: '120px' }}
-                                alt={intl.formatMessage(SreAgentResources.stopped)}
-                            />
-                            <Subtitle1>{intl.formatMessage(SreAgentResources.sreAgentStoppedTitle)}</Subtitle1>
-                            <Body1>{intl.formatMessage(SreAgentResources.sreAgentStoppedDescription)}</Body1>
-                            <Button appearance="primary" onClick={() => startAgent()}>
-                                {intl.formatMessage(SreAgentResources.startAgent)}
-                            </Button>
-                        </div>
-                    </div>
-                ) : (
-                    <Outlet />
-                )}
-            </div>
-        );
+        const renderContent = () => {
+            if (!canReadAgent || !canReadThreads) {
+                return (
+                    <Overlay
+                        imgSrc="ShieldPersonCheckmark.svg"
+                        imgAlt={intl.formatMessage(SreAgentResources.accessRequirement)}
+                        title={intl.formatMessage(SreAgentResources.accessRequirement)}
+                        description={intl.formatMessage(SreAgentResources.accessRequirementDescription)}
+                        learnMoreLinkText={intl.formatMessage(SreAgentResources.learnMoreAboutSREAgentRBAC)}
+                        learnMoreLinkUrl={SreAgentFwLinks.sreAgentRbacInfo}
+                        actionText={intl.formatMessage(SreAgentResources.goToAccessControl)}
+                        onClickAction={() => {
+                            az.openBlade({
+                                extension: 'Microsoft_Azure_AD',
+                                detailBlade: 'AccessControlBlade',
+                                detailBladeInputs: {
+                                    scope: resourceId,
+                                },
+                            });
+                        }}
+                    />
+                );
+            } else if (isAgentStopped) {
+                return (
+                    <Overlay
+                        imgSrc="ChatDismissSpotIllustration.svg"
+                        imgAlt={intl.formatMessage(SreAgentResources.stopped)}
+                        title={intl.formatMessage(SreAgentResources.sreAgentStoppedTitle)}
+                        description={intl.formatMessage(SreAgentResources.sreAgentStoppedDescription)}
+                        actionText={intl.formatMessage(SreAgentResources.startAgent)}
+                        onClickAction={startAgent}
+                    />
+                );
+            } else {
+                return <Outlet />;
+            }
+        };
+
+        return <div className={mergeClasses(outletRoot, isNavBarHidden ? outletRootWithNoNavBar : undefined)}>{renderContent()}</div>;
     }
 );
+
+const ConnectorsWrapper: FC = () => {
+    const showConnectors = useConfigSetting(SettingNames.Connectors);
+    return showConnectors ? <Connectors /> : undefined;
+};
+
+const KnowledgeSettingsWrapper: FC = () => {
+    const showKnowledgeSettings = useConfigSetting(SettingNames.KnowledgeSettings);
+    return showKnowledgeSettings ? <KnowledgeSettings /> : undefined;
+};
 
 const router = createHashRouter([
     {
@@ -383,6 +418,18 @@ const router = createHashRouter([
                 path: getPathName(false, PrimaryNavItemValues.Builder, [SecondaryNavItemValues.ExtendedAgentsGraph]),
                 element: <ExtendedAgentGraph />,
             },
+            {
+                path: getPathName(false, PrimaryNavItemValues.Builder, [SecondaryNavItemValues.Connectors]),
+                element: <ConnectorsWrapper />,
+            },
+            {
+                path: getPathName(false, PrimaryNavItemValues.Builder, [SecondaryNavItemValues.KnowledgeBase]),
+                element: <KnowledgeBase />,
+            },
+            {
+                path: getPathName(false, PrimaryNavItemValues.Builder, [SecondaryNavItemValues.KnowledgeSettings]),
+                element: <KnowledgeSettingsWrapper />,
+            },
 
             { path: getPathName(false, PrimaryNavItemValues.Settings), element: <Settings /> },
             { path: getPathName(false, PrimaryNavItemValues.Settings, [':menuItem']), element: <Settings /> },
@@ -397,6 +444,42 @@ const router = createHashRouter([
         ],
     },
 ]);
+
+interface OverlayProps {
+    imgSrc: string;
+    imgAlt: string;
+    title: string;
+    description: string;
+    learnMoreLinkText?: string;
+    learnMoreLinkUrl?: string;
+    actionText?: string;
+    onClickAction?: () => void;
+}
+
+const Overlay = memo<OverlayProps>(
+    ({ imgSrc, imgAlt, title, description, learnMoreLinkText, learnMoreLinkUrl, actionText, onClickAction }) => {
+        const { overlayComponentContainer, overlayComponentFlexBox } = useSreAgentSpaceStyles();
+        const commonStyles = useCommonStyles();
+        return (
+            <div className={mergeClasses(overlayComponentContainer, commonStyles.contentRootBorderAndBackground)}>
+                <div className={overlayComponentFlexBox}>
+                    <img src={imgSrc} style={{ width: '120px', height: '120px' }} alt={imgAlt} />
+                    <Subtitle1>{title}</Subtitle1>
+                    {learnMoreLinkText && learnMoreLinkUrl ? (
+                        <TextWithLink text={description} linkText={learnMoreLinkText} linkUrl={learnMoreLinkUrl} />
+                    ) : (
+                        <Body1>{description}</Body1>
+                    )}
+                    {actionText && onClickAction && (
+                        <Button appearance="primary" onClick={onClickAction}>
+                            {actionText}
+                        </Button>
+                    )}
+                </div>
+            </div>
+        );
+    }
+);
 
 const SREAgentSpace: FC = () => {
     const azPortalProxy = useContext(AzPortalContext);

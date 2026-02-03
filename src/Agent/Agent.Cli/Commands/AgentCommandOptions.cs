@@ -49,7 +49,8 @@ public static class AgentCommandOptions
 
         public static readonly Option<bool> AllowParallelToolCallsOption = new("--allow-parallel-tool-calls")
         {
-            Description = "Allow parallel tool execution"
+            Description = "Allow parallel tool execution",
+            DefaultValueFactory = _ => true
         };
 
         public static readonly Option<int> MaxReflectionCountOption = new("--max-reflection-count")

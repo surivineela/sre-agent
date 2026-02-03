@@ -14,6 +14,8 @@ export interface AgentCreateFormValues {
     mcpTools: string[];
     enableMemory?: boolean;
     enableVanillaMode?: boolean;
+    enableSkills?: boolean;
+    allowedSkills?: string[];
 }
 
 export type PanelType = 'tools' | 'suggestions' | 'test' | undefined;
@@ -72,6 +74,7 @@ export interface FormViewProps {
     isEditScenario?: boolean;
     isOverrideScenario?: boolean;
     testPanelProps: TestPanelProps;
+    skills?: Skill[];
 }
 export interface YamlViewProps {
     yamlContent: string;

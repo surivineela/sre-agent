@@ -30,6 +30,7 @@ public interface IThreadRepository
     Task<Thread?> UpdateThreadFeatureSetAsync(Guid threadId, FeatureConfig featureConfig);
     Task<Thread?> UpdateThreadFavoriteAsync(Guid threadId, bool favorite);
     Task<Thread?> UpdateThreadIncidentTestModeAsync(Guid threadId, bool isEnabled);
+    Task<Thread?> UpdateThreadInvestigationStatusAsync(Guid threadId, InvestigationStatus status);
 
     Task<Message?> GetMessageAsync(Guid threadId, Guid messageId);
     Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
@@ -102,6 +103,9 @@ public interface IThreadRepository
     Task<AzureDevOpsAccessToken?> GetAzureDevOpsAccessTokenAsync(string resourceId);
     Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsAccessTokenAsync(AzureDevOpsAccessToken azureDevOpsAccessToken, string resourceId);
     Task<bool> DeleteAzureDevOpsAccessTokenAsync(string resourceId);
+    Task<AzureDevOpsAccessToken?> GetAzureDevOpsOAuthTokenAsync(string organizationName);
+    Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsOAuthTokenAsync(AzureDevOpsAccessToken token, string organizationName);
+    Task<bool> DeleteAzureDevOpsOAuthTokenAsync(string organizationName);
     Task<AzCliExecution?> ListPendingAzCliExecutionAsync(Guid threadId);
     Task<AzCliExecution?> GetAzCliExecutionAsync(Guid threadId, Guid executionId);
     Task<AzCliExecution?> CreateAzCliExecutionAsync(Guid threadId, AzCliExecution execution);

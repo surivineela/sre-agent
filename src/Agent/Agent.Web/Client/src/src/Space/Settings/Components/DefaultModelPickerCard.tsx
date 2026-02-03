@@ -47,6 +47,7 @@ export const DefaultModelPickerCard = ({
         updateDefaultModel,
         isUpdatingDefaultModel,
         refreshSupportedModels,
+        showAnthropicDisabledMessage,
     } = useSupportedModels(resourceId, region);
 
     return (
@@ -66,6 +67,14 @@ export const DefaultModelPickerCard = ({
                                 <Button appearance="outline" size="small" onClick={() => refreshSupportedModels()}>
                                     {intl.formatMessage(SreAgentResources.refresh)}
                                 </Button>
+                            </MessageBarBody>
+                        </MessageBar>
+                    )}
+
+                    {showAnthropicDisabledMessage && (
+                        <MessageBar layout="multiline" style={{ alignItems: 'center' }}>
+                            <MessageBarBody>
+                                <Caption1>{intl.formatMessage(SettingsTabResources.anthropicNotAvailable)}</Caption1>
                             </MessageBarBody>
                         </MessageBar>
                     )}
@@ -94,7 +103,7 @@ export const DefaultModelPickerCard = ({
                                 disabled={isUpdatingUpgradeChannel || !!getSupportedModelsFailure || isUpdatingDefaultModel}
                             >
                                 {supportedProviders?.map(option => (
-                                    <Option value={option.key} checkIcon={null}>
+                                    <Option value={option.key} checkIcon={null} disabled={option.disabled}>
                                         {option.text}
                                     </Option>
                                 ))}

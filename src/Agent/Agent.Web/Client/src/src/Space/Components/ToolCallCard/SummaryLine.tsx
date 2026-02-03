@@ -8,7 +8,7 @@ const useStyles = makeStyles({
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
-        padding: '4px 0',
+        padding: '2px 0',
         cursor: 'pointer',
         color: tokens.colorNeutralForeground3,
         fontSize: '13px',
@@ -26,6 +26,7 @@ const useStyles = makeStyles({
     chevron: {
         color: tokens.colorNeutralForeground4,
         flexShrink: 0,
+        fontSize: '14px',
     },
     chevronHidden: {
         visibility: 'hidden',
@@ -35,9 +36,11 @@ const useStyles = makeStyles({
         flexShrink: 0,
         display: 'flex',
         alignItems: 'center',
+        fontSize: '14px',
     },
     actionText: {
-        color: tokens.colorNeutralForeground3,
+        color: tokens.colorNeutralForeground4,
+        fontSize: '12px',
     },
     keyParam: {
         fontFamily: 'Consolas, Monaco, monospace',
@@ -47,6 +50,7 @@ const useStyles = makeStyles({
         whiteSpace: 'nowrap',
         flexShrink: 1,
         minWidth: 0,
+        fontSize: '12px',
     },
     separator: {
         flexShrink: 0,
@@ -56,6 +60,7 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground4,
         flexShrink: 0,
         whiteSpace: 'nowrap',
+        fontSize: '12px',
     },
     resultInfoError: {
         color: tokens.colorPaletteRedForeground1,

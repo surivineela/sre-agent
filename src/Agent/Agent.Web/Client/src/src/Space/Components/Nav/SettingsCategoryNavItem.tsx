@@ -33,11 +33,9 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
     const { isCrossTenantPortalMode } = useContext(EnvironmentContext);
 
     const showControlPlaneDependentFeatures = !AzPortalProxy.inStandaloneMode && !isCrossTenantPortalMode;
-    const showConnectors = useConfigSetting(SettingNames.Connectors);
     const showSubAgents = useConfigSetting(SettingNames.ShowSubAgentsItemInSettings);
     const showMcpServer = useConfigSetting(SettingNames.McpServer);
     const showPermissionsInSettings = useConfigSetting(SettingNames.ShowPermissionsInSettings);
-    const showKnowledgeSettings = useConfigSetting(SettingNames.KnowledgeSettings);
 
     const categoryItem = useMemo(
         (): CategoryNavItemInput => ({
@@ -91,24 +89,6 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
                 label: intl.formatMessage(SettingsTabResources.grafanaDashboard),
             },
             {
-                value: SecondaryNavItemValues.Connectors,
-                isVisible: showConnectors && controlPlaneTabsVisible,
-                disabled: false,
-                label: intl.formatMessage(SettingsTabResources.connectors),
-            },
-            {
-                value: SecondaryNavItemValues.KnowledgeBase,
-                isVisible: controlPlaneTabsVisible,
-                disabled: false,
-                label: intl.formatMessage(SettingsTabResources.knowledgeBase),
-            },
-            {
-                value: SecondaryNavItemValues.KnowledgeSettings,
-                isVisible: showKnowledgeSettings && controlPlaneTabsVisible,
-                disabled: false,
-                label: intl.formatMessage(SettingsTabResources.knowledgeSettings),
-            },
-            {
                 value: SecondaryNavItemValues.AzureSettings,
                 isVisible: controlPlaneTabsVisible,
                 disabled: false,
@@ -147,11 +127,9 @@ const SettingsCategoryNavItem: FC<ISettingsCategoryNavItemProps> = ({
         incidentVisible,
         showControlPlaneDependentFeatures,
         incidentDisabled,
-        showConnectors,
         showSubAgents,
         showMcpServer,
         showPermissionsInSettings,
-        showKnowledgeSettings,
         isCrossTenantPortalMode,
     ]);
 

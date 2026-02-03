@@ -18,7 +18,7 @@ namespace Agent.Tests.Unit.Plugins.Implementation;
 
 public class ToolOutputRetrieverPluginTests
 {
-    private readonly Mock<IThreadFileStorageService> _mockStorage;
+    private readonly Mock<IAgentFileStorageService> _mockStorage;
     private readonly Mock<IChatClientProvider> _mockChatClientProvider;
     private readonly Mock<IChatClient> _mockChatClient;
     private readonly Mock<ILogger<ToolOutputRetrieverPlugin>> _mockLogger;
@@ -28,7 +28,7 @@ public class ToolOutputRetrieverPluginTests
 
     public ToolOutputRetrieverPluginTests()
     {
-        _mockStorage = new Mock<IThreadFileStorageService>();
+        _mockStorage = new Mock<IAgentFileStorageService>();
         _mockChatClientProvider = new Mock<IChatClientProvider>();
         _mockChatClient = new Mock<IChatClient>();
         _mockLogger = new Mock<ILogger<ToolOutputRetrieverPlugin>>();

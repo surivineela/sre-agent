@@ -99,4 +99,35 @@ export class AppInsightsClient {
             return { isSuccessful: false, error };
         }
     }
+
+    /**
+     * Fetches App Insights component details by resource ID.
+     * Returns appId and connectionString needed for logConfiguration.
+     * https://learn.microsoft.com/en-us/rest/api/application-insights/components/get
+     */
+    public static async getAppInsightsComponentById(
+        resourceId: string,
+        apiVersion = ApiVersions.AppInsightsComponentsApiVersion20200202
+    ): Promise<{
+        isSuccessful: boolean;
+        data?: { appId: string; connectionString: string };
+        error?: any;
+    }> {
+        const response = await MakeArmCall<{ properties: { AppId: string; ConnectionString: string } }>({
+            resourceId,
+            commandName: 'GetAppInsightsComponentById',
+            apiVersion,
+        });
+
+        if (response.metadata?.success && response.data?.properties) {
+            return {
+                isSuccessful: true,
+                data: {
+                    appId: response.data.properties.AppId,
+                    connectionString: response.data.properties.ConnectionString,
+                },
+            };
+        }
+        return { isSuccessful: false, error: response.metadata?.error || 'Failed to fetch App Insights component' };
+    }
 }

@@ -45,15 +45,21 @@ export const ConnectorEditDialogFormik: React.FC<ConnectorEditDialogFormikProps>
             useManagedIdentityAsFic: false,
             federatedClientId: '',
             federatedTenantId: '',
+            azureDevOpsOrganization: '',
+            keyVaultId: connector.extendedProperties?.keyVaultId,
         };
 
-        // Parse FIC properties from extendedProperties for Azure DevOps connector
-        if (connector.extendedProperties && connectorType === ConnectorType.AzureDevOpsDocumentation) {
+        // Parse FIC properties from extendedProperties
+        if (connector.extendedProperties) {
             const props = connector.extendedProperties;
             if (props.useManagedIdentityAsFic) {
                 initialFormProps.useManagedIdentityAsFic = Boolean(props.useManagedIdentityAsFic);
                 initialFormProps.federatedClientId = (props.federatedClientId as string) || '';
                 initialFormProps.federatedTenantId = (props.federatedTenantId as string) || '';
+            }
+            // Parse Azure DevOps organization
+            if (connectorType === ConnectorType.AzureDevOpsOAuth && props.organization) {
+                initialFormProps.azureDevOpsOrganization = (props.organization as string) || '';
             }
         }
 

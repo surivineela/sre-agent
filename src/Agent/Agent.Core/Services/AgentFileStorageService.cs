@@ -1,0 +1,1208 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Collections.Concurrent;
+using Agent.Common.Services;
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
+using Agent.Logging;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
+namespace Agent.Core.Services;
+
+/// <summary>
+/// Service for managing agent files including thread files, tool outputs, and memories with local caching.
+/// Uses NullRemoteFileStorage when remote storage is not configured, so all remote operations are safe to call.
+/// </summary>
+public class AgentFileStorageService : IAgentFileStorageService
+{
+    // Memories constants
+    internal const string MemoriesContainerName = "memories";
+    internal const string RepoInstructionsFolderName = ".github";
+    internal const string SessionInsightsFolderName = "sessionInsights";
+    internal const string SynthesizedKnowledgeFolderName = "synthesizedKnowledge";
+
+    private readonly IRemoteFileStorage _remoteStorage;
+    private readonly ToolOutputSettings _settings;
+    private readonly ILogger<AgentFileStorageService> _logger;
+    private readonly ConcurrentDictionary<string, DateTime> _memoryFileLastUploaded = new();
+    private readonly Lazy<Task<SandboxPaths>> _sandboxPaths;
+    private readonly bool _workspaceToolsEnabled;
+    private string? _basePath;
+
+    public AgentFileStorageService(
+        IOptions<ToolOutputSettings> settings,
+        ILogger<AgentFileStorageService> logger,
+        IRemoteFileStorage remoteStorage,
+        IWorkspaceToolsPlugin workspaceToolsPlugin,
+        ISandboxPaths sandboxPathsProvider)
+    {
+        _remoteStorage = remoteStorage;
+        _settings = settings.Value;
+        _logger = logger;
+        _workspaceToolsEnabled = workspaceToolsPlugin.Enabled;
+
+        _sandboxPaths = new Lazy<Task<SandboxPaths>>(
+            sandboxPathsProvider.GetSandboxPathsAsync,
+            LazyThreadSafetyMode.ExecutionAndPublication);
+    }
+
+    private string GetBasePath(SandboxPaths sandboxPaths)
+    {
+        return _basePath ??= _workspaceToolsEnabled
+            // When workspace tools are enabled, use sandbox tmp path
+            ? sandboxPaths.TmpPath
+            // Use configured path if available, otherwise fall back to temp directory
+            : !string.IsNullOrEmpty(_settings.StoragePath)
+                ? _settings.StoragePath
+                : Path.Combine(Path.GetTempPath(), "SREAgent");
+    }
+
+    private string GetLocalToolOutputPath(SandboxPaths sandboxPaths) => Path.Combine(GetBasePath(sandboxPaths), "ToolOutputs");
+
+    private string GetLocalThreadFilesPath(SandboxPaths sandboxPaths) => Path.Combine(GetBasePath(sandboxPaths), "ThreadFiles");
+
+    private void EnsureDirectoriesExist(SandboxPaths sandboxPaths)
+    {
+        var basePath = GetBasePath(sandboxPaths);
+        try
+        {
+            Directory.CreateDirectory(GetLocalToolOutputPath(sandboxPaths));
+            Directory.CreateDirectory(GetLocalThreadFilesPath(sandboxPaths));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to create local storage directories at {BasePath}", basePath);
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<string> UploadThreadFileAsync(
+        Guid threadId,
+        string fileName,
+        byte[] content,
+        CancellationToken cancellationToken = default)
+    {
+        if (content == null || content.Length == 0)
+        {
+            throw new ArgumentException("Content cannot be null or empty.", nameof(content));
+        }
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentException("File name cannot be null or empty.", nameof(fileName));
+        }
+
+        // Sanitize filename to prevent path traversal
+        var sanitizedFileName = Path.GetFileName(fileName);
+        if (string.IsNullOrWhiteSpace(sanitizedFileName))
+        {
+            throw new ArgumentException("Invalid file name.", nameof(fileName));
+        }
+
+        // Create blob path: {threadId}/{fileName}
+        var blobPath = $"{threadId}/{sanitizedFileName}";
+
+        var sandboxPaths = await _sandboxPaths.Value;
+        EnsureDirectoriesExist(sandboxPaths);
+
+        // Always save locally first
+        var threadDir = Path.Combine(GetLocalThreadFilesPath(sandboxPaths), threadId.ToString());
+        Directory.CreateDirectory(threadDir);
+        var localFilePath = Path.Combine(threadDir, sanitizedFileName);
+
+        try
+        {
+            await File.WriteAllBytesAsync(localFilePath, content, cancellationToken);
+            _logger.LogInternalInformation(
+                "Saved thread file locally: {LocalPath}, Size: {Size} bytes",
+                localFilePath, content.Length);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to save thread file locally: {LocalPath}", localFilePath);
+            throw;
+        }
+
+        // Upload to remote storage (no-op if not configured)
+        try
+        {
+            await _remoteStorage.UploadAsync(
+                _settings.ThreadFilesContainerName,
+                blobPath,
+                content,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to upload thread file to remote storage: {BlobPath}", blobPath);
+            // Don't fail - local copy is available
+        }
+
+        return blobPath;
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> DownloadThreadFileAsync(
+        Guid threadId,
+        string fileName,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentException("File name cannot be null or empty.", nameof(fileName));
+        }
+
+        // Normalize path separators to the OS-specific separator
+        var normalizedPath = fileName.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+
+        var sandboxPaths = await _sandboxPaths.Value;
+        EnsureDirectoriesExist(sandboxPaths);
+
+        // Build the thread directory path
+        var threadDir = Path.Combine(GetLocalThreadFilesPath(sandboxPaths), threadId.ToString());
+
+        // Validate path security (prevents path traversal and symlink attacks)
+        if (!PathSecurityHelper.TryGetSafeFilePath(threadDir, normalizedPath, out var localFilePath) || localFilePath == null)
+        {
+            _logger.LogInternalWarning("Path traversal or symlink attack detected for thread file: {ThreadId}/{FileName}", threadId, fileName);
+            return null;
+        }
+
+        if (File.Exists(localFilePath))
+        {
+            _logger.LogInternalDebug("Thread file found locally: {LocalPath}", localFilePath);
+            return localFilePath;
+        }
+
+        // Ensure thread directory and subdirectories exist for remote download
+        var fileDirectory = Path.GetDirectoryName(localFilePath);
+        if (!string.IsNullOrEmpty(fileDirectory))
+        {
+            Directory.CreateDirectory(fileDirectory);
+        }
+
+        // Try remote storage (no-op returns false if not configured)
+        // Use the normalized path for the blob path (with forward slashes for blob storage)
+        var blobPath = $"{threadId}/{normalizedPath.Replace(Path.DirectorySeparatorChar, '/')}";
+        var downloaded = await _remoteStorage.DownloadAsync(
+            _settings.ThreadFilesContainerName,
+            blobPath,
+            localFilePath,
+            cancellationToken);
+
+        if (downloaded)
+        {
+            _logger.LogInternalDebug("Thread file downloaded from remote: {LocalPath}", localFilePath);
+            return localFilePath;
+        }
+
+        _logger.LogInternalWarning("Thread file not found: {ThreadId}/{FileName}", threadId, normalizedPath);
+        return null;
+    }
+
+    /// <inheritdoc />
+    public async Task<string> SaveToolOutputAsync(
+        Guid threadId,
+        string toolName,
+        string callId,
+        string content,
+        string extension,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            throw new ArgumentException("Content cannot be null or empty.", nameof(content));
+        }
+
+        // Add dot prefix to file extension if not present
+        if (!extension.StartsWith("."))
+        {
+            extension = $".{extension}";
+        }
+
+        var sandboxPaths = await _sandboxPaths.Value;
+        EnsureDirectoriesExist(sandboxPaths);
+        var localToolOutputPath = GetLocalToolOutputPath(sandboxPaths);
+
+        // Compute file key as path relative to sandbox root: tmp/ToolOutputs/{threadId}/{toolName}_{callId}{extension}
+        var relativePath = Path.GetRelativePath(sandboxPaths.SandboxRoot, localToolOutputPath);
+        var fileKey = $"{relativePath}/{threadId}/{toolName}_{callId}{extension}".Replace('\\', '/');
+        var lineCount = content.Split('\n').Length;
+        var contentLength = content.Length;
+
+        _logger.LogInternalInformation(
+            "Saving tool output for thread {ThreadId}, tool {ToolName}, callId {CallId}, fileKey {FileKey}, lines {LineCount}, length {Length}, extension {Extension}",
+            threadId, toolName, callId, fileKey, lineCount, contentLength, extension);
+
+        // Ensure thread directory exists
+        var threadDir = Path.Combine(localToolOutputPath, threadId.ToString());
+        Directory.CreateDirectory(threadDir);
+
+        // Always save locally first
+        var localFilePath = Path.Combine(localToolOutputPath, fileKey);
+        try
+        {
+            await File.WriteAllTextAsync(localFilePath, content, cancellationToken);
+            _logger.LogInternalInformation("Saved tool output locally: {FilePath}", localFilePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to save tool output locally for thread {ThreadId}, tool {ToolName}, callId {CallId}", threadId, toolName, callId);
+            throw;
+        }
+
+        // Upload to remote storage (no-op if not configured)
+        try
+        {
+            await _remoteStorage.UploadAsync(
+                _settings.BlobStorageContainerName,
+                fileKey,
+                content,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to upload tool output to remote storage: {FileKey}", fileKey);
+            // Don't fail - local copy is available
+        }
+
+        return fileKey;
+    }
+
+    /// <inheritdoc />
+    public async Task<string?> GetToolOutputAsync(string fileKey, string? threadId = null, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(fileKey))
+        {
+            return null;
+        }
+
+        try
+        {
+            // File key format: relative path from sandbox root (e.g., tmp/ToolOutputs/{threadId}/{toolName}_{callId}{extension})
+            // Validate that the key doesn't contain wildcard characters
+            if (fileKey.IndexOfAny(new[] { '*', '?' }) >= 0)
+            {
+                _logger.LogInternalWarning("Invalid fileKey detected: {FileKey}", fileKey);
+                return null;
+            }
+
+            // Normalize path separators
+            var normalizedFileKey = fileKey.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+
+            var sandboxPaths = await _sandboxPaths.Value;
+
+            // Validate path security against sandbox root (prevents path traversal and symlink attacks)
+            if (!PathSecurityHelper.TryGetSafeFilePath(sandboxPaths.SandboxRoot, normalizedFileKey, out var toolOutputFilePath)
+                || toolOutputFilePath == null)
+            {
+                _logger.LogInternalWarning("Path traversal or symlink attack detected for {FileKey}", fileKey);
+                return null;
+            }
+
+            // Check tool output directory first
+            if (File.Exists(toolOutputFilePath))
+            {
+                _logger.LogInternalDebug("Tool output file found locally: {FilePath}", toolOutputFilePath);
+                return toolOutputFilePath;
+            }
+
+            // Ensure the thread directory exists for remote download
+            var threadDir = Path.GetDirectoryName(toolOutputFilePath);
+            if (!string.IsNullOrEmpty(threadDir))
+            {
+                Directory.CreateDirectory(threadDir);
+            }
+
+            // Try to download from remote storage (no-op returns false if not configured)
+            var downloaded = await _remoteStorage.DownloadAsync(
+                _settings.BlobStorageContainerName,
+                fileKey,
+                toolOutputFilePath,
+                cancellationToken);
+
+            if (downloaded)
+            {
+                _logger.LogInternalInformation("Downloaded tool output from remote storage: {FileKey}", fileKey);
+                return toolOutputFilePath;
+            }
+
+            _logger.LogInternalWarning("File not found for {FileKey}", fileKey);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error checking if file exists: {FileKey}", fileKey);
+            return null;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<int> CleanupThreadFilesAsync(
+        Guid threadId,
+        CancellationToken cancellationToken = default)
+    {
+        var deletedCount = 0;
+
+        var sandboxPaths = await _sandboxPaths.Value;
+
+        // Clean up local thread files
+        var threadDir = Path.Combine(GetLocalThreadFilesPath(sandboxPaths), threadId.ToString());
+        if (Directory.Exists(threadDir))
+        {
+            try
+            {
+                var files = Directory.GetFiles(threadDir);
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        File.Delete(file);
+                        deletedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalWarning(ex, "Failed to delete local thread file: {FilePath}", file);
+                    }
+                }
+
+                // Try to remove the directory
+                try
+                {
+                    Directory.Delete(threadDir);
+                }
+                catch
+                {
+                    // Ignore - directory might not be empty due to timing
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error cleaning up local thread files for thread {ThreadId}", threadId);
+            }
+        }
+
+        // Clean up local tool output files - stored in {threadId}/ subdirectory
+        var toolOutputDir = Path.Combine(GetLocalToolOutputPath(sandboxPaths), threadId.ToString());
+        if (Directory.Exists(toolOutputDir))
+        {
+            try
+            {
+                var files = Directory.GetFiles(toolOutputDir);
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        File.Delete(file);
+                        deletedCount++;
+                        _logger.LogInternalDebug("Deleted local tool output file for thread {ThreadId}: {FilePath}", threadId, file);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalWarning(ex, "Failed to delete local tool output file: {FilePath}", file);
+                    }
+                }
+
+                // Try to remove the directory
+                try
+                {
+                    Directory.Delete(toolOutputDir);
+                }
+                catch
+                {
+                    // Ignore - directory might not be empty due to timing
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error cleaning up local tool output files for thread {ThreadId}", threadId);
+            }
+        }
+
+        // Clean up remote storage (no-op returns 0 if not configured)
+        try
+        {
+            // Clean up thread files in remote storage
+            var threadFilesDeleted = await _remoteStorage.DeleteByPrefixAsync(
+                _settings.ThreadFilesContainerName,
+                $"{threadId}/",
+                cancellationToken);
+            deletedCount += threadFilesDeleted;
+
+            // Clean up tool outputs in remote storage (new format: {threadId}/ prefix)
+            var toolOutputsDeleted = await _remoteStorage.DeleteByPrefixAsync(
+                _settings.BlobStorageContainerName,
+                $"{threadId}/",
+                cancellationToken);
+            deletedCount += toolOutputsDeleted;
+
+            // BACKCOMPAT: Clean up tool outputs in remote storage (old format: {threadId}-{timestamp}.{ext})
+            var toolOutputsDeletedCompat = await _remoteStorage.DeleteByPrefixAsync(
+                _settings.BlobStorageContainerName,
+                $"{threadId}-",
+                cancellationToken);
+            deletedCount += toolOutputsDeletedCompat;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to cleanup remote storage for thread {ThreadId}", threadId);
+        }
+
+        _logger.LogInternalInformation("Cleanup completed for thread {ThreadId}. Deleted {DeletedCount} file(s).", threadId, deletedCount);
+        return deletedCount;
+    }
+
+    #region Workspace Memory Methods
+
+    /// <inheritdoc />
+    public async Task<int> UploadWorkspaceRepoInstructionsAsync(
+        string repoName,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(repoName))
+        {
+            throw new ArgumentException("Repository name cannot be null or empty.", nameof(repoName));
+        }
+
+        var sandboxPaths = await _sandboxPaths.Value;
+
+        // Local path: {MemoriesPath}/{repoName}/.github/
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, repoName, RepoInstructionsFolderName);
+        if (!Directory.Exists(localFolder))
+        {
+            _logger.LogInternalDebug("Repo instructions folder does not exist: {Path}", localFolder);
+            return 0;
+        }
+
+        var uploadedCount = 0;
+
+        foreach (var filePath in Directory.EnumerateFiles(localFolder, "*", SearchOption.AllDirectories))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                // Check if file has changed since last upload
+                var lastWriteTime = File.GetLastWriteTimeUtc(filePath);
+                if (_memoryFileLastUploaded.TryGetValue(filePath, out var lastUploaded) && lastWriteTime <= lastUploaded)
+                {
+                    continue;
+                }
+
+                var relativePath = filePath.Substring(localFolder.Length).TrimStart(Path.DirectorySeparatorChar);
+                // Blob path: {repoName}/.github/{relativePath}
+                var blobPath = $"{repoName}/{RepoInstructionsFolderName}/{relativePath.Replace(Path.DirectorySeparatorChar, '/')}";
+                var content = await File.ReadAllBytesAsync(filePath, cancellationToken);
+
+                await _remoteStorage.UploadAsync(
+                    MemoriesContainerName,
+                    blobPath,
+                    content,
+                    cancellationToken);
+
+                _memoryFileLastUploaded[filePath] = lastWriteTime;
+                uploadedCount++;
+                _logger.LogInternalDebug("Uploaded repo instruction: {BlobPath}", blobPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to upload repo instruction: {FilePath}", filePath);
+            }
+        }
+
+        if (uploadedCount > 0)
+        {
+            _logger.LogInternalInformation("Uploaded {Count} repo instruction file(s) for {RepoName}", uploadedCount, repoName);
+        }
+
+        return uploadedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> UploadWorkspaceSessionInsightsAsync(
+        Guid threadId,
+        CancellationToken cancellationToken = default)
+    {
+        var sandboxPaths = await _sandboxPaths.Value;
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, SessionInsightsFolderName, threadId.ToString());
+        if (!Directory.Exists(localFolder))
+        {
+            _logger.LogInternalDebug("Session insights folder does not exist: {Path}", localFolder);
+            return 0;
+        }
+
+        var uploadedCount = 0;
+
+        foreach (var filePath in Directory.EnumerateFiles(localFolder, "*", SearchOption.AllDirectories))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                // Check if file has changed since last upload
+                var lastWriteTime = File.GetLastWriteTimeUtc(filePath);
+                if (_memoryFileLastUploaded.TryGetValue(filePath, out var lastUploaded) && lastWriteTime <= lastUploaded)
+                {
+                    continue;
+                }
+
+                var relativePath = filePath.Substring(localFolder.Length).TrimStart(Path.DirectorySeparatorChar);
+                var blobPath = $"{SessionInsightsFolderName}/{threadId}/{relativePath.Replace(Path.DirectorySeparatorChar, '/')}";
+                var content = await File.ReadAllBytesAsync(filePath, cancellationToken);
+
+                await _remoteStorage.UploadAsync(
+                    MemoriesContainerName,
+                    blobPath,
+                    content,
+                    cancellationToken);
+
+                _memoryFileLastUploaded[filePath] = lastWriteTime;
+                uploadedCount++;
+                _logger.LogInternalDebug("Uploaded session insights for thread {ThreadId}: {BlobPath}", threadId, blobPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to upload session insights for thread {ThreadId}: {FilePath}", threadId, filePath);
+            }
+        }
+
+        if (uploadedCount > 0)
+        {
+            _logger.LogInternalInformation("Uploaded {Count} session insights file(s) for thread {ThreadId}", uploadedCount, threadId);
+        }
+
+        return uploadedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> UploadWorkspaceSynthesizedKnowledgeAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var sandboxPaths = await _sandboxPaths.Value;
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, SynthesizedKnowledgeFolderName);
+        if (!Directory.Exists(localFolder))
+        {
+            _logger.LogInternalDebug("Synthesized knowledge folder does not exist: {Path}", localFolder);
+            return 0;
+        }
+
+        var uploadedCount = 0;
+
+        foreach (var filePath in Directory.EnumerateFiles(localFolder, "*", SearchOption.AllDirectories))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                // Check if file has changed since last upload
+                var lastWriteTime = File.GetLastWriteTimeUtc(filePath);
+                if (_memoryFileLastUploaded.TryGetValue(filePath, out var lastUploaded) && lastWriteTime <= lastUploaded)
+                {
+                    continue;
+                }
+
+                var relativePath = filePath.Substring(localFolder.Length).TrimStart(Path.DirectorySeparatorChar);
+                var blobPath = $"{SynthesizedKnowledgeFolderName}/{relativePath.Replace(Path.DirectorySeparatorChar, '/')}";
+                var content = await File.ReadAllBytesAsync(filePath, cancellationToken);
+
+                await _remoteStorage.UploadAsync(
+                    MemoriesContainerName,
+                    blobPath,
+                    content,
+                    cancellationToken);
+
+                _memoryFileLastUploaded[filePath] = lastWriteTime;
+                uploadedCount++;
+                _logger.LogInternalDebug("Uploaded synthesized knowledge: {BlobPath}", blobPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to upload synthesized knowledge: {FilePath}", filePath);
+            }
+        }
+
+        if (uploadedCount > 0)
+        {
+            _logger.LogInternalInformation("Uploaded {Count} synthesized knowledge file(s)", uploadedCount);
+        }
+
+        return uploadedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> DownloadMemoryFilesAsync(CancellationToken cancellationToken = default)
+    {
+        var downloadedCount = 0;
+
+        try
+        {
+            var sandboxPaths = await _sandboxPaths.Value;
+
+            // Ensure memories directory exists
+            Directory.CreateDirectory(sandboxPaths.MemoriesPath);
+
+            await foreach (var blobPath in _remoteStorage.ListBlobsAsync(MemoriesContainerName, null, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Skip session insights - they are thread-specific and should not be downloaded on startup
+                if (blobPath.StartsWith($"{SessionInsightsFolderName}/", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var localFilePath = Path.Combine(sandboxPaths.MemoriesPath, blobPath.Replace('/', Path.DirectorySeparatorChar));
+
+                // Ensure directory exists for the file
+                var directory = Path.GetDirectoryName(localFilePath);
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                try
+                {
+                    var downloaded = await _remoteStorage.DownloadAsync(
+                        MemoriesContainerName,
+                        blobPath,
+                        localFilePath,
+                        cancellationToken);
+
+                    if (downloaded)
+                    {
+                        downloadedCount++;
+                        _logger.LogInternalDebug("Downloaded memory file: {BlobPath}", blobPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to download memory file: {BlobPath}", blobPath);
+                }
+            }
+
+            _logger.LogInternalInformation("Downloaded {Count} memory file(s) from remote storage", downloadedCount);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogInternalError(ex, "Error during memory files download");
+        }
+
+        return downloadedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> DownloadWorkspaceRepoInstructionsAsync(
+        string repoName,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(repoName))
+        {
+            throw new ArgumentException("Repository name cannot be null or empty.", nameof(repoName));
+        }
+
+        var downloadedCount = 0;
+        // Blob prefix: {repoName}/.github/
+        var blobPrefix = $"{repoName}/{RepoInstructionsFolderName}/";
+
+        try
+        {
+            var sandboxPaths = await _sandboxPaths.Value;
+
+            await foreach (var blobPath in _remoteStorage.ListBlobsAsync(MemoriesContainerName, blobPrefix, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var localFilePath = Path.Combine(sandboxPaths.MemoriesPath, blobPath.Replace('/', Path.DirectorySeparatorChar));
+
+                // Ensure directory exists for the file
+                var directory = Path.GetDirectoryName(localFilePath);
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                try
+                {
+                    var downloaded = await _remoteStorage.DownloadAsync(
+                        MemoriesContainerName,
+                        blobPath,
+                        localFilePath,
+                        cancellationToken);
+
+                    if (downloaded)
+                    {
+                        downloadedCount++;
+                        _logger.LogInternalDebug("Downloaded repo instructions file: {BlobPath}", blobPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to download repo instructions file: {BlobPath}", blobPath);
+                }
+            }
+
+            _logger.LogInternalInformation("Downloaded {Count} repo instructions file(s) for {RepoName}", downloadedCount, repoName);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogInternalError(ex, "Error during repo instructions download for {RepoName}", repoName);
+        }
+
+        return downloadedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> DownloadWorkspaceSynthesizedKnowledgeAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var downloadedCount = 0;
+        var blobPrefix = $"{SynthesizedKnowledgeFolderName}/";
+
+        try
+        {
+            var sandboxPaths = await _sandboxPaths.Value;
+
+            await foreach (var blobPath in _remoteStorage.ListBlobsAsync(MemoriesContainerName, blobPrefix, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var localFilePath = Path.Combine(sandboxPaths.MemoriesPath, blobPath.Replace('/', Path.DirectorySeparatorChar));
+
+                // Ensure directory exists for the file
+                var directory = Path.GetDirectoryName(localFilePath);
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                try
+                {
+                    var downloaded = await _remoteStorage.DownloadAsync(
+                        MemoriesContainerName,
+                        blobPath,
+                        localFilePath,
+                        cancellationToken);
+
+                    if (downloaded)
+                    {
+                        downloadedCount++;
+                        _logger.LogInternalDebug("Downloaded synthesized knowledge file: {BlobPath}", blobPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to download synthesized knowledge file: {BlobPath}", blobPath);
+                }
+            }
+
+            _logger.LogInternalInformation("Downloaded {Count} synthesized knowledge file(s)", downloadedCount);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogInternalError(ex, "Error during synthesized knowledge download");
+        }
+
+        return downloadedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<MemoryStream?> DownloadWorkspaceSessionInsightsToStreamAsync(
+        Guid? threadId,
+        CancellationToken cancellationToken = default)
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"session-insights-{Guid.NewGuid()}");
+
+        try
+        {
+            Directory.CreateDirectory(tempDir);
+
+            var blobPrefix = threadId.HasValue
+                ? $"{SessionInsightsFolderName}/{threadId}/"
+                : $"{SessionInsightsFolderName}/";
+
+            var downloadedCount = 0;
+
+            await foreach (var blobPath in _remoteStorage.ListBlobsAsync(MemoriesContainerName, blobPrefix, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Get relative path after the prefix
+                var relativePath = blobPath.Replace('/', Path.DirectorySeparatorChar);
+                var localFilePath = Path.Combine(tempDir, relativePath);
+
+                // Ensure directory exists for the file
+                var directory = Path.GetDirectoryName(localFilePath);
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                try
+                {
+                    var downloaded = await _remoteStorage.DownloadAsync(
+                        MemoriesContainerName,
+                        blobPath,
+                        localFilePath,
+                        cancellationToken);
+
+                    if (downloaded)
+                    {
+                        downloadedCount++;
+                        _logger.LogInternalDebug("Downloaded session insights file to temp: {BlobPath}", blobPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalWarning(ex, "Failed to download session insights file: {BlobPath}", blobPath);
+                }
+            }
+
+            if (downloadedCount == 0)
+            {
+                _logger.LogInternalInformation("No session insights files found in blob storage for {ThreadId}", threadId?.ToString() ?? "all");
+                return null;
+            }
+
+            _logger.LogInternalInformation("Downloaded {Count} session insights file(s) to temp directory", downloadedCount);
+
+            // Create tar.gz from temp directory
+            var memoryStream = new MemoryStream();
+            var sessionInsightsPath = Path.Combine(tempDir, SessionInsightsFolderName);
+
+            if (Directory.Exists(sessionInsightsPath))
+            {
+                await using (var gzipStream = new System.IO.Compression.GZipStream(memoryStream, System.IO.Compression.CompressionLevel.Optimal, leaveOpen: true))
+                await using (var tarWriter = new System.Formats.Tar.TarWriter(gzipStream, leaveOpen: true))
+                {
+                    await AddDirectoryToTarAsync(tarWriter, sessionInsightsPath, SessionInsightsFolderName, cancellationToken);
+                }
+            }
+
+            memoryStream.Position = 0;
+            return memoryStream;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogInternalError(ex, "Error during session insights stream download for {ThreadId}", threadId?.ToString() ?? "all");
+            return null;
+        }
+        finally
+        {
+            // Clean up temp directory
+            try
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    Directory.Delete(tempDir, recursive: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to clean up temp directory: {TempDir}", tempDir);
+            }
+        }
+    }
+
+    private static async Task AddDirectoryToTarAsync(
+        System.Formats.Tar.TarWriter tarWriter,
+        string sourceDir,
+        string entryBaseName,
+        CancellationToken cancellationToken)
+    {
+        foreach (var file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var relativePath = Path.GetRelativePath(sourceDir, file);
+            var entryName = Path.Combine(entryBaseName, relativePath).Replace(Path.DirectorySeparatorChar, '/');
+
+            var entry = new System.Formats.Tar.PaxTarEntry(System.Formats.Tar.TarEntryType.RegularFile, entryName)
+            {
+                DataStream = File.OpenRead(file)
+            };
+
+            await tarWriter.WriteEntryAsync(entry, cancellationToken);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<int> DeleteWorkspaceRepoInstructionsAsync(
+        string repoName,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(repoName))
+        {
+            throw new ArgumentException("Repository name cannot be null or empty.", nameof(repoName));
+        }
+
+        var deletedCount = 0;
+
+        var sandboxPaths = await _sandboxPaths.Value;
+
+        // Delete local files: {MemoriesPath}/{repoName}/.github
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, repoName, RepoInstructionsFolderName);
+        if (Directory.Exists(localFolder))
+        {
+            try
+            {
+                var files = Directory.GetFiles(localFolder, "*", SearchOption.AllDirectories);
+                deletedCount += files.Length;
+
+                Directory.Delete(localFolder, recursive: true);
+                _logger.LogInternalInformation("Deleted local repo instructions folder: {Path}", localFolder);
+
+                // Clear cache entries for deleted files
+                foreach (var file in files)
+                {
+                    _memoryFileLastUploaded.TryRemove(file, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to delete local repo instructions folder: {Path}", localFolder);
+            }
+        }
+
+        // Delete from blob storage: {repoName}/.github/
+        try
+        {
+            var blobPrefix = $"{repoName}/{RepoInstructionsFolderName}/";
+            var blobDeleted = await _remoteStorage.DeleteByPrefixAsync(
+                MemoriesContainerName,
+                blobPrefix,
+                cancellationToken);
+
+            deletedCount += blobDeleted;
+            _logger.LogInternalInformation("Deleted {Count} repo instruction file(s) from blob storage for {RepoName}", blobDeleted, repoName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to delete repo instructions from blob storage for {RepoName}", repoName);
+        }
+
+        _logger.LogInternalInformation("Deleted total {Count} repo instruction file(s) for {RepoName}", deletedCount, repoName);
+        return deletedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> DeleteWorkspaceSessionInsightsAsync(
+        Guid? threadId,
+        CancellationToken cancellationToken = default)
+    {
+        var deletedCount = 0;
+
+        var sandboxPaths = await _sandboxPaths.Value;
+
+        // Determine which folder(s) to delete
+        string localFolder;
+        string blobPrefix;
+
+        if (threadId.HasValue)
+        {
+            localFolder = Path.Combine(sandboxPaths.MemoriesPath, SessionInsightsFolderName, threadId.Value.ToString());
+            blobPrefix = $"{SessionInsightsFolderName}/{threadId.Value}/";
+        }
+        else
+        {
+            localFolder = Path.Combine(sandboxPaths.MemoriesPath, SessionInsightsFolderName);
+            blobPrefix = $"{SessionInsightsFolderName}/";
+        }
+
+        // Delete local files
+        if (Directory.Exists(localFolder))
+        {
+            try
+            {
+                var files = Directory.GetFiles(localFolder, "*", SearchOption.AllDirectories);
+                deletedCount += files.Length;
+
+                Directory.Delete(localFolder, recursive: true);
+                _logger.LogInternalInformation("Deleted local session insights folder: {Path}", localFolder);
+
+                // Clear cache entries for deleted files
+                foreach (var file in files)
+                {
+                    _memoryFileLastUploaded.TryRemove(file, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to delete local session insights folder: {Path}", localFolder);
+            }
+        }
+
+        // Delete from blob storage
+        try
+        {
+            var blobDeleted = await _remoteStorage.DeleteByPrefixAsync(
+                MemoriesContainerName,
+                blobPrefix,
+                cancellationToken);
+
+            deletedCount += blobDeleted;
+            _logger.LogInternalInformation("Deleted {Count} session insights file(s) from blob storage", blobDeleted);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to delete session insights from blob storage");
+        }
+
+        _logger.LogInternalInformation("Deleted total {Count} session insights file(s)", deletedCount);
+        return deletedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> DeleteWorkspaceSynthesizedKnowledgeAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var deletedCount = 0;
+
+        var sandboxPaths = await _sandboxPaths.Value;
+
+        // Delete local files
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, SynthesizedKnowledgeFolderName);
+        if (Directory.Exists(localFolder))
+        {
+            try
+            {
+                var files = Directory.GetFiles(localFolder, "*", SearchOption.AllDirectories);
+                deletedCount += files.Length;
+
+                Directory.Delete(localFolder, recursive: true);
+                _logger.LogInternalInformation("Deleted local synthesized knowledge folder: {Path}", localFolder);
+
+                // Clear cache entries for deleted files
+                foreach (var file in files)
+                {
+                    _memoryFileLastUploaded.TryRemove(file, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to delete local synthesized knowledge folder: {Path}", localFolder);
+            }
+        }
+
+        // Delete from blob storage
+        try
+        {
+            var blobPrefix = $"{SynthesizedKnowledgeFolderName}/";
+            var blobDeleted = await _remoteStorage.DeleteByPrefixAsync(
+                MemoriesContainerName,
+                blobPrefix,
+                cancellationToken);
+
+            deletedCount += blobDeleted;
+            _logger.LogInternalInformation("Deleted {Count} synthesized knowledge file(s) from blob storage", blobDeleted);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalWarning(ex, "Failed to delete synthesized knowledge from blob storage");
+        }
+
+        _logger.LogInternalInformation("Deleted total {Count} synthesized knowledge file(s)", deletedCount);
+        return deletedCount;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> UploadAllMemoriesAsync(CancellationToken cancellationToken = default)
+    {
+        var totalUploaded = 0;
+
+        _logger.LogInternalDebug("Starting upload of all memory files...");
+
+        try
+        {
+            var sandboxPaths = await _sandboxPaths.Value;
+
+            // 1. Upload repo instructions - scan for all {repoName}/.github/ folders
+            if (Directory.Exists(sandboxPaths.MemoriesPath))
+            {
+                foreach (var repoDir in Directory.GetDirectories(sandboxPaths.MemoriesPath))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var repoName = Path.GetFileName(repoDir);
+
+                    // Skip known non-repo folders
+                    if (repoName.Equals(SessionInsightsFolderName, StringComparison.OrdinalIgnoreCase) ||
+                        repoName.Equals(SynthesizedKnowledgeFolderName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var githubPath = Path.Combine(repoDir, RepoInstructionsFolderName);
+                    if (Directory.Exists(githubPath))
+                    {
+                        try
+                        {
+                            var uploaded = await UploadWorkspaceRepoInstructionsAsync(repoName, cancellationToken);
+                            totalUploaded += uploaded;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning(ex, "Failed to upload repo instructions for {RepoName}", repoName);
+                        }
+                    }
+                }
+            }
+
+            // 2. Upload session insights - scan for all thread folders
+            var sessionInsightsPath = Path.Combine(sandboxPaths.MemoriesPath, SessionInsightsFolderName);
+            if (Directory.Exists(sessionInsightsPath))
+            {
+                foreach (var threadDir in Directory.GetDirectories(sessionInsightsPath))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var threadIdStr = Path.GetFileName(threadDir);
+                    if (Guid.TryParse(threadIdStr, out var threadId))
+                    {
+                        try
+                        {
+                            var uploaded = await UploadWorkspaceSessionInsightsAsync(threadId, cancellationToken);
+                            totalUploaded += uploaded;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning(ex, "Failed to upload session insights for thread {ThreadId}", threadId);
+                        }
+                    }
+                }
+            }
+
+            // 3. Upload synthesized knowledge
+            try
+            {
+                var uploaded = await UploadWorkspaceSynthesizedKnowledgeAsync(cancellationToken);
+                totalUploaded += uploaded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to upload synthesized knowledge");
+            }
+
+            if (totalUploaded > 0)
+            {
+                _logger.LogInternalInformation("Uploaded total {Count} memory file(s)", totalUploaded);
+            }
+            else
+            {
+                _logger.LogInternalDebug("No memory files needed to be uploaded");
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogInternalError(ex, "Error during memory files upload");
+        }
+
+        return totalUploaded;
+    }
+
+    #endregion
+}

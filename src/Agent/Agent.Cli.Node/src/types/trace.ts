@@ -76,7 +76,8 @@ export type SpanKind =
   | 'ModelGeneration'
   | 'AgentResponse'
   | 'AgentThinking'
-  | 'Execution';  // CLI-specific: AzCli, Kubectl, etc.
+  | 'Execution'  // CLI-specific: AzCli, Kubectl, etc.
+  | 'TaskTool';  // Task tool subagent execution
 
 export interface ITokenUsageInfo {
   modelName?: string;
@@ -120,6 +121,11 @@ export interface SpanAttributes {
 
   // Thinking
   thinkingSteps?: { timestamp: Date; message: string }[];
+
+  // Task Tool / SubAgent
+  subagentType?: 'Explore' | 'Plan' | 'CodeReview';
+  subagentDescription?: string;
+  subagentPrompt?: string;
 
   // Duration (calculated)
   duration?: number;
@@ -257,6 +263,10 @@ export function getSpanTitle(span: ISpan): string {
     case 'AgentThinking':
       const steps = span.attributes?.thinkingSteps?.length || 0;
       return `Thinking (${steps} steps)`;
+    case 'TaskTool':
+      const subagentType = span.attributes?.subagentType || 'SubAgent';
+      const subagentDesc = span.attributes?.subagentDescription?.slice(0, 30) || '';
+      return `${subagentType}: ${subagentDesc}${subagentDesc.length >= 30 ? '...' : ''}`;
     default:
       // For unknown kinds, try to use attributes or show the kind itself
       return span.attributes?.message?.slice(0, 50) || span.kind || 'Unknown';
@@ -289,6 +299,18 @@ export function getSpanIcon(span: ISpan): string {
       return '●';
     case 'AgentThinking':
       return '◆';
+    case 'TaskTool':
+      // Different icons for different subagent types
+      switch (span.attributes?.subagentType) {
+        case 'Explore':
+          return '🔍';
+        case 'Plan':
+          return '📐';
+        case 'CodeReview':
+          return '📝';
+        default:
+          return '◇';
+      }
     default:
       return '•';
   }
@@ -321,6 +343,18 @@ export function getSpanColor(span: ISpan): string {
       return '#F8BBD9'; // BABY_PINK
     case 'AgentThinking':
       return 'gray';
+    case 'TaskTool':
+      // Different colors for different subagent types
+      switch (span.attributes?.subagentType) {
+        case 'Explore':
+          return '#64b5f6'; // Light blue
+        case 'Plan':
+          return '#ba68c8'; // Purple
+        case 'CodeReview':
+          return '#81c784'; // Green
+        default:
+          return 'cyan';
+      }
     default:
       return 'gray';  // Unknown kinds shown in gray like Web client
   }

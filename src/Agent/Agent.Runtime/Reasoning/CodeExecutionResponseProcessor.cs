@@ -189,6 +189,7 @@ public class CodeExecutionResponseProcessor : IToolOutputProcessor
             var fileKey = await context.SaveOutput(
                 context.ThreadId,
                 context.ToolName,
+                context.CallId,
                 content,
                 "txt",
                 cancellationToken);
@@ -278,6 +279,7 @@ public class CodeExecutionResponseProcessor : IToolOutputProcessor
             var fileKey = await context.SaveOutput(
                 context.ThreadId,
                 context.ToolName,
+                context.CallId,
                 value,
                 contentType,
                 cancellationToken);

@@ -28,11 +28,15 @@ variants:
             - FetchWebpage
             - AskUserQuestion
             - read_skill_file
+            - Task
             - GetTopDiscussionEntries
             - GetIncidentDetails
             - GetIncidentAlertDetails
             - SearchIncidents
-            - GetSimilarIncidents
+            - RunAzCliWriteCommands
+            - RunAzCliReadCommands
+            - ExecutePythonCode
+            - UploadFileToSession
             - kusto-mcp_kusto_cluster_get
             - kusto-mcp_kusto_cluster_list
             - kusto-mcp_kusto_database_list
@@ -40,8 +44,6 @@ variants:
             - kusto-mcp_kusto_sample
             - kusto-mcp_kusto_table_list
             - kusto-mcp_kusto_table_schema
-            - ado-mcp_repo_create_pull_request
-            - ado-mcp_repo_get_repo_by_name_or_id
       handoffs:
         - agent_names:
             - meta_agent
@@ -61,7 +63,7 @@ variants:
           replace_system_prompt: |
             You are an expert AI Ops assistant, working with a user to help them manage their service running on Azure. This includes helping with deployments, debugging and mitigating incidents, monitoring service health, and optimizing performance.
             
-            When asked for your name, you must respond with "Azure SRE Agent". When asked about the model you are using, you must state that you are using Claude Sonnet 4.5.
+            When asked for your name, you must respond with "Azure SRE Agent". When asked about the model you are using, you must state that you are using Claude Opus 4.5.
             You are a self-learning system that improves over time by updating its important learnings and successful experiences into troubleshooting guides (already part of your workspace). Do not mention your workspace setup to the user unless explicitly asked.
 
             Your strengths:
@@ -195,6 +197,26 @@ variants:
             Wrap more complex blocks of math equations in $$.
 
             </outputFormatting>
+
+            <fileAndRepoLinkGuidance>
+            When referencing files in your responses:
+            1. **Repository Source Files** (files under codeRef/ folder):
+               - Use full remote URLs to link to the source repository
+               - Construct URL from repository info: `https://github.com/{owner}/{repo}/blob/{branch}/{path}`
+               - Example: `[src/main.py](https://github.com/contoso/myrepo/blob/main/src/main.py)`
+               - For Azure DevOps: `https://dev.azure.com/{org}/{project}/_git/{repo}?path=/{path}&version=GB{branch}`
+
+            2. **Temp Workspace Files** (files under tmp/threadFiles/<threadId>/ folder):
+               - Use markdown download links: `[Download filename](api/files/<relative-path>)`
+               - Use relative path from tmp/threadFiles/<threadId>/ onward. 
+                 Example: for file tmp/threadFiles/<threadId>/output.txt: `[Download output.txt](/api/files/output.txt)`
+               - The UI will automatically handle authentication and threadId routing.
+
+            3. **Other Workspace Files** (files outside codeRef and tmp folders):
+               - You should NEVER link to these files directly.
+
+            Always prefer linking to the remote repository URL for source code files so users can view them in context with full git history and blame information.
+            </fileAndRepoLinkGuidance>
 
             <reminderInstructions>
             When using the replace_string_in_file tool, include 3-5 lines of unchanged code before and after the string you want to replace, to make it unambiguous which part of the file should be edited.

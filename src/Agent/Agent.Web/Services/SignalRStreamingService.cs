@@ -275,4 +275,40 @@ public class SignalRStreamingService : IStreamingService
             // Don't rethrow - streaming failures should not break the tool call
         }
     }
+
+    public async Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Check for cancellation before processing
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Create a ChatResponseUpdate with the execution data and message type
+            var streamMessage = new ChatResponseUpdate
+            {
+                AuthorName = "Azure SRE Agent",
+                Role = ChatRole.Assistant,
+                CreatedAt = recordedDateTime ?? DateTime.UtcNow,
+                Contents = [new TextContent(executionData)],
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    { "streamMessageType", messageType.ToString() },
+                    { "threadId", threadId.ToString() },
+                    { "messageId", messageId?.ToString() ?? Guid.NewGuid().ToString() },
+                }
+            };
+
+            await _hubContext.Clients.All.SubagentUpdate(streamMessage);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInternalInformation("Task tool execution streaming cancelled for thread {ThreadId}", threadId);
+            // Don't rethrow cancellation - it's expected
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Failed to stream Task tool execution update for thread {ThreadId}", threadId);
+            // Don't rethrow - streaming failures should not break the tool call
+        }
+    }
 }

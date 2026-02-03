@@ -61,6 +61,8 @@ public class ExtendedAgentView
 
     public Settable<string> OutputType { get; set; }
 
+    public Settable<Dictionary<string, List<HookDefinitionView>>> Hooks { get; set; }
+
 
     public static ApiResponseEnvelope<ExtendedAgentView> CreateApiResponseEnvelope(AgentDocumentModel agentDoc)
     {
@@ -100,6 +102,7 @@ public class ExtendedAgentView
         agentView.AddSystemSkills = agent.AddSystemSkills;
         agentView.AllowedSkills = agent.AllowedSkills;
         agentView.OutputType = agent.OutputType;
+        agentView.Hooks = ConvertHooksToView(agent.Hooks);
 
         ApiResponseEnvelope<ExtendedAgentView> apiResponse = new()
         {
@@ -184,9 +187,58 @@ public class ExtendedAgentView
             properties.AddSystemSkills.ApplyTo(value => result.Spec.AddSystemSkills = value);
             properties.AllowedSkills.ApplyTo(value => result.Spec.AllowedSkills = value);
             properties.OutputType.ApplyTo(value => result.Spec.OutputType = value);
+            properties.Hooks.ApplyTo(value => result.Spec.Hooks = ConvertHooksToDto(value));
         });
 
         return result;
+    }
+
+    private static Dictionary<string, List<HookDefinitionView>>? ConvertHooksToView(
+        Dictionary<string, List<HookDefinitionDto>>? hooks)
+    {
+        if (hooks == null || hooks.Count == 0)
+        {
+            return null;
+        }
+
+        return hooks.ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.Select(dto => new HookDefinitionView
+            {
+                Type = dto.Type,
+                Prompt = dto.Prompt,
+                Command = dto.Command,
+                Script = dto.Script,
+                Matcher = dto.Matcher,
+                Timeout = dto.Timeout,
+                Model = dto.Model,
+                FailMode = dto.FailMode
+            }).ToList()
+        );
+    }
+
+    private static Dictionary<string, List<HookDefinitionDto>>? ConvertHooksToDto(
+        Dictionary<string, List<HookDefinitionView>>? hooks)
+    {
+        if (hooks == null || hooks.Count == 0)
+        {
+            return null;
+        }
+
+        return hooks.ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value.Select(view => new HookDefinitionDto
+            {
+                Type = view.Type ?? string.Empty,
+                Prompt = view.Prompt,
+                Command = view.Command,
+                Script = view.Script,
+                Matcher = view.Matcher,
+                Timeout = view.Timeout ?? 30,
+                Model = view.Model,
+                FailMode = view.FailMode
+            }).ToList()
+        );
     }
 }
 
@@ -199,4 +251,52 @@ public class AgentsAsToolsView
     public Settable<string> ToolDescription { get; set; }
 
     public Settable<string> InputDescription { get; set; }
+}
+
+/// <summary>
+/// API view for hook definitions.
+/// </summary>
+public class HookDefinitionView
+{
+    /// <summary>
+    /// The type of hook execution (e.g., "prompt", "command").
+    /// </summary>
+    public string? Type { get; set; }
+
+    /// <summary>
+    /// For prompt hooks: the prompt text to send to the LLM.
+    /// </summary>
+    public string? Prompt { get; set; }
+
+    /// <summary>
+    /// For command hooks: the shell command to execute.
+    /// Mutually exclusive with Script.
+    /// </summary>
+    public string? Command { get; set; }
+
+    /// <summary>
+    /// For command hooks: a multi-line bash script to execute.
+    /// Mutually exclusive with Command.
+    /// </summary>
+    public string? Script { get; set; }
+
+    /// <summary>
+    /// Pattern to match tool names for PostToolUse hooks.
+    /// </summary>
+    public string? Matcher { get; set; }
+
+    /// <summary>
+    /// Timeout in seconds for hook execution.
+    /// </summary>
+    public int? Timeout { get; set; }
+
+    /// <summary>
+    /// Optional model name/identifier for prompt hooks.
+    /// </summary>
+    public string? Model { get; set; }
+
+    /// <summary>
+    /// How to handle command hook execution errors.
+    /// </summary>
+    public string? FailMode { get; set; }
 }

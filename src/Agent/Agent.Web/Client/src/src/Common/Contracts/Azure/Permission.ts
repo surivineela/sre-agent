@@ -14,6 +14,7 @@ export interface PermissionsCheckResponse {
 
 export enum PermissionActions {
     RbacWrite = 'Microsoft.Authorization/roleAssignments/write',
+    AgentRead = 'Microsoft.App/agents/read',
     AgentWrite = 'Microsoft.App/agents/write',
     AgentDelete = 'Microsoft.App/agents/delete',
     AgentThreadsWrite = 'Microsoft.App/agents/threads/write',
@@ -99,6 +100,8 @@ export enum RBACRoleIds {
     azureCenterForSapSolutionsAdministrator = '7b0c7e81-271f-4c71-90bf-e30bdfdbc2f7',
     costManagementContributor = '434105ed-43f6-45c7-a02f-909b2ba83430',
     hdInsightClusterOperator = '61ed4efc-fab3-44fd-b111-e24485cc132a',
+    keyVaultSecretsUser = '4633458b-17de-408a-b874-0445c86b69e6',
+    keyVaultCertificateUser = 'db79e9a7-68ee-4b58-9aeb-b90e7c24fcba',
     cognitiveServicesCustomVisionReader = '93586559-c37d-4a6b-ba08-b9f0940c2d73',
     cognitiveServicesDataReader = 'b59867f0-fa02-499b-be73-45a86b5b3e1c',
     cognitiveServicesLanguageReader = '7628b7b8-a8b2-4cdc-b46f-e9b35248918e',

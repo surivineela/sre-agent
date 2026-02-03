@@ -39,6 +39,8 @@ import { useChatHistory } from './useChatHistory';
 
 const DEEP_INVESTIGATION_CONFIRM_DISMISSED_KEY = 'sreagent.deepInvestigationConfirmDismissed';
 
+type SpecialMessageType = 'approvalOrCli' | 'agentTask' | 'userQuestion' | 'mcpToolExecution';
+
 export const useChatBox = (
     addThread: (threadId: string) => void,
     updateThreadLastReadTime: (threadId: string) => void,
@@ -101,13 +103,17 @@ export const useChatBox = (
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
     const currentScrollTop = useRef<number>(0);
     const currentScrollHeight = useRef<number>(0);
-    const streamingMessageGroupRef = useRef<ChatMessageGroup | null | undefined>();
     const currentThreadIdRef = useRef<string>(threadId || '');
     const isNewThreadAdded = useRef<boolean>(false);
     // pass userDefinedThreadId to thread create for matching the thread id from the stream message
     const threadIdUsedForCreatingNewThreadRef = useRef<string>(threadIdUsedForCreatingNewThread);
     threadIdUsedForCreatingNewThreadRef.current = threadIdUsedForCreatingNewThread;
     const streamingMessageTimestampFilterRef = useRef<string | null>(null);
+
+    const messageGroupsRef = useRef<ChatMessageGroup[]>([]);
+    messageGroupsRef.current = messageGroups;
+    const streamingMessageGroupRef = useRef<ChatMessageGroup | null | undefined>();
+    streamingMessageGroupRef.current = streamingMessageGroup;
 
     const messageChunkQueue = useRef<StreamingMessage[]>([]);
     const isHandlingStreamingMessage = useRef<boolean>(false);
@@ -339,10 +345,6 @@ export const useChatBox = (
         [userId, displayName, currentThreadId, proxy.log, startMessageStreamingOnExistingThread, startMessageStreamingOnNewThread]
     );
 
-    useEffect(() => {
-        streamingMessageGroupRef.current = streamingMessageGroup;
-    }, [streamingMessageGroup]);
-
     const getApprovalOrCliMessageIndexInStreamingMessage = (
         streamingMessageGroup: ChatMessageGroup | undefined | null,
         specialMessageId: string | undefined
@@ -429,6 +431,34 @@ export const useChatBox = (
             }
         }
         return undefined;
+    };
+
+    const getMatchingMessageIndexInStreamingMessageGroup = (
+        type: SpecialMessageType,
+        specialMessageId: string,
+        streamingMessageGroup: ChatMessageGroup | null | undefined
+    ) => {
+        return type === 'approvalOrCli'
+            ? getApprovalOrCliMessageIndexInStreamingMessage(streamingMessageGroup, specialMessageId)
+            : type === 'agentTask'
+              ? getAgentTaskMessageIndexInStreamingMessage(streamingMessageGroup, specialMessageId)
+              : type === 'mcpToolExecution'
+                ? getMcpToolExecutionMessageIndexInStreamingMessage(streamingMessageGroup, specialMessageId)
+                : getUserQuestionMessageIndexInStreamingMessage(streamingMessageGroup, specialMessageId);
+    };
+
+    const getMatchingMessageIndexInExistingMessageGroup = (
+        type: SpecialMessageType,
+        specialMessageId: string,
+        existingMessageGroups: ChatMessageGroup[]
+    ) => {
+        return type === 'approvalOrCli'
+            ? getApprovalOrCliMessageIndexInExistingMessages(existingMessageGroups, specialMessageId)
+            : type === 'agentTask'
+              ? getAgentTaskMessageIndexInExistingMessages(existingMessageGroups, specialMessageId)
+              : type === 'mcpToolExecution'
+                ? getMcpToolExecutionMessageIndexInExistingMessages(existingMessageGroups, specialMessageId)
+                : getUserQuestionMessageIndexInExistingMessages(existingMessageGroups, specialMessageId);
     };
 
     const updateApprovalOrCliMessageInStreamingMessage = useCallback(
@@ -607,18 +637,21 @@ export const useChatBox = (
             });
         };
 
-        const updateSpecialMessage = (type: 'approvalOrCli' | 'agentTask' | 'userQuestion' | 'mcpToolExecution', id: string) => {
+        const updateSpecialMessage = (type: SpecialMessageType, id: string, isCliOrApprovalMessageInInitialState?: boolean) => {
+            const indexInStreamingMessage = getMatchingMessageIndexInStreamingMessageGroup(type, id, streamingMessageGroupRef.current);
+            const indexInExistingMessages = getMatchingMessageIndexInExistingMessageGroup(type, id, messageGroupsRef.current);
+
+            // There are chances that the service streams out the same approval/CLI message again in a different initial state (e.g. Pending -> PendingAuthorization, or Pending -> Running).
+            // In this case, do not append this message to the streaming message again unless there are no duplications found.
+            if (isCliOrApprovalMessageInInitialState && indexInStreamingMessage === undefined && indexInExistingMessages === undefined) {
+                appendMessageInTheStreamingMessage();
+                return;
+            }
+
             setStreamingMessageGroup(prev => {
                 if (!prev) return prev;
 
-                const index =
-                    type === 'approvalOrCli'
-                        ? getApprovalOrCliMessageIndexInStreamingMessage(prev, id)
-                        : type === 'agentTask'
-                            ? getAgentTaskMessageIndexInStreamingMessage(prev, id)
-                            : type === 'mcpToolExecution'
-                                ? getMcpToolExecutionMessageIndexInStreamingMessage(prev, id)
-                                : getUserQuestionMessageIndexInStreamingMessage(prev, id);
+                const index = getMatchingMessageIndexInStreamingMessageGroup(type, id, prev);
 
                 if (index !== undefined) {
                     const updatedAgentMessages = [...prev.agentMessages];
@@ -634,14 +667,7 @@ export const useChatBox = (
 
             setMessageGroups(prev => {
                 const messageGroups = [...prev];
-                const index =
-                    type === 'approvalOrCli'
-                        ? getApprovalOrCliMessageIndexInExistingMessages(messageGroups, id)
-                        : type === 'agentTask'
-                            ? getAgentTaskMessageIndexInExistingMessages(messageGroups, id)
-                            : type === 'mcpToolExecution'
-                                ? getMcpToolExecutionMessageIndexInExistingMessages(messageGroups, id)
-                                : getUserQuestionMessageIndexInExistingMessages(messageGroups, id);
+                const index = getMatchingMessageIndexInExistingMessageGroup(type, id, messageGroups);
                 if (index !== undefined) {
                     const [messageGroupIndex, messageIndex] = index;
                     const messageGroup = { ...messageGroups[messageGroupIndex] };
@@ -659,12 +685,8 @@ export const useChatBox = (
         };
 
         if (cliOrApproval) {
-            if (isCliOrApprovalMessageInInitialState) {
-                appendMessageInTheStreamingMessage();
-            } else {
-                const id = cliOrApproval.id;
-                updateSpecialMessage('approvalOrCli', id);
-            }
+            const id = cliOrApproval.id;
+            updateSpecialMessage('approvalOrCli', id, isCliOrApprovalMessageInInitialState);
         } else if (agentTaskInfo) {
             const id = agentTaskInfo.id;
             updateSpecialMessage('agentTask', id);

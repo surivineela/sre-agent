@@ -537,6 +537,7 @@ export const SreAgentResources = defineMessages({
     resourceType: { defaultMessage: 'Resource type', id: 'WHleoJ' },
     restart: { defaultMessage: 'Restart', id: '5kK+j9' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
+    authorizing: { defaultMessage: 'Authorizing...', id: 'JpzGP3' },
     scope: { defaultMessage: 'Scope', id: 'nso3Mj' },
     selectResourceGroups: { defaultMessage: 'Select resource groups', id: 'ftfFhS' },
     selectResourceGroupsToMonitor: { defaultMessage: 'Select resource groups to monitor', id: 'CfGC/2' },
@@ -740,6 +741,13 @@ export const SreAgentResources = defineMessages({
     detailsPermission: { defaultMessage: 'Permission', id: 'Oz5LRn' },
     detailsAccess: { defaultMessage: 'Details', id: 'Lv0zJu' },
     detailsAccessNoAccess: { defaultMessage: 'No access', id: 'XLRt15' },
+    accessRequirement: { defaultMessage: 'Access requirement', id: 'owqydq' },
+    accessRequirementDescription: {
+        defaultMessage: 'Access to use this agent requires an Azure role-based access control (RBAC) SRE Agent Reader role or higher.',
+        id: 'mLVRgA',
+    },
+    learnMoreAboutSREAgentRBAC: { defaultMessage: 'Learn more about SRE Agent RBAC', id: 'URn8FF' },
+    goToAccessControl: { defaultMessage: 'Go to Access Control (IAM)', id: 'ezYx3I' },
     equals: { defaultMessage: 'equals', id: 'Y2QRpS' },
     safe: { defaultMessage: 'Safe', id: 'Fr5LyM' },
     lowRisk: { defaultMessage: 'Low risk', id: 'jd2Xsp' },
@@ -928,6 +936,34 @@ export const SreAgentResources = defineMessages({
     },
     dismiss: { defaultMessage: 'Dismiss', id: 'TDaF6J' },
     openMenu: { defaultMessage: 'Agent configuration and more', id: 'qTuUKM' },
+    toolCalls: { defaultMessage: 'Tool calls', id: '/ZNQCX' },
+    otherToolCalls: { defaultMessage: '+{count} other tool calls', id: 'xWArib' },
+    // Task tool execution messages
+    taskToolParallelExploration: { defaultMessage: 'Parallel Exploration', id: 'Iq2iKS' },
+    taskToolExploreAgents: {
+        defaultMessage: '{count, plural, one {# Explore Agent} other {# Explore Agents}}',
+        id: 'mLW6TK',
+    },
+    taskToolOutput: { defaultMessage: 'Output', id: 'fio5op' },
+    taskToolToolCalls: { defaultMessage: 'Tool Calls', id: 'tDQLmD' },
+    taskToolFinalResult: { defaultMessage: 'Final Result', id: 'AMYnZD' },
+    taskToolNoOutputsAvailable: {
+        defaultMessage: 'No tool outputs available (only captured during real-time execution)',
+        id: 'JT3E4l',
+    },
+    taskToolAgentsCompleted: {
+        defaultMessage: '{total, plural, one {# agent} other {# agents}} · {completed} completed',
+        id: 'HUw/WX',
+    },
+    taskToolAgentsFailed: { defaultMessage: '{failed} failed', id: 'DOKjLe' },
+    taskToolRunning: { defaultMessage: '{count} running', id: 'gjhcMb' },
+    taskToolAllComplete: { defaultMessage: 'All complete', id: '1d/uxD' },
+    taskToolToolCallsCount: {
+        defaultMessage: '{count, plural, one {# tool call} other {# tool calls}}',
+        id: '4yQHX3',
+    },
+    taskToolEarlierCount: { defaultMessage: '+{count} earlier', id: 'GcvRXK' },
+    last30days: { defaultMessage: 'Last 30 days', id: 'Rfvi9/' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -943,6 +979,9 @@ export const SreAgentTabResources = defineMessages({
     scheduledTasks: { defaultMessage: 'Scheduled tasks', id: 'sy7vzf' },
     monitor: { defaultMessage: 'Monitor', id: 'YpVoLg' },
     builder: { defaultMessage: 'Builder', id: '+cRDz7' },
+    connectors: { defaultMessage: 'Connectors', id: '2mMJRv' },
+    knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
+    knowledgeSettings: { defaultMessage: 'Knowledge settings', id: '1BkoOu' },
 });
 
 export const ResourcePickerTabResources = defineMessages({
@@ -1662,6 +1701,7 @@ export const ActionsStatusResources = defineMessages({
 
 export const IncidentHandlerCreateResources = defineMessages({
     generateCustomHandler: { defaultMessage: 'Generate custom response plan', id: 'm0kcbz' },
+    chooseAgentAutonomyLevel: { defaultMessage: 'Choose agent autonomy level for this handler', id: 'I6v/YT' },
     reviewAndEdit: { defaultMessage: 'Review + edit', id: 'nFOo9o' },
     priority: { defaultMessage: 'Priority', id: '8lCjAM' },
     dateCreated: { defaultMessage: 'Date created', id: 'Yjk5Ow' },
@@ -1676,33 +1716,35 @@ export const IncidentHandlerCreateResources = defineMessages({
     last30days: { defaultMessage: 'Last 30 days', id: 'Rfvi9/' },
     last60days: { defaultMessage: 'Last 60 days', id: 'KLYuRX' },
     last90days: { defaultMessage: 'Last 90 days', id: 'mgYBYo' },
-    chooseIncidentsTitle: { defaultMessage: 'Choose incidents', id: 'aj2txf' },
+    chooseIncidentsTitle: { defaultMessage: 'Choose past incidents', id: 'zGt4c2' },
     chooseIncidentDescription: {
-        defaultMessage: 'These previous incidents match the selected incident type. The agent can learn from a maximum of 5 incidents.',
-        id: 'yDh8i7',
+        defaultMessage:
+            'These past incidents match your filter criteria. Choose up to 5 for the agent to learn from in order to effectively manage and respond to similar incidents. If an incident is missing, go back to the previous step and modify the filter parameters.',
+        id: 'tEKXZf',
     },
     availableToolsTitle: { defaultMessage: 'Available tools', id: 'iukUKz' },
     availableToolsDescription: {
         defaultMessage: `The agent uses these available tools to generate incident response plan instructions, based on patterns it learned from the past incidents. You can remove any tools you don't want the agent to use.`,
         id: 'c25ipa',
     },
-    addCustomInstructionTitle: { defaultMessage: 'Instruction generation guidance', id: 'eEu4cm' },
-    addCustomInstructionDescription: {
-        defaultMessage: 'Guidance might include resolution steps, specific instructions, or other relevant context.',
-        id: 'yiAEBc',
+    addInstructionsTitle: { defaultMessage: 'Add instructions', id: 'HjTHxo' },
+    addInstructionsDescription: {
+        defaultMessage: 'Include details such as additional incident context, mitigation, logic, and resolution steps.',
+        id: 'gf1/SS',
     },
     customInstructionPlaceholder: { defaultMessage: 'Enter instructions', id: 'AbpmRv' },
-    customInstructionsAriaLabel: { defaultMessage: 'Custom response guidance', id: 'et+X02' },
-    reviewCustomInstructionsTitle: { defaultMessage: 'Custom response guidance', id: 'et+X02' },
+    customInstructionsAriaLabel: { defaultMessage: 'Review custom incident response plan', id: '5+vedn' },
+    reviewCustomInstructionsTitle: { defaultMessage: 'Review custom incident response plan', id: '5+vedn' },
     reviewCustomInstructionsDescription: {
-        defaultMessage: 'This is the prompt the agent will use. It includes your custom response guidance. Review and edit if needed.',
-        id: 'eackGq',
+        defaultMessage:
+            'This response plan was generated from the selected incidents and instructions. It includes suggested tools for the agent to use when handling incidents, which can be changed in the next step. Review and edit the response plan as needed.',
+        id: 'f9Cni3',
     },
-    reviewToolsTitle: { defaultMessage: 'Tools selected for incident response', id: 'unxs9C' },
+    reviewToolsTitle: { defaultMessage: 'Suggested tools', id: 'C84F9h' },
     reviewToolsDescription: {
         defaultMessage:
-            'The tool list is generated from the custom response guidance. If you modify the guidance, select Regenerate to update the tool list. Once regenerated, the previous list cannot be restored. To add or remove tools, select Manage tools.',
-        id: '0mx8D9',
+            'This list has suggested tools for the generated response plan. To add or remove any, select "Manage tools," then regenerate the list. Also regenerate the list if edits to the instructions change the agent\'s workflow or the services it needs to access. Once the list is regenerated, the previous version cannot be restored. ',
+        id: 'Sv4VXi',
     },
     maximumToolsErrorMessage: { defaultMessage: 'A response plan can use a maximum of {maxTools} tools.', id: 'JkbJ/T' },
     regenerateTools: { defaultMessage: 'Regenerate tools list', id: 'd6hQf3' },
@@ -1712,12 +1754,12 @@ export const IncidentHandlerCreateResources = defineMessages({
         id: '0VuGey',
     },
     manageTools: { defaultMessage: 'Manage tools', id: 'ybIDiK' },
-    testHandlerTitle: { defaultMessage: 'Test incident response', id: 'rwwXv0' },
-    incidentLabel: { defaultMessage: 'Incident', id: 'zaYxwd' },
+    testHandlerTitle: { defaultMessage: 'Test the response plan', id: 'wPem91' },
+    incidentLabel: { defaultMessage: 'Incident title', id: '2Oxmp9' },
     incidentPlaceholder: { defaultMessage: 'Select or search for an incident', id: 'XRdOZL' },
     testHandlerEmptyMessage: {
-        defaultMessage: 'Select an incident and run the test to see the results here.',
-        id: 'MhTfXm',
+        defaultMessage: 'Select an incident to test the response plan.',
+        id: '0mfk/a',
     },
     testHandlerRunButton: { defaultMessage: 'Run test', id: 'mZ0R9v' },
     testHandlerRunFailure: {
@@ -1734,6 +1776,7 @@ export const IncidentHandlerCreateResources = defineMessages({
     previous: { defaultMessage: 'Previous', id: 'JJNc3c' },
     back: { defaultMessage: 'Back', id: 'cyR7Kh' },
     generate: { defaultMessage: 'Generate', id: 'Pc+tM3' },
+    generateAndReview: { defaultMessage: 'Generate + review', id: '9IaMr4' },
     retry: { defaultMessage: 'Retry', id: '62nsdy' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
     customHandlerAddNotificationTitle: { defaultMessage: 'Add custom incident response plan', id: 'wezZny' },
@@ -1764,7 +1807,7 @@ export const IncidentHandlerCreateResources = defineMessages({
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     newCustomHandler: { defaultMessage: 'New custom response plan', id: 'iqdd9H' },
     editCustomHandler: { defaultMessage: 'Edit custom response plan', id: 'LyuutK' },
-    newIncidentHandler: { defaultMessage: 'New incident response plan', id: 'uEYYty' },
+    addIncidentResponsePlan: { defaultMessage: 'Add an incident response plan', id: 'jma5nl' },
     editIncidentHandler: { defaultMessage: 'Edit incident response plan', id: 'Kkc3/u' },
     regenerate: { defaultMessage: 'Regenerate', id: '6PgVSe' },
     regenerateTooltip: {
@@ -1781,33 +1824,35 @@ export const IncidentHandlerCreateResources = defineMessages({
     customInstructions: { defaultMessage: 'Custom instructions', id: 'D7U9Zo' },
     selectedIncidents: { defaultMessage: 'Selected incidents', id: 'DX7w9O' },
     selectedIncidentsEmptyText: { defaultMessage: 'No incidents selected', id: 'QQX4Pv' },
-    filterStep: { defaultMessage: 'Create incident response plan', id: 'Z9pRs5' },
-    previewIncidentsStep: { defaultMessage: 'Preview incidents', id: '69FfbB' },
+    setUpIncidentFiltersStep: { defaultMessage: 'Set up incident filters', id: '4Mb+50' },
+    previewFilterResultsStep: { defaultMessage: 'Preview filter results', id: 'S1MxVl' },
+    saveResponsePlanStep: { defaultMessage: 'Save response plan', id: '50v2pt' },
     previewIncidentsDescription: {
         defaultMessage:
             'These incidents match your filter criteria. If an incident is missing, go back to the previous step and modify the filter parameters.',
         id: '6LZ2qn',
     },
-    incidentsAndGuidanceStep: { defaultMessage: 'Add instructions', id: 'HjTHxo' },
-    reviewAndTestStep: { defaultMessage: 'Review + test', id: '3PxUNi' },
+    defineAgentLearningStep: { defaultMessage: 'Define agent learning', id: 'fauCGp' },
+    reviewAndTestStep: { defaultMessage: 'Review custom plan', id: '7KMTwc' },
     deployStep: { defaultMessage: 'Deploy incident response plan', id: 'p21QSW' },
-    filterParametersTitle: { defaultMessage: 'Choose filter parameters', id: 'JwHSD6' },
+    filterParametersTitle: { defaultMessage: 'Set up incident filters', id: '4Mb+50' },
     filterParametersDescription: {
         defaultMessage:
-            'Filters define which incidents the incident response plan applies to. These apply to the list of incidents previewed in the next step.',
-        id: 'LZyV4T',
+            'The agent handles only active incidents that match the filter criteria. The same filters will generate a list of past incidents that you’ll choose from to help the agent learn and improve its incident response.',
+        id: 'w/OihQ',
     },
     enableDeepInvestigationTitle: {
-        defaultMessage: 'Choose whether to run deep investigations alongside regular investigations',
-        id: 'DJN+DZ',
+        defaultMessage: 'Turn on deep investigation',
+        id: 'm6RiRf',
     },
     enableDeepInvestigationDescription: { defaultMessage: 'Run deep investigation autonomously', id: 's7HLdg' },
-    addCustomResponseGuidanceTitle: { defaultMessage: 'Add custom response guidance (optional)', id: 'koWZK8' },
+    addCustomResponseGuidanceTitle: { defaultMessage: 'Customize the incident response plan (optional)', id: 'rwrVpm' },
     addCustomResponseGuidanceDescription: {
-        defaultMessage: 'This guidance helps generate the tools list and the final prompt the agent uses during incident handling.',
-        id: 'vao/Lv',
+        defaultMessage:
+            'With a custom incident response plan, the agent will learn how to handle this type of incident using similar past incidents and your instructions.',
+        id: 'eGnLix',
     },
-    addCustomResponseGuidanceLabel: { defaultMessage: 'Add guidance', id: 'eZMksq' },
+    addCustomResponseGuidanceLabel: { defaultMessage: 'I want a custom response plan.', id: 'guQ/IW' },
     includedIncidentsLabel: { defaultMessage: 'Choose how to set up this incident response plan', id: 'gKi3tP' },
     includedIncidentsFutureOnly: { defaultMessage: 'Apply only to incidents triggered after the response plan is created', id: 'd1Cewp' },
     includedIncidentsPastAndFuture: { defaultMessage: 'Apply to all current and future active incidents', id: '0w0iFy' },
@@ -1934,6 +1979,7 @@ export const IncidentManagementResources = defineMessages({
     autonomyLevel: { defaultMessage: 'Autonomy level', id: 'Sdc+Dp' },
     agentAutonomyLevel: { defaultMessage: 'Agent autonomy level', id: 'AC5nsM' },
     autonomousDefault: { defaultMessage: 'Autonomous (Default)', id: 'Ypp6em' },
+    reviewDefault: { defaultMessage: 'Review (Default)', id: 'Ve40iX' },
     reviewWord: { defaultMessage: 'Review', id: 'R+J5ox' },
     autonomousWord: { defaultMessage: 'Autonomous', id: 'Sr5R7d' },
     autonomyLevelReviewDescription: {
@@ -2112,6 +2158,11 @@ export const IncidentManagementResources = defineMessages({
     triggerIncidentResolvedDescription: {
         defaultMessage: 'Trigger when the incident state changes to Resolved.',
         id: 'hCwKXB',
+    },
+    triggerHitCountIncreased: { defaultMessage: 'IncidentCorrelated (Hit Count Increase)', id: 'WagodG' },
+    triggerHitCountIncreasedDescription: {
+        defaultMessage: 'Trigger when the incident HitCount increases, indicating that another incident was correlated to this one.',
+        id: 'kz2R65',
     },
     discussionEntryRequiresOwningTeam: {
         defaultMessage: 'Discussion entry trigger requires an owning team to be selected.',
@@ -2323,6 +2374,13 @@ export const IncidentManagementValidationResources = defineMessages({
     serviceNowUsernameRequired: { defaultMessage: 'Username is required.', id: 'aAADUG' },
     serviceNowPasswordRequired: { defaultMessage: 'Password is required.', id: 'pRvgsc' },
     serviceNowInvalidCredentials: { defaultMessage: 'Invalid username or password. Please check your credentials.', id: '1YN49J' },
+    // OAuth validation strings
+    serviceNowClientIdRequired: { defaultMessage: 'OAuth Client ID is required.', id: 'XpZGkx' },
+    serviceNowClientSecretRequired: { defaultMessage: 'OAuth Client Secret is required.', id: 'kFA81d' },
+    serviceNowInvalidOAuthCredentials: {
+        defaultMessage: 'Invalid OAuth credentials. Please verify your Client ID and Client Secret.',
+        id: 'Q/gg5s',
+    },
     serviceNowConnectionError: {
         defaultMessage: 'Unable to connect to ServiceNow endpoint. Please verify the endpoint URL.',
         id: 'GUx4Ld',
@@ -2471,12 +2529,9 @@ export const SettingsTabResources = defineMessages({
     basics: { defaultMessage: 'Basics', id: 'itC9lG' },
     grafanaDashboard: { defaultMessage: 'Grafana dashboard', id: '2zi2Yj' },
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },
-    connectors: { defaultMessage: 'Connectors', id: '2mMJRv' },
     identity: { defaultMessage: 'Identity', id: 'tShbyC' },
     azureSettings: { defaultMessage: 'Azure settings', id: 'XXOHJH' },
     configureAzureSettings: { defaultMessage: 'Configure Azure settings', id: 'Q9DSD7' },
-    knowledgeBase: { defaultMessage: 'Knowledge base', id: 'tLYOnZ' },
-    knowledgeSettings: { defaultMessage: 'Knowledge settings', id: '1BkoOu' },
     dataKnowledgeSpace: { defaultMessage: 'Data knowledge space', id: '5U04OG' },
     usage: { defaultMessage: 'Agent consumption', id: 'p7xkho' },
     sessionInsights: { defaultMessage: 'Session insights', id: 'CQ0CLu' },
@@ -2524,6 +2579,7 @@ export const SettingsTabResources = defineMessages({
         defaultMessage: `Anthropic is not available due to your organization’s data residency policy. Contact your administrator for more information.`,
         id: 'x3nLRm',
     },
+    anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
 });
 
 export const GrafanaDashboardResources = defineMessages({
@@ -3046,6 +3102,7 @@ export const GenericErrorResources = defineMessages({
     moreOptions: { defaultMessage: 'More options', id: 'IzCVhG' },
     dismissNotification: { defaultMessage: 'Dismiss notification', id: 'pe7UAe' },
     unknownError: { defaultMessage: 'Unknown error', id: 'qDwvZ4' },
+    windowWillClose: { defaultMessage: 'This window will close automatically.', id: 'i3DwMh' },
 });
 
 export const ServiceNowResources = defineMessages({
@@ -3053,6 +3110,20 @@ export const ServiceNowResources = defineMessages({
     serviceNowUsername: { defaultMessage: 'Username', id: 'JCIgkj' },
     serviceNowPassword: { defaultMessage: 'Password', id: '5sg7KC' },
     serviceNowInstanceName: { defaultMessage: 'Instance name', id: 'fblXmJ' },
+    // OAuth fields
+    serviceNowClientId: { defaultMessage: 'OAuth Client ID', id: 'hyI5pp' },
+    serviceNowClientSecret: { defaultMessage: 'OAuth Client Secret', id: 'bDGyh6' },
+    oauthSetupTitle: { defaultMessage: 'Required: Configure ServiceNow first', id: 'A0MX17' },
+    oauthSetupInstructions: {
+        defaultMessage:
+            'Add this Redirect URL to your ServiceNow OAuth application before continuing (System OAuth → Application Registry):',
+        id: 'wqP9TB',
+    },
+    oauthDescription: {
+        defaultMessage:
+            'Connect to ServiceNow using OAuth 2.0. To get OAuth credentials, navigate to System OAuth → Application Registry in ServiceNow and create an OAuth API endpoint for external clients.',
+        id: 'WMy08p',
+    },
     changeKey: { defaultMessage: 'Change credentials', id: '0q6E9l' },
     description: {
         defaultMessage:
@@ -3091,6 +3162,45 @@ export const ServiceNowResources = defineMessages({
     priorityModerate: { defaultMessage: 'Moderate', id: 'OlIql8' },
     priorityLow: { defaultMessage: 'Low', id: '477I0g' },
     priorityPlanning: { defaultMessage: 'Planning', id: '99OdS3' },
+    // OAuth callback messages
+    oauthProcessing: { defaultMessage: 'Processing authorization...', id: 'YI6ota' },
+    oauthSuccessTitle: { defaultMessage: 'Authorization Successful', id: 'vNp3+n' },
+    oauthSuccessMessage: { defaultMessage: 'You can close this window now.', id: '/k3XWh' },
+    oauthErrorTitle: { defaultMessage: 'Authorization Failed', id: 'FyN1Ey' },
+    // OAuth wizard step labels
+    oauthStepEnterCredentials: { defaultMessage: 'Enter Credentials', id: '6FJ9/p' },
+    oauthStepAuthorize: { defaultMessage: 'Authorize', id: 'QwnGVY' },
+    oauthStepComplete: { defaultMessage: 'Complete', id: 'U78NhE' },
+    oauthSetupFailed: { defaultMessage: 'Setup Failed', id: 'xccGj5' },
+    oauthStep1Title: { defaultMessage: 'Step 1: Enter ServiceNow OAuth Credentials', id: 'mQJrBv' },
+    oauthStep1Description: {
+        defaultMessage:
+            'Enter your ServiceNow instance details and OAuth application credentials. You will authorize the connection in the next step.',
+        id: 'KD82xw',
+    },
+    oauthCancel: { defaultMessage: 'Cancel', id: '47FYwb' },
+    oauthNextAuthorize: { defaultMessage: 'Next: Authorize', id: 'fKqbHu' },
+    oauthAuthorizingTitle: { defaultMessage: 'Authorizing ServiceNow Connection', id: 'Its1DI' },
+    oauthAuthorizingPopupMessage: {
+        defaultMessage: 'A popup window will open for you to sign in to ServiceNow and authorize this connection.',
+        id: 'SwQUuh',
+    },
+    oauthAuthorizingWaitMessage: { defaultMessage: 'Please complete the authorization in the popup window...', id: 'AxPl/7' },
+    oauthConnectionAuthorized: { defaultMessage: 'ServiceNow Connection Authorized!', id: 'yRq/Tc' },
+    oauthConnectionSuccessMessage: {
+        defaultMessage: 'Your ServiceNow OAuth connection has been successfully configured and authorized.',
+        id: 'aojY47',
+    },
+    oauthConnectionReadyMessage: {
+        defaultMessage: 'The connection is now ready to use. You can close this dialog and start managing incidents through ServiceNow.',
+        id: 'kHFW0Y',
+    },
+    oauthDone: { defaultMessage: 'Done', id: 'JXdbo8' },
+    // Authentication type dropdown strings
+    authenticationType: { defaultMessage: 'Authentication Type', id: 'hWxQGa' },
+    basicAuthentication: { defaultMessage: 'Basic Authentication', id: 't16LQI' },
+    oauth2: { defaultMessage: 'OAuth 2.0', id: 'TNEnEi' },
+    authorize: { defaultMessage: 'Authorize', id: 'QwnGVY' },
 });
 
 export const KnowledgeBaseResources = defineMessages({
@@ -4332,6 +4442,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     agentAsToolCountBadge: { defaultMessage: 'Agents-as-tools · {count}', id: 'tujypD' },
     memoryEnabledBadge: { defaultMessage: 'Knowledge Base Enabled', id: 'ketkP5' },
     skillsEnabledBadge: { defaultMessage: 'Skills Enabled', id: '/mPnOR' },
+    skillsDisabledLabel: { defaultMessage: 'Skills are disabled for this agent', id: 'AnU1u1' },
     skillsLabel: { defaultMessage: 'Skills', id: 'EJSVsO' },
     noSkillsFound: { defaultMessage: 'No skills found', id: 'z4NnlT' },
     searchSkillsPlaceholder: { defaultMessage: 'Search by skill', id: 'uQ/yKk' },
@@ -4846,6 +4957,21 @@ export const ExtendedAgentsGraphResources = defineMessages({
             'Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included.',
         id: 'FsIud6',
     },
+
+    // Agent Skills
+    enableSkillsLabel: { defaultMessage: 'Enable Skills', id: 'cHpxFI' },
+    enableSkillsDescription: { defaultMessage: 'Allow this agent to use skills', id: '5dqROh' },
+    allowedSkillsLabel: { defaultMessage: 'Allowed Skills', id: 'q3Un3h' },
+    allowedSkillsDescription: {
+        defaultMessage: 'Select which skills this agent can access. Leave empty to allow all skills.',
+        id: '8Nw4OO',
+    },
+    skillsInfoText: {
+        defaultMessage: 'Skills apply to all agents that have skills enabled. Use Allowed Skills to restrict access for specific agents.',
+        id: 'V+tp/F',
+    },
+    noSkillsAvailable: { defaultMessage: 'No skills available', id: 'frPg+c' },
+    allSkillsAllowed: { defaultMessage: 'All skills allowed', id: 'r2w55S' },
 
     metaAgentAlreadyExistsMessage: {
         defaultMessage: 'A meta agent override already exists in your system.',
@@ -6134,11 +6260,27 @@ export const ConnectorsResources = defineMessages({
     azureDevops: { defaultMessage: 'Azure DevOps', id: 'D3rb1K' },
     gitHub: { defaultMessage: 'GitHub', id: 'wO9wb5' },
     gitHubMcpServer: { defaultMessage: 'GitHub MCP server', id: 'y/m6Ep' },
+    gitHubOAuthConnector: { defaultMessage: 'GitHub OAuth connector', id: '4BMY6P' },
     githubDescription: {
         defaultMessage: 'The agent accesses GitHub repositories, features, and actions, including issue tracking and pull requests.',
         id: 'BBT3jd',
     },
+    githubOAuthDescription: {
+        defaultMessage: 'Connect to GitHub with OAuth for repository access and operations.',
+        id: '11+3Vi',
+    },
+    azureDevOpsOAuthConnector: { defaultMessage: 'Azure DevOps OAuth connector', id: 'u29UUB' },
+    azureDevOps: { defaultMessage: 'Azure DevOps', id: 'D3rb1K' },
+    azureDevOpsOAuthDescription: {
+        defaultMessage: 'Connect to Azure DevOps using OAuth for repository and work item access',
+        id: 'i2dgiY',
+    },
+    signInToAzureDevOps: { defaultMessage: 'Sign in to Azure DevOps', id: 'r8PXta' },
+    connectedToAzureDevOps: { defaultMessage: 'Connected to Azure DevOps', id: 'oBpUsU' },
+    signInWithDifferentAzureDevOpsAccount: { defaultMessage: 'Sign in with different account', id: '4wm/vp' },
+    userAccount: { defaultMessage: 'User account', id: 'i2OoDN' },
     authentication: { defaultMessage: 'Authentication', id: 'YeKWbP' },
+    authenticationFailed: { defaultMessage: 'Authentication Failed', id: 'SZ4+sW' },
     authenticationMethod: { defaultMessage: 'Authentication method', id: 'Vs3jMi' },
     status: { defaultMessage: 'Status', id: 'tzMNF3' },
     source: { defaultMessage: 'Source', id: 'aH4De2' },
@@ -6162,6 +6304,9 @@ export const ConnectorsResources = defineMessages({
     remove: { defaultMessage: 'Remove', id: 'G/yZLu' },
     connectorsDescriptionLearnMore: { defaultMessage: 'Learn more about connectors', id: 'Kfaepo' },
     duplicateNameError: { defaultMessage: 'A connector with this name already exists', id: 'qf1aUJ' },
+    duplicateOrganizationError: { defaultMessage: 'A connector for this organization already exists', id: 'V/yv5T' },
+    organization: { defaultMessage: 'Organization', id: 'K56Dim' },
+    organizationPlaceholder: { defaultMessage: 'contoso', id: 'cNVMmy' },
     urlKustoFormatError: { defaultMessage: 'The url must be in the format: {format}', id: '3sNyAo' },
     urlAzureDevOpsFormatError: {
         defaultMessage: 'URL must be a valid Azure DevOps repository or wiki URL',
@@ -6199,6 +6344,11 @@ export const ConnectorsResources = defineMessages({
     connectedAs: { defaultMessage: 'Connected as', id: '0VVX+G' },
     signInWithDifferentAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
     establishingConnection: { defaultMessage: 'Establishing connection ...', id: 'uIXQiw' },
+    signInToGitHub: { defaultMessage: 'Sign in to GitHub', id: 'w0rIv0' },
+    connectedToGitHub: { defaultMessage: 'Connected to GitHub', id: '6x7ohk' },
+    signInWithDifferentGitHubAccount: { defaultMessage: 'Sign in with a different account', id: 'oHGFwy' },
+    loadingConfiguration: { defaultMessage: 'Loading configuration...', id: '1XWNEd' },
+    authenticating: { defaultMessage: 'Authenticating...', id: 'uPchmU' },
     sendNotificationDescription: {
         defaultMessage:
             'The agent posts notifications to the activity feed linking to a chat or team. Requires contributor role on resource group.',
@@ -6283,6 +6433,30 @@ export const ConnectorsResources = defineMessages({
     mcpLabel: { defaultMessage: 'MCP', id: 'RbWH8Q' },
     mcpResult: { defaultMessage: 'Result', id: 'ZpQ6us' },
     mcpNullValue: { defaultMessage: 'null', id: 'BPj/Jo' },
+
+    // ICM Connector
+    icmConnector: { defaultMessage: 'IcM connector', id: '8FmkXP' },
+    microsoftIcm: { defaultMessage: 'Microsoft IcM', id: '0D+7fr' },
+    icmConnectorDescription: {
+        defaultMessage: 'Connect to IcM for automated incident management using certificate authentication.',
+        id: 'EP+8Fu',
+    },
+    keyVault: { defaultMessage: 'Key Vault', id: 'aeROIb' },
+    selectKeyVault: { defaultMessage: 'Select Key Vault', id: 'dZnjb1' },
+    certificateUri: { defaultMessage: 'Certificate URI', id: 'eno+SG' },
+    certificateUriPlaceholder: { defaultMessage: 'Enter certificate URI or select from dropdown', id: 'EEYDYJ' },
+    certificateUriHelperText: {
+        defaultMessage: "The certificate URI must be in the format: https://'<'vault-name'>'.vault.azure.net/certificates/'<'cert-name'>'",
+        id: '8AbWVe',
+    },
+    missingKeyVaultOrIdentity: {
+        defaultMessage: 'Missing Key Vault ID or managed identity principal ID',
+        id: 'RV25PS',
+    },
+    failedToAssignRoles: {
+        defaultMessage: 'Failed to assign {roleNames}: {error}',
+        id: 'ste0mr',
+    },
 });
 
 export const AgentPermissionsResources = defineMessages({
@@ -6556,16 +6730,25 @@ export const RolesResources = defineMessages({
 
 export const OverviewResources = defineMessages({
     overview: { defaultMessage: 'Overview', id: '9uOFF3' },
-    suggestionActions: { defaultMessage: 'Suggested actions {value}', id: 'Efkzqy' },
+    suggestionActions: { defaultMessage: 'Suggested actions ({value})', id: 'AhbkmU' },
+    reviewedIncidents: { defaultMessage: 'Reviewed incidents', id: 'q/PXKR' },
     goToQuickStart: { defaultMessage: 'Go to quick start', id: 'qZ6FID' },
     intentMetScore: { defaultMessage: 'Intent met score', id: '07461w' },
     meanTimeToMitigate: { defaultMessage: 'Mean time to mitigate', id: 'o8Lpmf' },
-    incidentsAnalyzed: { defaultMessage: 'Incidents analyzed', id: 'WD+A2I' },
+    estimatedTimeSaved: { defaultMessage: 'Estimated time saved', id: 'ETSsyC' },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
-    recentInsights: { defaultMessage: 'Recent insights', id: 'G4Dpsw' },
-    noRecentInsights: { defaultMessage: 'No recent insights available', id: 'E4ETPQ' },
-    failedToLoadInsights: { defaultMessage: 'Failed to get recent insights', id: 'W1FdP1' },
+    insightsAndSuggestions: { defaultMessage: 'Insights and suggestions', id: 'VcCeKc' },
+    noInsightsOrSuggestions: { defaultMessage: 'No insights or suggestions available', id: '2vsXG8' },
+    failedToLoadInsightsAndSuggestions: { defaultMessage: 'Failed to get insights and suggestions', id: 'ZgFpPB' },
     viewLogs: { defaultMessage: 'View logs', id: 't/FntL' },
     rootCause: { defaultMessage: 'Root cause', id: '18rcDe' },
     talkToAgent: { defaultMessage: 'Talk to agent', id: '3kxCAE' },
+    highPriority: { defaultMessage: 'High priority', id: 'Fhyz3b' },
+    mediumPriority: { defaultMessage: 'Medium priority', id: 'TLm9Ds' },
+    lowPriority: { defaultMessage: 'Low priority', id: 'F6wdsc' },
+    incidentInsight: { defaultMessage: 'Incident insight', id: 'I2BHR3' },
+    configurationInsight: { defaultMessage: 'Configuration insight', id: 'oRFUOu' },
+    repositoryInsight: { defaultMessage: 'Repository insight', id: '1FvmLy' },
+    usagePatternInsight: { defaultMessage: 'Usage pattern insight', id: 'K5G02H' },
+    viewMoreInsights: { defaultMessage: 'View more insights', id: 'DARaDt' },
 });

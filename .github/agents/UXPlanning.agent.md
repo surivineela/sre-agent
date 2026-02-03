@@ -4,7 +4,7 @@ description: Research and plan UX features for Agent.Web and Agent.Portal
 argument-hint: Describe the UX feature or improvement to plan
 model: Claude Opus 4.5
 tools:
-  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'agent', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/searchSyntax', 'github.vscode-pull-request-github/doSearch', 'github.vscode-pull-request-github/renderIssues', 'github.vscode-pull-request-github/activePullRequest', 'github.vscode-pull-request-github/openPullRequest', 'todo']
+  ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'azure-mcp/search', 'github/pull_request_read', 'agent', 'todo']
 handoffs:
   - label: Begin coding
     agent: UXAgent_Coding

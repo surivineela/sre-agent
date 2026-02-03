@@ -28,14 +28,14 @@ namespace Agent.Plugins.Python.Tools
         {
             var sessionPool = serviceProvider.GetRequiredService<ISessionPoolService>();
             var hostEnvironment = serviceProvider.GetRequiredService<IHostEnvironment>();
-            var threadFileStorageService = serviceProvider.GetRequiredService<IThreadFileStorageService>();
+            var agentFileStorageService = serviceProvider.GetRequiredService<IAgentFileStorageService>();
             var logger = serviceProvider.GetRequiredService<ILogger<PythonFunctionTool>>();
             var pythonDefinition = (PythonFunctionToolDefinition)definition;
 
             return new PythonFunctionTool(
                 sessionPool,
                 hostEnvironment,
-                threadFileStorageService,
+                agentFileStorageService,
                 logger,
                 pythonDefinition);
         }
@@ -49,21 +49,21 @@ namespace Agent.Plugins.Python.Tools
     {
         private readonly ISessionPoolService _sessionPool;
         private readonly IHostEnvironment _hostEnvironment;
-        private readonly IThreadFileStorageService _threadFileStorageService;
+        private readonly IAgentFileStorageService _agentFileStorageService;
         private readonly ILogger<PythonFunctionTool> _logger;
         private readonly bool _testMode;
 
         public PythonFunctionTool(
             ISessionPoolService sessionPool,
             IHostEnvironment hostEnvironment,
-            IThreadFileStorageService threadFileStorageService,
+            IAgentFileStorageService agentFileStorageService,
             ILogger<PythonFunctionTool> logger,
             PythonFunctionToolDefinition definition,
             bool testMode = false) : base(definition)
         {
             _sessionPool = sessionPool;
             _hostEnvironment = hostEnvironment;
-            _threadFileStorageService = threadFileStorageService;
+            _agentFileStorageService = agentFileStorageService;
             _logger = logger;
             _testMode = testMode;
         }
@@ -102,7 +102,7 @@ namespace Agent.Plugins.Python.Tools
                         _sessionPool,
                         identifier,
                         parsedThreadId,
-                        _threadFileStorageService,
+                        _agentFileStorageService,
                         _logger);
                 }
 

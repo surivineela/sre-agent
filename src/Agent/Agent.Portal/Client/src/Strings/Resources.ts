@@ -422,6 +422,7 @@ export const PortalResources = defineMessages({
         defaultMessage: `Anthropic is not available due to your organization’s data residency policy. Contact your administrator for more information.`,
         id: 'x3nLRm',
     },
+    anthropicProviderLabel: { defaultMessage: 'Anthropic', id: 'LftgYR' },
     providerPlaceholder: { defaultMessage: 'Select region first', id: 'zUmqxZ' },
     // Connector CRUD operations
     creatingConnector: { defaultMessage: 'Creating connector...', id: 'jE1HXt' },

@@ -37,5 +37,11 @@ public enum IcmIncidentTriggerEvent
     /// <summary>
     /// Fires when incident state changes to Resolved.
     /// </summary>
-    IncidentResolved
+    IncidentResolved,
+
+    /// <summary>
+    /// Fires when incident hit count increases (correlation detected).
+    /// Only triggers when HitCount > 1 and has increased from previous value.
+    /// </summary>
+    HitCountIncreased
 }

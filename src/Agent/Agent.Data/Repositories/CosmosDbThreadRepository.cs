@@ -470,6 +470,10 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threadDoc = ThreadDocument.FromDomainModel(thread);
 
         threadDoc.IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty;
+        // Ensure IncidentStatus is set with fallback to IncidentDetails.IncidentStatus
+        threadDoc.IncidentStatus = thread.Status?.IncidentStatus?.Status
+            ?? thread.IncidentDetails?.IncidentStatus
+            ?? string.Empty;
 
         await _client.GetContainer<ThreadDocument>(_databaseName).CreateItemAsync(threadDoc, new PartitionKey(threadDoc.PartitionKey));
 
@@ -910,6 +914,58 @@ public class CosmosDbThreadRepository : IThreadRepository
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error updating incident test mode for thread {ThreadId}", threadId);
+            throw;
+        }
+    }
+
+    public async Task<Thread?> UpdateThreadInvestigationStatusAsync(Guid threadId, InvestigationStatus status)
+    {
+        var threadIdStr = threadId.ToString();
+
+        try
+        {
+            var threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+
+            if (threadDoc == null)
+            {
+                _logger.LogInternalWarning("Cannot update investigation status: Thread {ThreadId} not found", threadId);
+                return null;
+            }
+
+            // Skip if no incident details
+            if (threadDoc.IncidentDetails == null)
+            {
+                _logger.LogInternalInformation("Cannot update investigation status: Thread {ThreadId} has no incident details", threadId);
+                return await GetThreadAsync(threadId);
+            }
+
+            // Create new IncidentDetails with updated status (record is immutable)
+            var updatedIncidentDetails = threadDoc.IncidentDetails with { InvestigationStatus = status };
+
+            var updatedThreadDoc = threadDoc with
+            {
+                IncidentDetails = updatedIncidentDetails,
+            };
+
+            await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
+                updatedThreadDoc,
+                updatedThreadDoc.Id,
+                new PartitionKey(updatedThreadDoc.PartitionKey)
+            );
+
+            var updatedThread = await GetThreadAsync(threadId);
+
+            _logger.LogInternalInformation("Successfully updated investigation status for thread {ThreadId} to {Status}", threadId, status);
+            return updatedThread;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning("Cannot update investigation status: Thread {ThreadId} not found", threadId);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error updating investigation status for thread {ThreadId}", threadId);
             throw;
         }
     }
@@ -1748,7 +1804,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             status.IncidentStatus = new IncidentStatus
                             {
                                 IncidentId = incidentId,
-                                Status = pagerDutyIncident.Status
+                                Status = pagerDutyIncident.Status?.ToLowerInvariant() ?? string.Empty
                             };
                         }
                         break;
@@ -1772,7 +1828,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             status.IncidentStatus = new IncidentStatus
                             {
                                 IncidentId = incidentId,
-                                Status = icmIncident.State  // ICM uses "State" instead of "Status"
+                                Status = icmIncident.State?.ToLowerInvariant() ?? string.Empty  // ICM uses "State" instead of "Status", normalize to lowercase for UI
                             };
                         }
                         break;
@@ -1784,7 +1840,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             status.IncidentStatus = new IncidentStatus
                             {
                                 IncidentId = incidentId,
-                                Status = serviceNowIncident.Status
+                                Status = serviceNowIncident.Status?.ToLowerInvariant() ?? string.Empty
                             };
                         }
                         break;
@@ -2498,13 +2554,21 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #endregion
 
-    #region GitHubAccessToken Operations
+    #region OAuth Token Operations
     public async Task<GitHubAccessToken?> GetGitHubAccessTokenAsync()
     {
         try
         {
-            var gitHubAccessTokenDocument = await GetDocumentAsync<GitHubAccessTokenDocument>("GitHubAccessToken", "GitHubAccessToken");
-            return gitHubAccessTokenDocument?.ToDomainModel();
+            // Try new format first
+            var oauthDoc = await GetDocumentAsync<OAuthTokenDocument>("OAuthToken", "GitHubOAuth");
+            if (oauthDoc != null)
+            {
+                return oauthDoc.ToGitHubToken();
+            }
+
+            // Fall back to legacy format for backward compatibility
+            var legacyDoc = await GetDocumentAsync<GitHubAccessTokenDocument>("GitHubAccessToken", "GitHubAccessToken");
+            return legacyDoc?.ToDomainModel();
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -2514,9 +2578,8 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     public async Task<GitHubAccessToken?> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken)
     {
-        // Create the GitHub access token document
-        var gitHubAccessTokenDoc = GitHubAccessTokenDocument.FromDomainModel(gitHubAccessToken);
-        await _client.GetContainer<GitHubAccessTokenDocument>(_databaseName).UpsertItemAsync(gitHubAccessTokenDoc, new PartitionKey(gitHubAccessTokenDoc.PartitionKey));
+        var oauthDoc = OAuthTokenDocument.FromGitHubToken(gitHubAccessToken);
+        await _client.GetContainer<OAuthTokenDocument>(_databaseName).UpsertItemAsync(oauthDoc, new PartitionKey(oauthDoc.PartitionKey));
         return gitHubAccessToken;
     }
 
@@ -2524,15 +2587,22 @@ public class CosmosDbThreadRepository : IThreadRepository
     {
         try
         {
-            // Delete the message
-            await _client.GetContainer<GitHubAccessTokenDocument>(_databaseName).DeleteItemAsync<GitHubAccessTokenDocument>("GitHubAccessToken", new PartitionKey("GitHubAccessToken"));
-
+            // Try to delete new format
+            await _client.GetContainer<OAuthTokenDocument>(_databaseName).DeleteItemAsync<OAuthTokenDocument>("OAuthToken", new PartitionKey("GitHubOAuth"));
             return true;
         }
-
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            return false;
+            // Try to delete legacy format
+            try
+            {
+                await _client.GetContainer<GitHubAccessTokenDocument>(_databaseName).DeleteItemAsync<GitHubAccessTokenDocument>("GitHubAccessToken", new PartitionKey("GitHubAccessToken"));
+                return true;
+            }
+            catch (CosmosException ex2) when (ex2.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
         }
     }
     #endregion
@@ -2570,6 +2640,41 @@ public class CosmosDbThreadRepository : IThreadRepository
             return true;
         }
 
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
+    public async Task<AzureDevOpsAccessToken?> GetAzureDevOpsOAuthTokenAsync(string organizationName)
+    {
+        try
+        {
+            var document = await GetDocumentAsync<OAuthTokenDocument>(organizationName, "AzureDevOpsOAuth");
+            return document?.ToAzureDevOpsToken();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<AzureDevOpsAccessToken?> CreateOrUpdateAzureDevOpsOAuthTokenAsync(
+        AzureDevOpsAccessToken token,
+        string organizationName)
+    {
+        var document = OAuthTokenDocument.FromAzureDevOpsToken(token, organizationName);
+        await _client.GetContainer<OAuthTokenDocument>(_databaseName).UpsertItemAsync(document, new PartitionKey(document.PartitionKey));
+        return token;
+    }
+
+    public async Task<bool> DeleteAzureDevOpsOAuthTokenAsync(string organizationName)
+    {
+        try
+        {
+            await _client.GetContainer<OAuthTokenDocument>(_databaseName).DeleteItemAsync<OAuthTokenDocument>(organizationName, new PartitionKey("AzureDevOpsOAuth"));
+            return true;
+        }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return false;

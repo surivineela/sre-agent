@@ -237,11 +237,20 @@ export const PreviewIncidentsStep: FC = () => {
                 >
                     {intl.formatMessage(IncidentHandlerCreateResources.back)}
                 </Button>
-                <Button appearance="primary" onClick={onClickSaveButton} disabled={!dirty}>
-                    {intl.formatMessage(
-                        isSubagentTrigger && filterMode === 'create' ? SreAgentResources.create : IncidentHandlerCreateResources.save
-                    )}
-                </Button>
+                {isSubagentTrigger ? (
+                    <Button appearance="primary" onClick={onClickSaveButton} disabled={!dirty}>
+                        {intl.formatMessage(filterMode === 'create' ? SreAgentResources.create : IncidentHandlerCreateResources.save)}
+                    </Button>
+                ) : (
+                    <Button
+                        appearance="primary"
+                        onClick={() => {
+                            setCurrentStep(IncidentHandlerCreateSteps.SaveStep);
+                        }}
+                    >
+                        {intl.formatMessage(IncidentHandlerCreateResources.next)}
+                    </Button>
+                )}
                 <DirtyStateConfirmationWrapper isDirty={dirty} onConfirm={() => exitToHome()}>
                     <Button>{intl.formatMessage(IncidentHandlerCreateResources.cancel)}</Button>
                 </DirtyStateConfirmationWrapper>

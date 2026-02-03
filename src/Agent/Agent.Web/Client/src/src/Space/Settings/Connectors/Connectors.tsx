@@ -4,9 +4,11 @@ import { HttpResponseObject } from '../../../Common/ArmHelper.types';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
+import { PermissionClient } from '../../../Common/Clients/PermissionsClient';
 import { TextWithLink } from '../../../Common/Components/TextWithLink';
 import { SreAgentFwLinks } from '../../../Common/Constants/FwLinks';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
+import { RBACRoleIds } from '../../../Common/Contracts/Azure/Permission';
 import { Connector } from '../../../Common/Contracts/Azure/SreAgent';
 import { FirstPartyHelper } from '../../../Common/Helpers/FirstPartyHelper';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
@@ -17,6 +19,7 @@ import { ServiceTypeFilter, ServiceTypeFilterKey } from '../DataConnectorsUtilit
 import { useAgentConnectors } from '../Hooks/useAgentConnectors';
 import { useSreAgent } from '../Hooks/useSreAgent';
 import DeleteConfirmationDialog from '../KnowledgeBaseComponents/DeleteConfirmationDialog';
+import { useSettingsStyles } from '../Styles/Settings.styles';
 import { useConnectorsStyles } from './Connectors.styles';
 import { ConnectorsDataGrid } from './ConnectorsDataGrid';
 import ConnectorsToolbar from './ConnectorsToolbar';
@@ -47,6 +50,7 @@ const isMethodNotAllowedError = (error: any): boolean => {
 export const Connectors = () => {
     const intl = useIntl();
     const styles = useConnectorsStyles();
+    const settingsStyles = useSettingsStyles();
 
     const { resourceId, userInfo } = useContext(EnvironmentContext);
     const { log, startNotification, stopNotification } = useContext(AzPortalContext);
@@ -88,6 +92,60 @@ export const Connectors = () => {
     }, []);
 
     const { getAccessPolicies, assignAccessPolicies } = useApiConnection();
+
+    const assignKeyVaultRoles = useCallback(
+        async (connector: Connector): Promise<{ success: boolean; error?: string }> => {
+            let objectId: string;
+            if (connector.identity === IdentityKeys.system) {
+                objectId = agent?.identity?.principalId || '';
+            } else {
+                const selectedIdentity = Object.entries(agent?.identity?.userAssignedIdentities || {}).find(([key, _]) =>
+                    equals(key, connector.identity)
+                );
+                objectId = selectedIdentity ? selectedIdentity[1].principalId : '';
+            }
+
+            const keyVaultId = connector.extendedProperties?.keyVaultId;
+            if (!keyVaultId || !objectId) {
+                return {
+                    success: false,
+                    error: intl.formatMessage(ConnectorsResources.missingKeyVaultOrIdentity),
+                };
+            }
+
+            const permissionClient = PermissionClient.getInstance();
+            const requiredRoles = [
+                { id: RBACRoleIds.keyVaultSecretsUser, name: 'Key Vault Secrets User' },
+                { id: RBACRoleIds.keyVaultCertificateUser, name: 'Key Vault Certificate User' },
+            ];
+            const failedRoles: string[] = [];
+            let lastError: string | undefined;
+
+            for (const role of requiredRoles) {
+                const hasRole = await permissionClient.hasRoleAssignment(keyVaultId, role.id, objectId);
+                if (!hasRole) {
+                    const response = await permissionClient.assignRole(keyVaultId, role.id, objectId, 'ServicePrincipal');
+                    if (!response.metadata.success) {
+                        failedRoles.push(role.name);
+                        lastError = getErrorMessage(response.metadata.error);
+                    }
+                }
+            }
+
+            if (failedRoles.length > 0) {
+                return {
+                    success: false,
+                    error: intl.formatMessage(ConnectorsResources.failedToAssignRoles, {
+                        roleNames: failedRoles.join(', '),
+                        error: lastError || 'Unknown error',
+                    }),
+                };
+            }
+
+            return { success: true };
+        },
+        [agent, intl]
+    );
 
     const putAssignAccessPolicies = useCallback(
         async (connector: Connector, isEditMode = false) => {
@@ -139,6 +197,64 @@ export const Connectors = () => {
                 intl.formatMessage(ConnectorsResources.creatingConnectorDescription, { name: connector.name })
             );
 
+            // For ICM connectors, assign Key Vault roles first before creating the connector
+            if (connector.dataConnectorType === ConnectorType.Icm) {
+                const roleResult = await assignKeyVaultRoles(connector);
+                if (!roleResult.success) {
+                    log({
+                        action: 'assignKeyVaultRoles',
+                        actionModifier: 'failed',
+                        resourceId,
+                        logLevel: 'error',
+                        data: {
+                            message: `Failed to assign Key Vault roles: ${roleResult.error}`,
+                        },
+                    });
+
+                    stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(ConnectorsResources.createConnectorWithMessageFailed, {
+                            error: roleResult.error,
+                        })
+                    );
+                    setIsOperationInProgress(false);
+                    return;
+                }
+
+                // Proceed to create the connector after successful role assignment
+                const putConnectorResponse = await putConnector(connector);
+                if (putConnectorResponse.metadata.success) {
+                    refresh();
+                    stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(ConnectorsResources.connectorCreated, { name: connector.name })
+                    );
+                } else {
+                    const error = putConnectorResponse.metadata.error;
+                    const errorMessage = getErrorMessage(error);
+                    log({
+                        action: 'createDataConnector',
+                        actionModifier: 'failed',
+                        resourceId,
+                        logLevel: 'error',
+                        data: {
+                            message: `Failed to create ICM connector: ${errorMessage}`,
+                        },
+                    });
+
+                    stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(ConnectorsResources.createConnectorWithMessageFailed, { error: errorMessage })
+                    );
+                }
+                setIsOperationInProgress(false);
+                return;
+            }
+
+            // For non-ICM connectors, run putConnector and putAssignAccessPolicies in parallel
             const promises = [putConnector(connector), putAssignAccessPolicies(connector)];
             const responses = await Promise.all(promises);
 
@@ -188,7 +304,18 @@ export const Connectors = () => {
             }
             setIsOperationInProgress(false);
         },
-        [startNotification, intl, putConnector, putAssignAccessPolicies, refresh, stopNotification, log, resourceId, isAmePmeTenant]
+        [
+            assignKeyVaultRoles,
+            startNotification,
+            intl,
+            putConnector,
+            putAssignAccessPolicies,
+            refresh,
+            stopNotification,
+            log,
+            resourceId,
+            isAmePmeTenant,
+        ]
     );
 
     const updateDataConnection = useCallback(
@@ -396,75 +523,79 @@ export const Connectors = () => {
     }, []);
 
     return (
-        <div className={styles.container}>
-            <div className={styles.titleContainer}>
-                <h3 className={styles.title}>{intl.formatMessage(ConnectorsResources.addAConnector)}</h3>
-                <TextWithLink
-                    text={intl.formatMessage(ConnectorsResources.connectorsDescription)}
-                    linkText={intl.formatMessage(ConnectorsResources.connectorsDescriptionLearnMore)}
-                    linkUrl={SreAgentFwLinks.connectors}
-                />
+        <div style={settingsStyles.settingsContainer}>
+            <div style={settingsStyles.settingsContainerInner}>
+                <div className={styles.container}>
+                    <div className={styles.titleContainer}>
+                        <h3 className={styles.title}>{intl.formatMessage(ConnectorsResources.addAConnector)}</h3>
+                        <TextWithLink
+                            text={intl.formatMessage(ConnectorsResources.connectorsDescription)}
+                            linkText={intl.formatMessage(ConnectorsResources.connectorsDescriptionLearnMore)}
+                            linkUrl={SreAgentFwLinks.connectors}
+                        />
+                    </div>
+                    <ConnectorsToolbar
+                        onRefreshClick={refresh}
+                        onNewConnectorClick={addNewConnector}
+                        onDeleteConnectorClick={onBulkDelete}
+                        isConnectorSelected={!!selectedConnector || selectedKeys.size > 0}
+                        selectedCount={selectedKeys.size}
+                        isOperationInProgress={isOperationInProgress || isRefreshing}
+                        setSearchTerm={setSearchTerm}
+                        serviceTypeFilter={serviceTypeFilter}
+                        setServiceTypeFilter={setServiceTypeFilter}
+                    />
+                    <ConnectorsDataGrid
+                        connectors={filteredConnectors}
+                        selectedKeys={selectedKeys}
+                        isEmpty={connectors.length === 0}
+                        isLoading={isConnectorsLoading}
+                        isRefreshing={isRefreshing}
+                        isOperationInProgress={isOperationInProgress}
+                        setSelectedKeys={setSelectedKeys}
+                        addNewConnector={addNewConnector}
+                        onEditConnector={onEditConnector}
+                        onDeleteConnector={onDeleteConnector}
+                        connectionMap={connectionMap}
+                        loadingStatusMap={loadingStatusMap}
+                    />
+                    <DeleteConfirmationDialog
+                        isOpen={isDeleteConfirmOpen}
+                        onOpenChange={setIsDeleteConfirmOpen}
+                        onConfirmDelete={onConfirmDelete}
+                        onCancelDelete={onCancelDelete}
+                        isOperationInProgress={isOperationInProgress}
+                        itemType={intl.formatMessage(ConnectorsResources.connector)}
+                        actionVerb={intl.formatMessage(ConnectorsResources.remove)}
+                        actionPositive={intl.formatMessage(SreAgentResources.yes)}
+                        actionNegative={intl.formatMessage(SreAgentResources.no)}
+                        selectedItems={Array.from(selectedKeys)}
+                        connectorTypes={selectedConnectorTypes}
+                    />
+                    <ConnectorWizardFormik
+                        agentName={agent?.name}
+                        agentLocation={agent?.location}
+                        agentIdentity={agent?.identity}
+                        isDialogOpen={isDialogOpen}
+                        setIsDialogOpen={setIsDialogOpen}
+                        onSubmit={createDataConnection}
+                        refreshAgent={refreshAgent}
+                        existingConnectors={connectors}
+                    />
+                    {selectedConnector && (
+                        <ConnectorEditDialogFormik
+                            agentName={agent?.name}
+                            agentLocation={agent?.location}
+                            agentIdentity={agent?.identity}
+                            isOpen={isEditDialogOpen}
+                            onOpenChange={onEditDialogueChange}
+                            connector={selectedConnector}
+                            onSubmit={updateDataConnection}
+                            refreshAgent={refreshAgent}
+                        />
+                    )}
+                </div>
             </div>
-            <ConnectorsToolbar
-                onRefreshClick={refresh}
-                onNewConnectorClick={addNewConnector}
-                onDeleteConnectorClick={onBulkDelete}
-                isConnectorSelected={!!selectedConnector || selectedKeys.size > 0}
-                selectedCount={selectedKeys.size}
-                isOperationInProgress={isOperationInProgress || isRefreshing}
-                setSearchTerm={setSearchTerm}
-                serviceTypeFilter={serviceTypeFilter}
-                setServiceTypeFilter={setServiceTypeFilter}
-            />
-            <ConnectorsDataGrid
-                connectors={filteredConnectors}
-                selectedKeys={selectedKeys}
-                isEmpty={connectors.length === 0}
-                isLoading={isConnectorsLoading}
-                isRefreshing={isRefreshing}
-                isOperationInProgress={isOperationInProgress}
-                setSelectedKeys={setSelectedKeys}
-                addNewConnector={addNewConnector}
-                onEditConnector={onEditConnector}
-                onDeleteConnector={onDeleteConnector}
-                connectionMap={connectionMap}
-                loadingStatusMap={loadingStatusMap}
-            />
-            <DeleteConfirmationDialog
-                isOpen={isDeleteConfirmOpen}
-                onOpenChange={setIsDeleteConfirmOpen}
-                onConfirmDelete={onConfirmDelete}
-                onCancelDelete={onCancelDelete}
-                isOperationInProgress={isOperationInProgress}
-                itemType={intl.formatMessage(ConnectorsResources.connector)}
-                actionVerb={intl.formatMessage(ConnectorsResources.remove)}
-                actionPositive={intl.formatMessage(SreAgentResources.yes)}
-                actionNegative={intl.formatMessage(SreAgentResources.no)}
-                selectedItems={Array.from(selectedKeys)}
-                connectorTypes={selectedConnectorTypes}
-            />
-            <ConnectorWizardFormik
-                agentName={agent?.name}
-                agentLocation={agent?.location}
-                agentIdentity={agent?.identity}
-                isDialogOpen={isDialogOpen}
-                setIsDialogOpen={setIsDialogOpen}
-                onSubmit={createDataConnection}
-                refreshAgent={refreshAgent}
-                existingConnectors={connectors}
-            />
-            {selectedConnector && (
-                <ConnectorEditDialogFormik
-                    agentName={agent?.name}
-                    agentLocation={agent?.location}
-                    agentIdentity={agent?.identity}
-                    isOpen={isEditDialogOpen}
-                    onOpenChange={onEditDialogueChange}
-                    connector={selectedConnector}
-                    onSubmit={updateDataConnection}
-                    refreshAgent={refreshAgent}
-                />
-            )}
         </div>
     );
 };

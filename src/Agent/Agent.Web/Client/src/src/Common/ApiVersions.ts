@@ -16,4 +16,5 @@ export class ApiVersions {
     public static readonly ArmApiVersion20210401 = '2021-04-01';
     public static readonly RbacApiVersion = '2022-04-01';
     public static readonly AppInsightsApiVersion20220615 = '2022-06-15';
+    public static readonly AppInsightsComponentsApiVersion20200202 = '2020-02-02';
 }

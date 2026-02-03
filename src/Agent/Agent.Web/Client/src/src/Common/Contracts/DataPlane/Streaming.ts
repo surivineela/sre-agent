@@ -1,9 +1,10 @@
-import { MessageType } from './Message';
+import { StreamMessageType } from './Message';
 
 export enum MessageRequestType {
     CreateMessage = 'CreateMessage',
     CreateThread = 'CreateThread',
     CancelThread = 'CancelThread',
+    CancelTaskExecution = 'CancelTaskExecution',
     SubmitUserQuestionResponse = 'SubmitUserQuestionResponse',
 }
 
@@ -12,6 +13,7 @@ export enum MessageResponseType {
     ThreadUpdate = 'ThreadUpdate',
     TaskUpdate = 'TaskUpdate',
     TodoPlanUpdate = 'TodoPlanUpdate',
+    SubagentUpdate = 'SubagentUpdate',
 }
 
 export interface StreamingMessage {
@@ -25,7 +27,7 @@ export interface StreamingMessage {
         connectionId?: string | null;
         threadId?: string | null;
         messageId?: string | null;
-        streamMessageType?: MessageType;
+        streamMessageType?: StreamMessageType;
         isCancelled?: boolean | null;
         userId?: string;
     } | null;

@@ -317,8 +317,8 @@ public static class TestHelpers
         builder.Services.AddSingleton<CannotConnectToVmPluginDefinition>();
         builder.Services.AddSingleton<ICannotConnectToVmPlugin, CannotConnectToVmPlugin>();
 
-        // Register IThreadFileStorageService for test environment
-        builder.Services.AddSingleton(Mock.Of<IThreadFileStorageService>());
+        // Register IAgentFileStorageService for test environment
+        builder.Services.AddSingleton(Mock.Of<IAgentFileStorageService>());
 
         // Configure ToolOutputSettings
         builder.Services.Configure<ToolOutputSettings>(options =>
@@ -527,6 +527,8 @@ public static class TestHelpers
 
         builder.Services.AddWorkspaceServices();
         builder.Services.AddAdcServices(builder.Configuration);
+
+        builder.Services.AddHooks();
 
         return builder;
     }
@@ -852,6 +854,12 @@ class MockStreamingService : IStreamingService
     public Task StreamTodoPlanUpdateAsync(Guid threadId, string todoPlanData, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
     {
         _logger.LogInternalInformation("Mock: Todo plan update for thread {ThreadId}: {TodoPlanData}", threadId, todoPlanData);
+        return Task.CompletedTask;
+    }
+
+    public Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInternalInformation("Mock: Task tool execution update for thread {ThreadId} with type {Type}: {ExecutionData}", threadId, messageType, executionData);
         return Task.CompletedTask;
     }
 }

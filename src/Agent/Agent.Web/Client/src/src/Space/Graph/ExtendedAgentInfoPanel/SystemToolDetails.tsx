@@ -1,7 +1,7 @@
 import { Link, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, Text } from '@fluentui/react-components';
 import { memo } from 'react';
 import { useIntl } from 'react-intl';
-import { ExtendedAgentsGraphResources, SettingsTabResources } from '../../../Strings/SREAgentResources';
+import { ExtendedAgentsGraphResources, SreAgentTabResources } from '../../../Strings/SREAgentResources';
 import { SystemTool } from '../../Contracts/ExtendedAgentGraph';
 import { PrimaryNavItemValues, SecondaryNavItemValues } from '../../Contracts/SreAgentSpace';
 import { useAgentSiteNavigate } from '../../Hooks/useAgentSiteNavigate';
@@ -46,7 +46,7 @@ export const SystemToolDetails = memo(({ systemTool }: SystemToolDetailsProps) =
                             }
                             className={styles.flexRowCenter}
                         >
-                            {intl.formatMessage(SettingsTabResources.knowledgeBase)}
+                            {intl.formatMessage(SreAgentTabResources.knowledgeBase)}
                         </Link>
                         <Link
                             appearance="subtle"
@@ -58,7 +58,7 @@ export const SystemToolDetails = memo(({ systemTool }: SystemToolDetailsProps) =
                             }
                             className={styles.flexRowCenter}
                         >
-                            {intl.formatMessage(SettingsTabResources.connectors)}
+                            {intl.formatMessage(SreAgentTabResources.connectors)}
                         </Link>
                     </div>
                 </div>

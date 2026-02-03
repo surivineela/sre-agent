@@ -1,0 +1,31 @@
+# Agent with Stop Hook Example
+# This agent demonstrates the Claude-style hooks feature.
+# The Stop hook evaluates whether the agent should complete or continue working.
+
+name: agent_with_stop_hook
+system_prompt: |
+  You are a helpful assistant that completes tasks thoroughly.
+  Always ensure all requested work is done before finishing.
+vanilla_mode: true
+
+hooks:
+  Stop:
+    - type: prompt
+      prompt: |
+        You are evaluating whether an AI agent should stop working.
+
+        Context about the current execution:
+        $ARGUMENTS
+
+        Analyze the context and determine if:
+        1. All user-requested tasks have been completed
+        2. There are no errors that need to be addressed
+        3. No follow-up work is clearly needed
+
+        Respond with a JSON object:
+        - {"ok": true} if the agent can stop
+        - {"ok": false, "reason": "your explanation"} if the agent should continue
+
+        Only respond with the JSON object, no other text.
+      timeout: 30
+      model: gpt-4.1  # Uses a fast model for quick evaluation

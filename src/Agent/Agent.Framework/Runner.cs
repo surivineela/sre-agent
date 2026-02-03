@@ -4,7 +4,9 @@
 
 using System.Text;
 using System.Text.Json;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
+using Agent.Framework.TaskTool;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -35,7 +37,7 @@ public class RunResultWithHandoff<TContext> where TContext : class
 
 public static class Runner
 {
-    private const int DefaultMaxTurns = 50;
+    private const int DefaultMaxTurns = 100;
     private const int Gpt5InputWindow = 272000;
     private const int TokenThreshold = Gpt5InputWindow * 4 / 10;
     private const int ToolCountHardMax = 128;
@@ -58,6 +60,7 @@ public static class Runner
             .Concat(previousResult.NewItems)
             .ToList();
         var functionCallMessages = new List<ChatMessage>();
+        var logger = config.LoggerFactory.CreateLogger("Agent.Framework.Runner");
 
         if (previousResult.ManualToolCalls is null
             || previousResult.ManualToolCalls.Count == 0)
@@ -76,19 +79,39 @@ public static class Runner
                 await displayModelOutput.OnComplete($"[DEBUG]\n\nCompleted Manually Invoked Tool: {manualToolCall.FunctionCall.Name}");
             }
 
-            var resultContent = new FunctionResultContent(manualToolCall.FunctionCall.CallId, matchingResult.Output);
-            functionCallMessages.Add(new ChatMessage(ChatRole.Tool, [resultContent]));
-            previousResult.Trajectory.Append(resultContent);
+            if (hooks != null)
+            {
+                await hooks.OnToolEnd(previousResult.ContextWrapper, previousResult.LastAgent, manualToolCall.FunctionCall, manualToolCall.Tool, matchingResult.Output);
+            }
+
+            // Execute PostToolUse hooks for manual tools
+            var hookResult = await ProcessPostToolUseHooksAsync<TContext>(
+                config.HookManager, previousResult.LastAgent.HookConfiguration, previousResult.LastAgent.Name,
+                previousResult.CurrentTurn, previousResult.MaxTurns, config.ThreadId, manualToolCall.Tool.Name,
+                manualToolCall.FunctionCall.Arguments, matchingResult.Output, true,
+                manualToolCall.FunctionCall.CallId, previousResult.Trajectory, logger, cancellationToken);
+
+            functionCallMessages.Add(new ChatMessage(ChatRole.Tool, [hookResult.FunctionResult]));
+            previousResult.Trajectory.Append(hookResult.FunctionResult);
+
+            if (hookResult.AdditionalContextMessage != null)
+            {
+                functionCallMessages.Add(hookResult.AdditionalContextMessage);
+            }
+
+            if (hookResult.WasBlocked)
+            {
+                if (config.EnableDebugOutput && displayModelOutput is not null)
+                {
+                    await displayModelOutput.OnComplete($"[DEBUG]\n\nPostToolUse hook blocked result for manual tool: {manualToolCall.Tool.Name}");
+                }
+                continue;
+            }
 
             // Append any additional messages (e.g., images from ViewImage tool)
             if (matchingResult.AdditionalMessages is not null)
             {
                 functionCallMessages.AddRange(matchingResult.AdditionalMessages);
-            }
-
-            if (hooks != null)
-            {
-                await hooks.OnToolEnd(previousResult.ContextWrapper, previousResult.LastAgent, manualToolCall.FunctionCall, manualToolCall.Tool, matchingResult.Output);
             }
         }
 
@@ -240,6 +263,9 @@ public static class Runner
             : [];
         List<ChatResponse> rawResponses = [];
 
+        // Track stop hook rejections to prevent infinite loops
+        int stopHookRejectionCount = 0;
+
         // Create trajectory from chat history if null, otherwise use the provided trajectory
         if (trajectory == null)
         {
@@ -356,6 +382,31 @@ public static class Runner
 
                     if (!criticApproval)
                     {
+                        continue;
+                    }
+
+                    // Execute Stop hooks if configured
+                    var stopHookResult = await StopHookHelper.ExecuteStopHooksAsync(
+                        config.HookManager,
+                        currentAgent.HookConfiguration,
+                        currentAgent.Name,
+                        currentTurn,
+                        maxTurns,
+                        config.ThreadId,
+                        stopHookRejectionCount,
+                        config.MaxStopHookRejections,
+                        turnResult.NextStep.Output?.ToString(),
+                        trajectory.GetFilteredTrajectoryJson(),
+                        logger,
+                        cancellationToken);
+
+                    stopHookRejectionCount = stopHookResult.UpdatedRejectionCount;
+
+                    if (!stopHookResult.ShouldStop)
+                    {
+                        // Inject the continue message and proceed with next turn
+                        generatedMessages.Add(stopHookResult.ContinueMessage);
+                        trajectory.Append(stopHookResult.ContinueMessage);
                         continue;
                     }
 
@@ -676,9 +727,30 @@ public static class Runner
         ChatResponse? response = null;
         object? structuredOutput = null;
 
-        var reasoningStreamHandler = displayModelOutput is not null
-            ? new ReasoningStreamContentHandler(displayModelOutput)
-            : default;
+        // Detect Anthropic model to use specialized reasoning handler with title generation
+        var isAnthropicModel = ChatOptionsExtensions.IsAnthropicModel(
+            chatClientMetaData?.DefaultModelId,
+            chatClientMetaData?.ProviderName);
+
+        IStreamContentHandler? reasoningStreamHandler;
+        if (displayModelOutput is not null)
+        {
+            if (isAnthropicModel && config.ChatClientProvider is not null)
+            {
+                reasoningStreamHandler = new AnthropicReasoningStreamContentHandler(
+                    displayModelOutput,
+                    config.ChatClientProvider.ReasoningFastModel,
+                    logger);
+            }
+            else
+            {
+                reasoningStreamHandler = new ReasoningStreamContentHandler(displayModelOutput);
+            }
+        }
+        else
+        {
+            reasoningStreamHandler = default;
+        }
 
         var textStreamHandler = displayModelOutput is not null
             ? new TextStreamContentHandler(displayModelOutput)
@@ -789,6 +861,7 @@ public static class Runner
         List<ManualToolCall> manualToolCalls = [];
         var anyToolsCalled = modelResponse.Messages.Any(m => m.Contents.OfType<FunctionCallContent>().Any());
         List<FunctionResultContent> functionResults = [];
+        List<ChatMessage> hookContextMessages = []; // Collect hook additional context messages to add after tool results
         var handoffOccurred = false;
         Agent<TContext>? handoffNewAgent = null;
         SkillList newActivatedSkills = [];
@@ -832,26 +905,111 @@ public static class Runner
         // assume no parallel tool calling, so if a regular tool is called, we are not handing off to another agent
         foreach (var modelResponseMessage in modelResponse.Messages)
         {
-            var functionCalls = modelResponseMessage.Contents.OfType<FunctionCallContent>();
+            var functionCalls = modelResponseMessage.Contents.OfType<FunctionCallContent>().ToList();
+
+            // Process Task tool calls in parallel if there are multiple
+            var taskToolCalls = functionCalls
+                .Where(fc => tools.FirstOrDefault(t => t.Name == fc.Name)?.IsTaskTool() == true)
+                .ToList();
+
+            var processedTaskToolCallIds = new HashSet<string>();
+
+            if (taskToolCalls.Count > 0)
+            {
+                // Group Task tool calls for parallel execution
+                var taskToolGroup = new TaskToolExecutionGroup();
+
+                foreach (var taskToolCall in taskToolCalls)
+                {
+                    // Parse arguments to get subagent type and description
+                    var subagentTypeStr = taskToolCall.Arguments?.TryGetValue("subagent_type", out var typeObj) == true
+                        ? typeObj?.ToString()
+                        : null;
+                    var description = taskToolCall.Arguments?.TryGetValue("description", out var descObj) == true
+                        ? descObj?.ToString()
+                        : null;
+                    var prompt = taskToolCall.Arguments?.TryGetValue("prompt", out var promptObj) == true
+                        ? promptObj?.ToString()
+                        : null;
+
+                    var subagentType = Enum.TryParse<SubAgentType>(subagentTypeStr, ignoreCase: true, out var parsedType)
+                        ? parsedType
+                        : SubAgentType.Explore;
+
+                    taskToolGroup.AddExecution(taskToolCall, subagentType, description, prompt);
+                }
+
+                // Fire group start hook
+                await hooks.OnTaskToolGroupStart(contextWrapper, agent, taskToolGroup);
+
+                // Execute all Task tool calls in parallel
+                var taskToolTasks = new List<Task<(FunctionCallContent call, object? result, TaskToolExecution execution)>>();
+
+                foreach (var taskToolCall in taskToolCalls)
+                {
+                    var tool = tools.First(t => t.Name == taskToolCall.Name);
+                    var taskTool = (TaskTool.TaskTool<TContext>)tool;
+                    var execution = taskToolGroup.Executions.First(e => e.ExecutionId == taskToolCall.CallId);
+
+                    taskToolTasks.Add(ExecuteTaskToolAsync(
+                        contextWrapper, agent, hooks, taskTool, taskToolCall, execution,
+                        runConfig, config, displayModelOutput, trajectory, cancellationToken));
+                }
+
+                // Wait for all Task tool calls to complete
+                var taskToolResults = await Task.WhenAll(taskToolTasks);
+
+                // Add results to function results
+                foreach (var (call, result, execution) in taskToolResults)
+                {
+                    var functionResult = new FunctionResultContent(call.CallId, result);
+                    functionResults.Add(functionResult);
+                    trajectory.Append(functionResult);
+                    processedTaskToolCallIds.Add(call.CallId);
+                }
+
+                // Fire group end hook
+                await hooks.OnTaskToolGroupEnd(contextWrapper, agent, taskToolGroup);
+            }
 
             foreach (var functionCall in functionCalls)
             {
+                // Skip Task tool calls that were already processed in parallel
+                if (processedTaskToolCallIds.Contains(functionCall.CallId))
+                {
+                    continue;
+                }
+
                 var tool = tools.FirstOrDefault(t => t.Name == functionCall.Name);
 
                 // check for cached function call result
                 if (tool is not null && toolResultCache is not null && toolResultCache.TryGetValue(functionCall, out var cachedResult))
                 {
-                    var cachedFunctionResult = new FunctionResultContent(functionCall.CallId, cachedResult);
-                    functionResults.Add(cachedFunctionResult);
-                    trajectory.Append(cachedFunctionResult);
+                    await hooks.OnToolEnd(contextWrapper, agent, functionCall, tool, cachedResult);
 
-                    if (config.EnableDebugOutput
-                        && displayModelOutput is not null)
+                    // Execute PostToolUse hooks for cached results
+                    var hookResult = await ProcessPostToolUseHooksAsync<TContext>(
+                        config.HookManager, agent.HookConfiguration, agent.Name,
+                        0, 0, config.ThreadId, tool.Name, functionCall.Arguments,
+                        cachedResult, true, functionCall.CallId, trajectory, logger, cancellationToken);
+
+                    functionResults.Add(hookResult.FunctionResult);
+                    trajectory.Append(hookResult.FunctionResult);
+
+                    if (hookResult.AdditionalContextMessage != null)
+                    {
+                        hookContextMessages.Add(hookResult.AdditionalContextMessage);
+                    }
+
+                    if (hookResult.WasBlocked)
+                    {
+                        continue;
+                    }
+
+                    if (config.EnableDebugOutput && displayModelOutput is not null)
                     {
                         await displayModelOutput.OnComplete($"[DEBUG]\n\nUsing cached result for tool: {functionCall.Name}");
                     }
-
-                    await hooks.OnToolEnd(contextWrapper, agent, functionCall, tool, cachedFunctionResult);
 
                     continue;
                 }
@@ -1018,19 +1176,38 @@ public static class Runner
 
                         await hooks.OnToolEnd(contextWrapper, agent, functionCall, agentAsTool, toolResult);
 
-                        var result = new FunctionResultContent(functionCall.CallId, toolResult);
-                        functionResults.Add(result);
+                        // Execute PostToolUse hooks for AgentAsTool
+                        var hookResult = await ProcessPostToolUseHooksAsync<TContext>(
+                            config.HookManager, agent.HookConfiguration, agent.Name,
+                            0, 0, config.ThreadId, tool.Name, functionCall.Arguments,
+                            toolResult, true, functionCall.CallId, trajectory, logger, cancellationToken);
 
-                        trajectory.Append(result);
+                        functionResults.Add(hookResult.FunctionResult);
+                        trajectory.Append(hookResult.FunctionResult);
 
-                        if (config.EnableDebugOutput
-                            && displayModelOutput is not null)
+                        if (hookResult.AdditionalContextMessage != null)
+                        {
+                            hookContextMessages.Add(hookResult.AdditionalContextMessage);
+                        }
+
+                        if (hookResult.WasBlocked)
+                        {
+                            if (config.EnableDebugOutput && displayModelOutput is not null)
+                            {
+                                await displayModelOutput.OnComplete($"[DEBUG]\n\nPostToolUse hook blocked result for AgentAsTool: {tool.Name}");
+                            }
+                            continue;
+                        }
+
+                        if (config.EnableDebugOutput && displayModelOutput is not null)
                         {
                             await displayModelOutput.OnComplete($"[DEBUG]\n\nCompleted Agent Invocation as Tool: {tool.Name}");
                         }
 
                         continue;
                     }
+                    // Note: Task tool calls are processed in parallel above (see taskToolCalls section)
+                    // and skipped here via processedTaskToolCallIds
                     else if (tool.GetToolMode() == ToolMode.Auto || tool.IsMcpTool())
                     {
                         // Store CallId for streaming correlation
@@ -1040,6 +1217,7 @@ public static class Runner
                         await hooks.OnToolStart(contextWrapper, agent, functionCall, tool, functionCall.Arguments);
 
                         object? toolResult = null;
+                        var toolSucceeded = true;
 
                         try
                         {
@@ -1048,13 +1226,14 @@ public static class Runner
                             // Process tool output for potential truncation
                             if (runConfig.EnablePartialToolOutput && toolOutputProcessService != null)
                             {
-                                toolResult = await toolOutputProcessService.ProcessToolOutputAsync(contextWrapper.Context, tool, toolResult, cancellationToken);
+                                toolResult = await toolOutputProcessService.ProcessToolOutputAsync(contextWrapper.Context, tool, functionCall.CallId, toolResult, cancellationToken);
                             }
                         }
                         catch (Exception e)
                         {
                             // TODO Need logging.
                             toolResult = GetToolErrorMessage(functionCall, e);
+                            toolSucceeded = false;
                         }
 
                         if (config.EnableDebugOutput
@@ -1067,12 +1246,30 @@ public static class Runner
 
                         await hooks.OnToolEnd(contextWrapper, agent, functionCall, tool, toolResult);
 
-                        var result = new FunctionResultContent(functionCall.CallId, toolResult);
-                        functionResults.Add(result);
-                        trajectory.Append(result);
+                        // Execute PostToolUse hooks if configured
+                        var hookResult = await ProcessPostToolUseHooksAsync<TContext>(
+                            config.HookManager, agent.HookConfiguration, agent.Name,
+                            0, 0, config.ThreadId, tool.Name, functionCall.Arguments,
+                            toolResult, toolSucceeded, functionCall.CallId, trajectory, logger, cancellationToken);
 
-                        if (config.EnableDebugOutput
-                            && displayModelOutput is not null)
+                        functionResults.Add(hookResult.FunctionResult);
+                        trajectory.Append(hookResult.FunctionResult);
+
+                        if (hookResult.AdditionalContextMessage != null)
+                        {
+                            hookContextMessages.Add(hookResult.AdditionalContextMessage);
+                        }
+
+                        if (hookResult.WasBlocked)
+                        {
+                            if (config.EnableDebugOutput && displayModelOutput is not null)
+                            {
+                                await displayModelOutput.OnComplete($"[DEBUG]\n\nPostToolUse hook blocked result for: {tool.Name}");
+                            }
+                            continue;
+                        }
+
+                        if (config.EnableDebugOutput && displayModelOutput is not null)
                         {
                             await displayModelOutput.OnComplete($"[DEBUG]\n\nCompleted Auto Invoked Tool: {tool.Name}");
                         }
@@ -1122,6 +1319,9 @@ public static class Runner
         {
             newStepItems.Add(new ChatMessage(ChatRole.Tool, [fnResult]));
         }
+
+        // add hook additional context messages after tool results
+        newStepItems.AddRange(hookContextMessages);
 
         if (handoffOccurred && handoffNewAgent is not null)
         {
@@ -1237,6 +1437,67 @@ public static class Runner
         }
 
         return message;
+    }
+
+    private static async Task<(FunctionCallContent call, object? result, TaskToolExecution execution)> ExecuteTaskToolAsync<TContext>(
+        RunContextWrapper<TContext> contextWrapper,
+        Agent<TContext> agent,
+        RunHooks<TContext> hooks,
+        TaskTool.TaskTool<TContext> taskTool,
+        FunctionCallContent functionCall,
+        TaskToolExecution execution,
+        RunConfig runConfig,
+        RunConfig config,
+        IDisplayModelOutput? displayModelOutput,
+        Trajectory trajectory,
+        CancellationToken cancellationToken) where TContext : class
+    {
+        taskTool.RunConfig = runConfig;
+        taskTool.RunHooks = hooks;
+        taskTool.ExecutionId = functionCall.CallId;
+
+        // Store CallId for streaming
+        ToolStatic.AsyncLocalFunctionCallId.Value = functionCall.CallId;
+
+        // Update execution status to Running
+        execution.Status = TaskToolExecutionStatus.Running;
+        await hooks.OnTaskToolExecutionStart(contextWrapper, agent, execution);
+        await hooks.OnToolStart(contextWrapper, agent, functionCall, taskTool, functionCall.Arguments);
+
+        object? toolResult;
+
+        try
+        {
+            toolResult = await taskTool.InvokeAsync(new AIFunctionArguments(functionCall.Arguments), cancellationToken);
+
+            // Update execution status to Completed
+            execution.Status = TaskToolExecutionStatus.Completed;
+            execution.CompletedAt = DateTime.UtcNow;
+            execution.Result = toolResult?.ToString();
+        }
+        catch (OperationCanceledException)
+        {
+            execution.Status = TaskToolExecutionStatus.Cancelled;
+            execution.CompletedAt = DateTime.UtcNow;
+            toolResult = $"[{execution.Description}] Task was cancelled.";
+        }
+        catch (Exception ex)
+        {
+            execution.Status = TaskToolExecutionStatus.Failed;
+            execution.CompletedAt = DateTime.UtcNow;
+            execution.Error = ex.Message;
+            toolResult = GetToolErrorMessage(functionCall, ex);
+        }
+
+        await hooks.OnToolEnd(contextWrapper, agent, functionCall, taskTool, toolResult);
+        await hooks.OnTaskToolExecutionEnd(contextWrapper, agent, execution);
+
+        if (config.EnableDebugOutput && displayModelOutput is not null)
+        {
+            await displayModelOutput.OnComplete($"[DEBUG]\n\nCompleted Task Tool Invocation: {taskTool.Name} ({execution.Description})");
+        }
+
+        return (functionCall, toolResult, execution);
     }
 
     private static bool IsAllowedHandOff<TContext>(
@@ -1759,6 +2020,90 @@ public static class Runner
 
         modelInput.Add(new ChatMessage(ChatRole.User, skillsReminder));
     }
+
+    #region PostToolUse Hook Helpers
+
+    /// <summary>
+    /// Result of processing PostToolUse hooks for a tool execution
+    /// </summary>
+    private readonly struct PostToolUseProcessingResult
+    {
+        /// <summary>
+        /// The FunctionResultContent to add to results (either the original result or a blocked message)
+        /// </summary>
+        public FunctionResultContent FunctionResult { get; init; }
+
+        /// <summary>
+        /// Additional context message to inject, if any
+        /// </summary>
+        public ChatMessage? AdditionalContextMessage { get; init; }
+
+        /// <summary>
+        /// Whether the tool result was blocked by a hook
+        /// </summary>
+        public bool WasBlocked { get; init; }
+    }
+
+    /// <summary>
+    /// Executes PostToolUse hooks and returns the appropriate function result content.
+    /// This handles the common pattern of executing hooks, checking if blocked, and creating the result.
+    /// </summary>
+    private static async Task<PostToolUseProcessingResult> ProcessPostToolUseHooksAsync<TContext>(
+        HookManager? hookManager,
+        AgentHookConfiguration? hookConfiguration,
+        string agentName,
+        int currentTurn,
+        int maxTurns,
+        Guid threadId,
+        string toolName,
+        IDictionary<string, object?>? toolArguments,
+        object? toolResult,
+        bool toolSucceeded,
+        string callId,
+        Trajectory trajectory,
+        ILogger logger,
+        CancellationToken cancellationToken)
+        where TContext : class
+    {
+        var postToolUseResult = await PostToolUseHookHelper.ExecutePostToolUseHooksAsync(
+            hookManager,
+            hookConfiguration,
+            agentName,
+            currentTurn,
+            maxTurns,
+            threadId,
+            toolName,
+            toolArguments,
+            toolResult,
+            toolSucceeded,
+            trajectory.GetFilteredTrajectoryJson(),
+            logger,
+            cancellationToken);
+
+        if (!postToolUseResult.AllowToolResult)
+        {
+            var blockedResult = new FunctionResultContent(callId,
+                $"[Tool result blocked by hook] {postToolUseResult.BlockMessage?.Text ?? "No reason provided"}");
+
+            return new PostToolUseProcessingResult
+            {
+                FunctionResult = blockedResult,
+                AdditionalContextMessage = postToolUseResult.AdditionalContextMessage,
+                WasBlocked = true
+            };
+        }
+
+        var functionResult = new FunctionResultContent(callId, toolResult);
+
+        return new PostToolUseProcessingResult
+        {
+            FunctionResult = functionResult,
+            AdditionalContextMessage = postToolUseResult.AdditionalContextMessage,
+            WasBlocked = false
+        };
+    }
+
+    #endregion
 }
 
 

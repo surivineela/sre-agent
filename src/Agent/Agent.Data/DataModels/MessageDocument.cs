@@ -41,6 +41,8 @@ public record MessageDocument(
     UserQuestion? UserQuestion = null,
     // Todo Plan information associated with this message (for todo plan notifications)
     TodoInfo? TodoInfo = null,
+    // Task tool execution group for parallel subagent executions (Explore agents)
+    TaskToolExecutionGroup? TaskToolExecutionGroup = null,
     // Indicates if the message is complete (e.g., streaming is finished)
     bool IsComplete = true,
     StreamMessageType? MessageType = null
@@ -74,6 +76,7 @@ public record MessageDocument(
             message.TerminalResult ?? null,
             message.UserQuestion ?? null,
             message.TodoInfo ?? null,
+            message.TaskToolExecutionGroup ?? null,
             message.IsComplete,
             message.MessageType
         );
@@ -100,6 +103,7 @@ public record MessageDocument(
             TerminalResult: TerminalResult,
             UserQuestion: UserQuestion,
             TodoInfo: TodoInfo,
+            TaskToolExecutionGroup: TaskToolExecutionGroup,
             IsComplete: IsComplete,
             MessageType: MessageType
         );
@@ -118,5 +122,6 @@ public record MessageDocument(
         && ReadFileResult is null
         && TerminalResult is null
         && UserQuestion is null
-        && TodoInfo is null;
+        && TodoInfo is null
+        && TaskToolExecutionGroup is null;
 }

@@ -50,7 +50,7 @@ public static partial class ChatClientExtensions
         IEnumerable<ChatMessage> messages,
         ChatOptions options,
         TextStreamContentHandler? outputTextStreamHandler,
-        ReasoningStreamContentHandler? reasoningStreamHandler,
+        IStreamContentHandler? reasoningStreamHandler,
         CancellationToken cancellationToken = default
     )
     {
@@ -72,7 +72,7 @@ public static partial class ChatClientExtensions
         Type outputType,
         ChatOptions? options = null,
         JsonStreamContentHandler? outputJsonStreamHandler = null,
-        ReasoningStreamContentHandler? reasoningStreamHandler = null,
+        IStreamContentHandler? reasoningStreamHandler = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -185,7 +185,7 @@ public static partial class ChatClientExtensions
         IEnumerable<ChatMessage> messages,
         ChatOptions? options,
         IStreamContentHandler? outputTextStreamHandler,
-        ReasoningStreamContentHandler? reasoningSummaryStreamHandler,
+        IStreamContentHandler? reasoningSummaryStreamHandler,
         CancellationToken cancellationToken)
     {
         var start = DateTime.UtcNow;

@@ -229,7 +229,7 @@ const ChatBoxFooter = ({
     const [extendedAgents, setExtendedAgents] = useState<ExtendedAgent[]>([]);
 
     const showAgentModeSelector = useConfigSetting(SettingNames.ShowAgentModeForThread);
-    const { chatBoxFooterInner, chatBoxFooterInnerOverview, chatStatement } = useChatInputStyles();
+    const { chatBoxFooterInner, chatBoxFooterInnerOverview, chatInput, chatStatement } = useChatInputStyles();
 
     const { selectThread } = useContext(SreAgentSpaceContext);
     const { isConnected } = useContext(StreamingContext);
@@ -680,7 +680,10 @@ const ChatBoxFooter = ({
                     }
                 } else if (showShortcutLists && focusedShortcutRef.current) {
                     onSelectShortcut(focusedShortcutRef.current);
-                } else {
+                } else if (!event.nativeEvent.isComposing) {
+                    // Only send message if not in IME composition mode
+                    // The Enter key during IME composition (e.g., Chinese, Japanese, Korean input)
+                    // is used to confirm the composed characters, not to submit the message
                     chatInputHandleSendClick(imperativeControlPluginRef.current?.getInputText());
                 }
 
@@ -1187,6 +1190,7 @@ const ChatBoxFooter = ({
                             focusedExtendedAgent?.name ??
                             undefined
                         }
+                        className={chatInput}
                     >
                         <ImperativeControlPlugin ref={imperativeControlPluginRef} />
                         <LexicalEditorRefPlugin editorRef={editorRef} />

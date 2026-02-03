@@ -25,10 +25,10 @@ namespace Agent.Core.Models
             Tools = Tools()
         };
 
-        public SubAgent(string name, IChatClientProvider chatClientProvider, bool isSkippingInitChatHistory = false)
+        public SubAgent(string name, IChatClientProvider chatClientProvider, bool isSkippingInitChatHistory = false, IChatClient? chatClient = null)
         {
             Name = name;
-            _chatClient = chatClientProvider.GeneralPurposeModel
+            _chatClient = (chatClient ?? chatClientProvider.ReasoningHeavyModel)
                 .AsBuilder()
                 .UseFunctionInvocation()
                 .Build();

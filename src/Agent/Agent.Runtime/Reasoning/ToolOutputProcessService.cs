@@ -20,19 +20,19 @@ namespace Agent.Runtime.Reasoning;
 /// </summary>
 public class ToolOutputProcessService : IToolOutputProcessService
 {
-    private readonly IThreadFileStorageService _threadFileStorageService;
+    private readonly IAgentFileStorageService _agentFileStorageService;
     private readonly ILogger<ToolOutputProcessService> _logger;
     private readonly IToolOutputProcessorFactory _processorFactory;
     private readonly DefaultToolOutputProcessor _defaultProcessor;
     private readonly int _maxCharacterCount;
 
     public ToolOutputProcessService(
-        IThreadFileStorageService threadFileStorageService,
+        IAgentFileStorageService agentFileStorageService,
         ILogger<ToolOutputProcessService> logger,
         IOptions<ToolOutputSettings> settings,
         IToolOutputProcessorFactory? processorFactory = null)
     {
-        _threadFileStorageService = threadFileStorageService;
+        _agentFileStorageService = agentFileStorageService;
         _logger = logger;
         _maxCharacterCount = settings.Value.MaxOutputChars;
         _processorFactory = processorFactory ?? new ToolOutputProcessorFactory();
@@ -54,6 +54,7 @@ public class ToolOutputProcessService : IToolOutputProcessService
     /// </summary>
     /// <param name="threadId">The thread ID for this execution</param>
     /// <param name="tool">The AIFunction that produced this output</param>
+    /// <param name="callId">The unique call ID for this tool invocation</param>
     /// <param name="output">The original tool output (string or object that will be serialized to JSON)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>
@@ -63,6 +64,7 @@ public class ToolOutputProcessService : IToolOutputProcessService
     public async Task<object?> ProcessToolOutputAsync(
         Guid threadId,
         AIFunction tool,
+        string callId,
         object? output,
         CancellationToken cancellationToken = default)
     {
@@ -79,7 +81,7 @@ public class ToolOutputProcessService : IToolOutputProcessService
         }
 
         // Delegate to the string-based implementation
-        return await ProcessToolOutputAsync(threadId, tool.Name, output, cancellationToken);
+        return await ProcessToolOutputAsync(threadId, tool.Name, callId, output, cancellationToken);
     }
 
     /// <summary>
@@ -88,6 +90,7 @@ public class ToolOutputProcessService : IToolOutputProcessService
     public async Task<object?> ProcessToolOutputAsync<TContext>(
         TContext? context,
         AIFunction tool,
+        string callId,
         object? output,
         CancellationToken cancellationToken = default) where TContext : class
     {
@@ -107,7 +110,7 @@ public class ToolOutputProcessService : IToolOutputProcessService
         }
 
         // Delegate to the main implementation
-        return await ProcessToolOutputAsync(threadId, tool, output, cancellationToken);
+        return await ProcessToolOutputAsync(threadId, tool, callId, output, cancellationToken);
     }
 
     /// <summary>
@@ -116,6 +119,7 @@ public class ToolOutputProcessService : IToolOutputProcessService
     public async Task<object?> ProcessToolOutputAsync(
         Guid threadId,
         string toolName,
+        string callId,
         object? output,
         CancellationToken cancellationToken = default)
     {
@@ -129,7 +133,8 @@ public class ToolOutputProcessService : IToolOutputProcessService
         {
             ThreadId = threadId,
             ToolName = toolName,
-            SaveOutput = _threadFileStorageService.SaveToolOutputAsync
+            CallId = callId,
+            SaveOutput = _agentFileStorageService.SaveToolOutputAsync
         };
 
         // First, try to get a type-specific processor

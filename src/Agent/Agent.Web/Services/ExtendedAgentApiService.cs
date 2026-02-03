@@ -3,6 +3,8 @@
 // ------------------------------------------------------------
 
 using System.Diagnostics;
+using System.Net.Http.Headers;
+using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
@@ -19,7 +21,9 @@ using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
 using Agent.Web.Models.ExtendedAgents.Response;
 using Agent.Web.Validation;
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace Agent.Web.Services;
 
@@ -40,6 +44,10 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     private readonly IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin;
     private readonly IScheduledTaskManagementService _scheduledTaskManagementService;
     private readonly IScheduledTaskRepository _scheduledTaskRepository;
+    private readonly IThreadRepository _threadRepository;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IOAuthTokenService _oAuthTokenService;
+    private readonly IHostEnvironment _hostEnvironment;
 
     public ExtendedAgentApiService(
         ILogger<ExtendedAgentApiService> logger,
@@ -56,7 +64,11 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         ITeamsPlugin teamsPlugin,
         IAzureDevOpsWorkItemPlugin azureDevOpsWorkItemPlugin,
         IScheduledTaskManagementService scheduledTaskManagementService,
-        IScheduledTaskRepository scheduledTaskRepository)
+        IScheduledTaskRepository scheduledTaskRepository,
+        IThreadRepository threadRepository,
+        IHttpClientFactory httpClientFactory,
+        IOAuthTokenService oAuthTokenService,
+        IHostEnvironment hostEnvironment)
     {
         _logger = logger;
         _extendedAgentService = extendedAgentService;
@@ -73,6 +85,10 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         _azureDevOpsWorkItemPlugin = azureDevOpsWorkItemPlugin;
         _scheduledTaskManagementService = scheduledTaskManagementService;
         _scheduledTaskRepository = scheduledTaskRepository;
+        _threadRepository = threadRepository;
+        _httpClientFactory = httpClientFactory;
+        _oAuthTokenService = oAuthTokenService;
+        _hostEnvironment = hostEnvironment;
     }
 
     public async Task<ApiCommandResult<AgentDocumentModel>> CreateOrUpdateAgentAsync(string agentName, AgentDocumentModel model, bool dryRun = false)
@@ -944,7 +960,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             healthy = result.Success;
             message = healthy
                 ? "ICM connectivity OK."
-                : $"ICM connectivity failed: {result.ErrorMessage ?? "Unknown error"}";
+                : "ICM connectivity failed.";
             if (!healthy && !string.IsNullOrEmpty(result.ErrorMessage))
             {
                 details = new { error = result.ErrorMessage };
@@ -953,7 +969,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "BuildIcmConnectorStatusAsync: Exception occurred while checking ICM connectivity for connector: {ConnectorName}", connectorName);
-            message = $"ICM connectivity check failed: {ex.Message}";
+            message = "ICM connectivity check failed.";
             details = new { error = ex.Message };
         }
         finally
@@ -1058,7 +1074,7 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
     }
 
     // Helper: TsgCrawler (Azure DevOps) connector status - checks connectivity using the connector's DataSource URL
-    private async Task<ConnectorStatusResponse> BuildTsgCrawlerConnectorStatusAsync(string connectorName, string dataSource)
+    private async Task<ConnectorStatusResponse> BuildTsgCrawlerConnectorStatusAsync(string connectorName, string dataSource, TokenCredential? credential)
     {
         var stopwatch = Stopwatch.StartNew();
         bool healthy = false;
@@ -1072,9 +1088,14 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 message = "Azure DevOps connector data source URL is not configured.";
                 details = new { error = "DataSource is empty" };
             }
+            if (credential == null)
+            {
+                message = "Azure DevOps connector credential is not configured.";
+                details = new { error = "Credential is null" };
+            }
             else
             {
-                healthy = await _azureDevOpsWorkItemPlugin.CheckConnectivityAsync(dataSource, CancellationToken.None);
+                healthy = await CheckTsgCrawlerConnectivityAsync(dataSource, credential);
                 message = healthy
                     ? "Azure DevOps connectivity OK."
                     : "Azure DevOps connectivity failed.";
@@ -1106,6 +1127,184 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
             Details: details);
     }
 
+    // Helper: GitHub connector status with token validation and API accessibility check
+    private async Task<ConnectorStatusResponse> BuildGitHubConnectorStatusAsync(string connectorName)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        bool healthy = false;
+        string message;
+        string status;
+        object? details = null;
+
+        try
+        {
+            // Use OAuthTokenService to get valid token (handles expiration and refresh)
+            var token = await _oAuthTokenService.GetValidGitHubTokenAsync();
+
+            if (token == null || string.IsNullOrEmpty(token.AccessToken))
+            {
+                message = "GitHub access token expired or not configured. Please sign in again.";
+                status = DataConnectorStatus.Disconnected.ToString();
+                details = new { error = "Token not available" };
+            }
+            else
+            {
+                // Token is valid, test GitHub API connectivity
+                var httpClient = _httpClientFactory.CreateClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+
+                var response = await httpClient.GetAsync("https://api.github.com/user", CancellationToken.None);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    healthy = true;
+                    message = "Connected.";
+                    status = DataConnectorStatus.Connected.ToString();
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                         response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    message = $"Authentication failed ({(int)response.StatusCode}). Token may be revoked or have insufficient permissions.";
+                    status = DataConnectorStatus.Failed.ToString();
+                    details = new { error = errorContent, statusCode = (int)response.StatusCode };
+                    _logger.LogInternalWarning("GitHub auth failed for connector {ConnectorName}: {StatusCode}", connectorName, response.StatusCode);
+                }
+                else
+                {
+                    message = $"GitHub API returned status code {(int)response.StatusCode}.";
+                    status = DataConnectorStatus.Failed.ToString();
+                    details = new { statusCode = (int)response.StatusCode };
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "GitHub connectivity check exception for connector: {ConnectorName}", connectorName);
+            message = $"Check failed: {ex.Message}";
+            status = DataConnectorStatus.Failed.ToString();
+            details = new { error = ex.Message };
+        }
+        finally
+        {
+            stopwatch.Stop();
+        }
+
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "GitHubOAuth",
+            Healthy: healthy,
+            Message: message,
+            Status: status,
+            ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+            Details: details);
+    }
+
+    private async Task<ConnectorStatusResponse> BuildAzureDevOpsConnectorStatusAsync(
+        string connectorName, string organization, TokenCredential? managedIdentityCredential)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        bool healthy = false;
+        string message;
+        string status;
+        object? details = null;
+
+        try
+        {
+            if (string.IsNullOrEmpty(organization))
+            {
+                message = "Organization not configured for this connector.";
+                status = DataConnectorStatus.Failed.ToString();
+                details = new { error = "Missing organization in connector configuration" };
+                return new ConnectorStatusResponse(
+                    Name: connectorName,
+                    Type: "AzureDevOps",
+                    Healthy: false,
+                    Message: message,
+                    Status: status,
+                    ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+                    Details: details);
+            }
+
+            string? accessToken = null;
+
+            // If managed identity credential is provided, use it to get the token
+            if (managedIdentityCredential != null)
+            {
+                var tokenResult = await managedIdentityCredential.GetTokenAsync(
+                    new Azure.Core.TokenRequestContext(new[] { Constants.AzureDevOpsScope }),
+                    CancellationToken.None);
+                accessToken = tokenResult.Token;
+            }
+            else
+            {
+                // Otherwise, use OAuthTokenService to get valid token (handles expiration and refresh)
+                var token = await _oAuthTokenService.GetValidAzureDevOpsTokenAsync(organization);
+                accessToken = token?.AccessToken;
+            }
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                message = "Azure DevOps access token not configured. Please authenticate.";
+                status = DataConnectorStatus.Disconnected.ToString();
+                details = new { error = "Token not available" };
+            }
+            else
+            {
+                // Token is valid, test Azure DevOps API connectivity
+                var httpClient = _httpClientFactory.CreateClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // Test endpoint: Get user profile
+                var response = await httpClient.GetAsync("https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=6.0", CancellationToken.None);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    healthy = true;
+                    message = "Connected.";
+                    status = DataConnectorStatus.Connected.ToString();
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized ||
+                         response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    message = $"Authentication failed ({(int)response.StatusCode}). Token may be revoked or have insufficient permissions.";
+                    status = DataConnectorStatus.Failed.ToString();
+                    details = new { error = errorContent, statusCode = (int)response.StatusCode };
+                    _logger.LogInternalWarning("Azure DevOps auth failed for connector {ConnectorName}: {StatusCode}", connectorName, response.StatusCode);
+                }
+                else
+                {
+                    message = $"Azure DevOps API returned status code {(int)response.StatusCode}.";
+                    status = DataConnectorStatus.Failed.ToString();
+                    details = new { statusCode = (int)response.StatusCode };
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Azure DevOps connectivity check exception for connector: {ConnectorName}", connectorName);
+            message = $"Check failed: {ex.Message}";
+            status = DataConnectorStatus.Failed.ToString();
+            details = new { error = ex.Message };
+        }
+        finally
+        {
+            stopwatch.Stop();
+        }
+
+        return new ConnectorStatusResponse(
+            Name: connectorName,
+            Type: "AzureDevOps",
+            Healthy: healthy,
+            Message: message,
+            Status: status,
+            ExecutionTimeMs: stopwatch.ElapsedMilliseconds,
+            Details: details);
+    }
+
     public async Task<ApiCommandResult<ConnectorStatusResponse>> GetConnectorStatusAsync(string connectorName)
     {
         try
@@ -1125,6 +1324,29 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                     Details: null));
             }
 
+            TokenCredential? managedIdentityCredential = null;
+            if (!string.IsNullOrEmpty(connector.Identity))
+            {
+                var authSettings = ConnectorAuthSettings.CreateFromManagedIdentity(
+                    connector.Identity,
+                    _hostEnvironment.IsDevelopment(),
+                    connector.UseManagedIdentityAsFic,
+                    connector.FederatedClientId,
+                    connector.FederatedTenantId);
+                managedIdentityCredential = _authService.GetDataConnectorCredential(authSettings);
+            }
+
+            var extendedProperties = connector.ExtendedProperties;
+            // Extract organization for Azure DevOps OAuth connectors
+            string? organization = null;
+            if (connector.ConnectorType.Equals("AzureDevOpsOAuth", StringComparison.OrdinalIgnoreCase))
+            {
+                if (connector.ExtendedProperties?.TryGetValue("organization", out var orgValue) == true)
+                {
+                    organization = orgValue.GetString();
+                }
+            }
+
             ConnectorStatusResponse response = connector.ConnectorType.ToLowerInvariant() switch
             {
                 "mcp" => await BuildMcpConnectorStatusAsync(connectorName),
@@ -1132,7 +1354,9 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
                 "icm" => await BuildIcmConnectorStatusAsync(connectorName),
                 "outlook" => await BuildOutlookConnectorStatusAsync(connectorName),
                 "teams" => await BuildTeamsConnectorStatusAsync(connectorName),
-                "tsgcrawler" => await BuildTsgCrawlerConnectorStatusAsync(connectorName, connector.DataSource),
+                "tsgcrawler" => await BuildTsgCrawlerConnectorStatusAsync(connectorName, connector.DataSource, managedIdentityCredential),
+                "githuboauth" => await BuildGitHubConnectorStatusAsync(connectorName),
+                "azuredevopsoauth" => await BuildAzureDevOpsConnectorStatusAsync(connectorName, organization ?? string.Empty, managedIdentityCredential),
                 _ => new ConnectorStatusResponse(
                         Name: connectorName,
                         Type: connector.ConnectorType,
@@ -1415,6 +1639,74 @@ public class ExtendedAgentApiService : IExtendedAgentApiService
         {
             _logger.LogInternalError(ex, "Error occurred while retrieving all scheduled tasks");
             throw;
+        }
+    }
+
+    private async Task<bool> CheckTsgCrawlerConnectivityAsync(string dataSource, TokenCredential credential, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var tokenResult = await credential.GetTokenAsync(
+                new TokenRequestContext(new[] { Constants.AzureDevOpsScope }),
+                cancellationToken);
+
+            // Parse the repository URL to extract organization URL
+            // Format: https://dev.azure.com/{org}/{project}/_git/{repo}
+            // or: https://{org}.visualstudio.com/{project}/_git/{repo}
+            var uri = new Uri(dataSource);
+            string orgUrl;
+
+            if (uri.Host == "dev.azure.com" || uri.Host.Contains(".dev.azure.com"))
+            {
+                var parts = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 1)
+                {
+                    orgUrl = $"https://dev.azure.com/{parts[0]}";
+                }
+                else
+                {
+                    _logger.LogInternalError("CheckConnectivityAsync: Invalid Azure DevOps URL format - cannot extract organization.");
+                    return false;
+                }
+            }
+            else if (uri.Host.EndsWith("visualstudio.com"))
+            {
+                orgUrl = $"https://{uri.Host}";
+            }
+            else
+            {
+                _logger.LogInternalError("CheckConnectivityAsync: Unsupported Azure DevOps URL format: {Host}", uri.Host);
+                return false;
+            }
+
+            var httpClient = _httpClientFactory.CreateClient();
+            // Make a lightweight API call to verify connectivity
+            // Using the Projects API with $top=1 to minimize data transfer
+            var requestUrl = $"{orgUrl}/_apis/projects?$top=1&api-version=7.1";
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.Token);
+
+            using var response = await httpClient.SendAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInternalInformation("CheckConnectivityAsync: Azure DevOps connectivity verified successfully for endpoint: {Endpoint}", orgUrl);
+                return true;
+            }
+
+            _logger.LogInternalError("CheckConnectivityAsync: Azure DevOps API returned status code {StatusCode} for endpoint: {Endpoint}", response.StatusCode, orgUrl);
+            return false;
+        }
+        catch (UriFormatException ex)
+        {
+            _logger.LogInternalError("CheckConnectivityAsync: Invalid DataSource URL format: {Message}", ex.Message);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "CheckConnectivityAsync: Exception occurred while checking Azure DevOps connectivity.");
+            return false;
         }
     }
 }

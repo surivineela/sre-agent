@@ -8,7 +8,10 @@ export enum ConnectorType {
     OutlookSendEmail = 'Outlook',
     TeamsSendNotification = 'Teams',
     GitHub = 'GitHub',
+    GitHubOAuth = 'GitHubOAuth',
+    AzureDevOpsOAuth = 'AzureDevOpsOAuth',
     McpServer = 'Mcp',
+    Icm = 'IcM',
 }
 
 export interface ConnectorTypeOption {
@@ -49,6 +52,20 @@ export const connectorTypeOptions = (intl: any): ConnectorTypeOption[] => [
         img: resolveResourceIcon('GitHub'),
     },
     {
+        id: ConnectorType.GitHubOAuth,
+        name: intl.formatMessage(ConnectorsResources.gitHubOAuthConnector),
+        service: intl.formatMessage(ConnectorsResources.gitHub),
+        description: intl.formatMessage(ConnectorsResources.githubOAuthDescription),
+        img: resolveResourceIcon('GitHub'),
+    },
+    {
+        id: ConnectorType.AzureDevOpsOAuth,
+        name: intl.formatMessage(ConnectorsResources.azureDevOpsOAuthConnector),
+        service: intl.formatMessage(ConnectorsResources.azureDevOps),
+        description: intl.formatMessage(ConnectorsResources.azureDevOpsOAuthDescription),
+        img: resolveResourceIcon('AzureDevOps'),
+    },
+    {
         id: ConnectorType.OutlookSendEmail,
         name: intl.formatMessage(ConnectorsResources.sendEmail),
         service: intl.formatMessage(ConnectorsResources.office365Outlook),
@@ -68,6 +85,13 @@ export const connectorTypeOptions = (intl: any): ConnectorTypeOption[] => [
         service: intl.formatMessage(ConnectorsResources.userProvidedConnector),
         description: intl.formatMessage(ConnectorsResources.mcpServerDescription),
         img: resolveResourceIcon('CustomConnector'),
+    },
+    {
+        id: ConnectorType.Icm,
+        name: intl.formatMessage(ConnectorsResources.icmConnector),
+        service: intl.formatMessage(ConnectorsResources.microsoftIcm),
+        description: intl.formatMessage(ConnectorsResources.icmConnectorDescription),
+        img: resolveResourceIcon('IcM'),
     },
 ];
 

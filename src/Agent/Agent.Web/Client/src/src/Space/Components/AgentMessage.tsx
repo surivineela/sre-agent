@@ -1,6 +1,8 @@
-import { memo } from 'react';
+import { memo, useContext, useMemo } from 'react';
 import { IAgentMessageProps } from '../Contracts/Activities';
+import { StreamingContext } from '../Contracts/Context';
 import { useScheduledTaskMessage } from '../Hooks/useScheduledTaskMessage';
+import { useTaskToolExecutions } from '../Hooks/useTaskToolExecutions';
 import AgentTaskChatMessage from './AgentTaskChatMessage';
 import ApprovalMessage from './ApprovalMessage';
 import ChangeDiffMessage from './ChangeDiffMessage';
@@ -15,6 +17,7 @@ import ReasoningChatMessage from './ReasoningChatMessage';
 import ScheduledTaskCreationChatMessage from './ScheduledTaskCreationChatMessage';
 import ScheduledTaskExecutionChatMessage from './ScheduledTaskExecutionChatMessage';
 import SessionInsightCard from './SessionInsightCard';
+import TaskToolExecutionMessage from './TaskToolExecutionMessage';
 import TextOrImageMessage from './TextOrImageMessage';
 import TodoPlanChatMessage from './TodoPlanChatMessage';
 import { ToolCallCard } from './ToolCallCard';
@@ -34,6 +37,25 @@ const AgentMessage = ({
 
     // Check if this is a trajectory insight message
     const isTrajectoryInsight = (message.text || '').includes('# Session Insight');
+
+    // Get streaming context for cancel functionality
+    const { cancelTaskExecution } = useContext(StreamingContext);
+
+    // Get real-time Task tool execution updates
+    const { getExecutionById, getGroupById } = useTaskToolExecutions(threadId);
+
+    // Merge streaming updates with static message data for Task tool executions
+    const taskToolExecution = useMemo(() => {
+        if (!message.taskToolExecution) return undefined;
+        const streamingExec = getExecutionById(message.taskToolExecution.id);
+        return streamingExec ?? message.taskToolExecution;
+    }, [message.taskToolExecution, getExecutionById]);
+
+    const taskToolExecutionGroup = useMemo(() => {
+        if (!message.taskToolExecutionGroup) return undefined;
+        const streamingGroup = getGroupById(message.taskToolExecutionGroup.id);
+        return streamingGroup ?? message.taskToolExecutionGroup;
+    }, [message.taskToolExecutionGroup, getGroupById]);
 
     return (
         <>
@@ -101,12 +123,16 @@ const AgentMessage = ({
                 <UserQuestionMessage userQuestion={message.userQuestion} onSubmitResponse={onSubmitUserQuestionResponse} />
             ) : message.mcpToolExecution ? (
                 <McpToolExecutionMessage execution={message.mcpToolExecution} />
+            ) : taskToolExecutionGroup ? (
+                <TaskToolExecutionMessage executionGroup={taskToolExecutionGroup} onCancelExecution={cancelTaskExecution} />
+            ) : taskToolExecution ? (
+                <TaskToolExecutionMessage execution={taskToolExecution} onCancelExecution={cancelTaskExecution} />
             ) : message.reasoning ? (
                 <ReasoningChatMessage reasoning={message.reasoning} />
             ) : (message.text || isTyping) &&
               !scheduledTaskData.isScheduledTaskMessage &&
               !scheduledTaskData.isScheduledTaskCreationMessage ? (
-                <TextOrImageMessage text={message.text} />
+                <TextOrImageMessage text={message.text} threadId={threadId} />
             ) : null}
         </>
     );

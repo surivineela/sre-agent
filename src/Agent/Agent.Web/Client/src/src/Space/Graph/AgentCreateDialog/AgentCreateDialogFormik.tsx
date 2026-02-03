@@ -16,6 +16,7 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
     existingTools,
     systemTools,
     mcpConnections,
+    skills,
     excludedHandoffAgent,
     additionalHandoffAgents,
     isEditScenario,
@@ -126,6 +127,7 @@ export const AgentCreateDialogFormik: FC<AgentCreateDialogFormikProps> = ({
                         isEditScenario={isEditScenario}
                         isOverrideScenario={isOverrideScenario}
                         testPanelProps={testPanelProps}
+                        skills={skills}
                     />
                 ) : (
                     <YamlView

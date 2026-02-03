@@ -294,5 +294,26 @@ public class Constants
     /// Default timeout in seconds for BYO Python tool execution.
     /// </summary>
     public const int PythonToolDefaultTimeoutSeconds = 240;
+
+    /// <summary>
+    /// Constants for hook validation and execution.
+    /// </summary>
+    public static class Hooks
+    {
+        /// <summary>
+        /// Shebang for bash scripts.
+        /// </summary>
+        public const string BashShebang = "#!/bin/bash";
+
+        /// <summary>
+        /// Shebang for Python 3 scripts.
+        /// </summary>
+        public const string PythonShebang = "#!/usr/bin/env python3";
+
+        /// <summary>
+        /// Maximum allowed script size in bytes (64KB).
+        /// </summary>
+        public const int MaxScriptSizeBytes = 65536;
+    }
 }
 

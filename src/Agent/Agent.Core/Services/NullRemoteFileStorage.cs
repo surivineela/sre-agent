@@ -64,4 +64,15 @@ public class NullRemoteFileStorage : IRemoteFileStorage
         // No-op: file doesn't exist in remote storage
         return Task.FromResult(false);
     }
+
+    /// <inheritdoc />
+    public async IAsyncEnumerable<string> ListBlobsAsync(
+        string containerName,
+        string? prefix = null,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        // No-op: no blobs to list
+        await Task.CompletedTask;
+        yield break;
+    }
 }

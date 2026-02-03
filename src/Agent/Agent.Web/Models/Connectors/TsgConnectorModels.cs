@@ -53,11 +53,6 @@ public record TsgConnectorResponse
     public RepoType RepoType { get; init; } = RepoType.AzureDevOps;
 
     /// <summary>
-    /// Indicates if credentials (PAT) are stored for this connector
-    /// </summary>
-    public bool HasCredentials { get; init; }
-
-    /// <summary>
     /// Current status of the connector
     /// </summary>
     public ConnectorStatus Status { get; init; } = ConnectorStatus.Healthy;

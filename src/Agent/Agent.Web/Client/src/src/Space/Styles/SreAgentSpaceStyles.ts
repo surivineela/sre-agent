@@ -25,10 +25,10 @@ export const useSreAgentSpaceStyles = makeStyles({
         gap: '5px',
         alignItems: 'center',
     },
-    stoppedAgentComponentContainer: {
+    overlayComponentContainer: {
         height: '100%',
     },
-    stoppedAgentComponentFlexBox: {
+    overlayComponentFlexBox: {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -55,7 +55,7 @@ export const useSreAgentSpaceStyles = makeStyles({
         overflow: 'auto',
         backgroundColor: tokens.colorNeutralBackground3,
         display: 'flex',
-        padding: `${tokens.spacingHorizontalM} ${tokens.spacingHorizontalS} ${tokens.spacingHorizontalS} 0px`,
+        padding: `0px ${tokens.spacingHorizontalS} ${tokens.spacingHorizontalS} 0px`,
     },
     outletRootWithNoNavBar: {
         paddingLeft: tokens.spacingHorizontalS,

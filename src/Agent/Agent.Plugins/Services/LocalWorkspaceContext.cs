@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Agent.Common.Services;
+using Agent.Core.Services;
 using Agent.Framework;
 using Agent.Plugins.Models.WorkspaceTools;
 using Microsoft.Extensions.Logging;
@@ -26,7 +27,7 @@ public record InstructionFileContent(string Path, string Content);
 
 public record InstructionFileMetadata(string Path, string? Description, string? ApplyTo);
 
-public record GitRepositoryInfo(string Name, string Owner, string CurrentBranch, string DefaultBranch);
+public record GitRepositoryInfo(string Name, string Owner, string CurrentBranch, string DefaultBranch, string? RemoteUrl);
 
 #endregion
 
@@ -149,12 +150,14 @@ public class LocalWorkspaceContext : IWorkspaceContext
 
         // 2. Workspace info (SandboxRoot structure)
         sb.AppendLine("<workspace_info>");
-        sb.AppendLine("I am working in a workspace with the following folders:");
+        sb.AppendLine("I am working in a workspace under root folder:");
         sb.AppendLine($"- {sandboxPaths.SandboxRoot}");
         sb.AppendLine();
-        sb.AppendLine("The workspace has these special directories:");
+        sb.AppendLine("The workspace has these special directories relative to the root folder:");
         sb.AppendLine("- codeRefs/: Contains code repositories the user has attached for context.");
-        sb.AppendLine("- tmp/: For throwaway work, scratch files, and temporary outputs.");
+        sb.AppendLine($"- tmp/threadFiles/{ThreadContextAccessor.CurrentThreadId}/: You MUST put files you generate (throwaway work, scratch files, temporary outputs) under this folder.");
+        sb.AppendLine($"- memories/sessionInsights/{ThreadContextAccessor.CurrentThreadId}/: For any findings, learnings, or insights you want to persist.");
+        sb.AppendLine($"- memories/synthesizedKnowledge/: Contains knowledge from previous sessions ");
         sb.AppendLine();
         sb.AppendLine("I am working in a workspace that has the following structure:");
         sb.AppendLine("```");
@@ -188,6 +191,11 @@ public class LocalWorkspaceContext : IWorkspaceContext
                 sb.AppendLine($"Owner: {repo.Owner}");
                 sb.AppendLine($"Current branch: {repo.CurrentBranch}");
                 sb.AppendLine($"Default branch: {repo.DefaultBranch}");
+                if (!string.IsNullOrEmpty(repo.RemoteUrl))
+                {
+                    sb.AppendLine($"Remote URL: {repo.RemoteUrl}");
+                }
+
                 sb.AppendLine("</attachment>");
             }
 
@@ -297,7 +305,7 @@ public class LocalWorkspaceContext : IWorkspaceContext
     }
 
     /// <summary>
-    /// Loads copilot instruction files from codeRefs/ folder.
+    /// Loads copilot instruction files from codeRefs/ folder and memories/{repo}/.github/ folders.
     /// Separates:
     /// - Full content files: copilot-instructions.md, AGENTS.md (content loaded)
     /// - Metadata-only files: *.instructions.md (only file path + frontmatter parsed)
@@ -309,47 +317,80 @@ public class LocalWorkspaceContext : IWorkspaceContext
         var sandboxPaths = await _sandboxPaths.GetSandboxPathsAsync();
         var sandboxRoot = sandboxPaths.SandboxRoot;
         var codeRefsPath = sandboxPaths.CodeRefsPath;
+        var memoriesPath = sandboxPaths.MemoriesPath;
 
-        if (!Directory.Exists(codeRefsPath))
+        // Collect all paths to scan for instruction files
+        var pathsToScan = new List<string>();
+
+        // 1. Add codeRefs path if it exists
+        if (Directory.Exists(codeRefsPath))
+        {
+            pathsToScan.Add(codeRefsPath);
+        }
+
+        // 2. Add memories/{repo}/.github paths (repo instructions synced from remote)
+        if (Directory.Exists(memoriesPath))
+        {
+            try
+            {
+                foreach (var repoDir in Directory.GetDirectories(memoriesPath))
+                {
+                    var githubPath = Path.Combine(repoDir, ".github");
+                    if (Directory.Exists(githubPath))
+                    {
+                        pathsToScan.Add(githubPath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to scan memories path for repo instructions: {Path}", memoriesPath);
+            }
+        }
+
+        if (pathsToScan.Count == 0)
         {
             return new InstructionFilesResult(fullContentFiles, metadataOnlyFiles);
         }
 
-        try
+        foreach (var scanPath in pathsToScan)
         {
-            // Pattern 1: copilot-instructions.md (full content)
-            foreach (var file in Directory.GetFiles(codeRefsPath, "copilot-instructions.md", SearchOption.AllDirectories))
+            try
             {
-                var relativePath = Path.GetRelativePath(sandboxRoot, file);
-                var content = await File.ReadAllTextAsync(file, ct);
-                fullContentFiles.Add(new InstructionFileContent(relativePath, content));
-            }
-
-            // Pattern 2: AGENTS.md (full content)
-            foreach (var file in Directory.GetFiles(codeRefsPath, "AGENTS.md", SearchOption.AllDirectories))
-            {
-                var relativePath = Path.GetRelativePath(sandboxRoot, file);
-                var content = await File.ReadAllTextAsync(file, ct);
-                fullContentFiles.Add(new InstructionFileContent(relativePath, content));
-            }
-
-            // Pattern 3: *.instructions.md (metadata only, NOT full content)
-            foreach (var file in Directory.GetFiles(codeRefsPath, "*.instructions.md", SearchOption.AllDirectories))
-            {
-                // Skip if it's copilot-instructions.md (already handled)
-                if (Path.GetFileName(file).Equals("copilot-instructions.md", StringComparison.OrdinalIgnoreCase))
+                // Pattern 1: copilot-instructions.md (full content)
+                foreach (var file in Directory.GetFiles(scanPath, "copilot-instructions.md", SearchOption.AllDirectories))
                 {
-                    continue;
+                    var relativePath = Path.GetRelativePath(sandboxRoot, file);
+                    var content = await File.ReadAllTextAsync(file, ct);
+                    fullContentFiles.Add(new InstructionFileContent(relativePath, content));
                 }
 
-                var relativePath = Path.GetRelativePath(sandboxRoot, file);
-                var (description, applyTo) = await ParseInstructionMetadataAsync(file, ct);
-                metadataOnlyFiles.Add(new InstructionFileMetadata(relativePath, description, applyTo));
+                // Pattern 2: AGENTS.md (full content)
+                foreach (var file in Directory.GetFiles(scanPath, "AGENTS.md", SearchOption.AllDirectories))
+                {
+                    var relativePath = Path.GetRelativePath(sandboxRoot, file);
+                    var content = await File.ReadAllTextAsync(file, ct);
+                    fullContentFiles.Add(new InstructionFileContent(relativePath, content));
+                }
+
+                // Pattern 3: *.instructions.md (metadata only, NOT full content)
+                foreach (var file in Directory.GetFiles(scanPath, "*.instructions.md", SearchOption.AllDirectories))
+                {
+                    // Skip if it's copilot-instructions.md (already handled)
+                    if (Path.GetFileName(file).Equals("copilot-instructions.md", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var relativePath = Path.GetRelativePath(sandboxRoot, file);
+                    var (description, applyTo) = await ParseInstructionMetadataAsync(file, ct);
+                    metadataOnlyFiles.Add(new InstructionFileMetadata(relativePath, description, applyTo));
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalWarning(ex, "Failed to load instruction files from {Path}", codeRefsPath);
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, "Failed to load instruction files from {Path}", scanPath);
+            }
         }
 
         return new InstructionFilesResult(fullContentFiles, metadataOnlyFiles);
@@ -668,10 +709,10 @@ public class LocalWorkspaceContext : IWorkspaceContext
                     // Get current branch by parsing .git/HEAD
                     var currentBranch = await ParseCurrentBranchAsync(gitDir, ct);
 
-                    // Get default branch and owner from .git/config
-                    var (owner, defaultBranch) = await ParseGitConfigAsync(gitDir, ct);
+                    // Get default branch, owner, and remote URL from .git/config
+                    var (owner, defaultBranch, remoteUrl) = await ParseGitConfigAsync(gitDir, ct);
 
-                    result.Add(new GitRepositoryInfo(repoName, owner, currentBranch, defaultBranch));
+                    result.Add(new GitRepositoryInfo(repoName, owner, currentBranch, defaultBranch, remoteUrl));
                 }
                 catch
                 {
@@ -725,16 +766,17 @@ public class LocalWorkspaceContext : IWorkspaceContext
     /// <summary>
     /// Parses .git/config to extract remote origin URL and default branch.
     /// </summary>
-    private static async Task<(string owner, string defaultBranch)> ParseGitConfigAsync(
+    private static async Task<(string owner, string defaultBranch, string? remoteUrl)> ParseGitConfigAsync(
         string gitDir, CancellationToken ct)
     {
         var configPath = Path.Combine(gitDir, "config");
         var owner = "unknown";
         var defaultBranch = "main"; // Default assumption
+        string? remoteUrl = null;
 
         if (!File.Exists(configPath))
         {
-            return (owner, defaultBranch);
+            return (owner, defaultBranch, remoteUrl);
         }
 
         try
@@ -761,6 +803,7 @@ public class LocalWorkspaceContext : IWorkspaceContext
                 if (inRemoteOrigin && trimmed.StartsWith("url = "))
                 {
                     var url = trimmed["url = ".Length..];
+                    remoteUrl = url;
                     owner = ExtractOwnerFromUrl(url);
                 }
             }
@@ -797,7 +840,7 @@ public class LocalWorkspaceContext : IWorkspaceContext
             // Return defaults on any error
         }
 
-        return (owner, defaultBranch);
+        return (owner, defaultBranch, remoteUrl);
     }
 
     /// <summary>

@@ -381,6 +381,9 @@ public static class ToolDescriptionHelper
             // Additional Complete functions
             "Complete" => "Completing the operation...",
 
+            // Internal operations
+            "CompactConversation" => "Compacting conversation...",
+
             // Code Interpreter Plugin tools
             "ExecutePythonCodeAsync" => "Running Python code and generating output files...",
             "GeneratePdfReportAsync" => "Creating a PDF report using Python...",

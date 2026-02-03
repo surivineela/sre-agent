@@ -1,5 +1,5 @@
 import { Badge, makeStyles, mergeClasses, Text, tokens } from '@fluentui/react-components';
-import { ChevronDown20Regular, ChevronRight20Regular, Document20Regular, Search16Regular } from '@fluentui/react-icons';
+import { ChevronDown20Regular, ChevronRight20Regular, Document20Regular, Search24Regular } from '@fluentui/react-icons';
 import { memo, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { CopyButton } from '../../Common/Components/CopyButton';
@@ -11,51 +11,83 @@ interface GrepResultMessageProps {
 }
 
 const useStyles = makeStyles({
-    root: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '4px',
-    },
-    // Collapsed summary line - VS Code style
-    summaryLine: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '4px 0',
-        cursor: 'pointer',
-        color: tokens.colorNeutralForeground3,
-        fontSize: '13px',
+    // Card wrapper for the entire component
+    card: {
+        backgroundColor: tokens.colorNeutralBackground3,
+        borderRadius: '12px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+        padding: '12px',
+        transitionProperty: 'background-color, border-color',
+        transitionDuration: '0.15s',
+        transitionTimingFunction: 'ease',
         ':hover': {
-            color: tokens.colorNeutralForeground2,
+            backgroundColor: tokens.colorNeutralBackground3Hover,
+            border: `1px solid ${tokens.colorNeutralStroke1Hover}`,
         },
     },
-    summaryIcon: {
-        color: tokens.colorNeutralForeground4,
+    // Card header with icon and content
+    cardHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        cursor: 'pointer',
+    },
+    cardHeaderNoResults: {
+        cursor: 'default',
+    },
+    // Icon container (40px square, rounded)
+    iconContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '40px',
+        height: '40px',
+        borderRadius: '8px',
+        backgroundColor: tokens.colorNeutralBackground4,
         flexShrink: 0,
     },
-    chevronIcon: {
-        color: tokens.colorNeutralForeground4,
-        flexShrink: 0,
-        marginLeft: '-2px',
+    icon: {
+        color: tokens.colorNeutralForeground3,
+    },
+    // Content area next to icon
+    headerContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
+        flex: 1,
+        minWidth: 0,
+    },
+    primaryText: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        flexWrap: 'wrap',
     },
     queryText: {
         fontFamily: 'Consolas, Monaco, monospace',
-        color: tokens.colorNeutralForeground2,
+        color: tokens.colorNeutralForeground1,
+        fontWeight: 600,
     },
-    resultCount: {
-        color: tokens.colorNeutralForeground4,
+    secondaryText: {
+        color: tokens.colorNeutralForeground3,
+        fontSize: '12px',
     },
     noResultsText: {
         color: tokens.colorNeutralForeground4,
         fontStyle: 'italic',
+        fontSize: '12px',
     },
-    // Expanded container
+    chevronIcon: {
+        color: tokens.colorNeutralForeground4,
+        flexShrink: 0,
+    },
+    // Expanded content container
     expandedContainer: {
+        marginTop: '12px',
         border: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: tokens.borderRadiusMedium,
+        borderRadius: '8px',
         backgroundColor: tokens.colorNeutralBackground1,
         overflow: 'hidden',
-        marginTop: '4px',
     },
     resultsHeader: {
         display: 'flex',
@@ -248,41 +280,45 @@ const GrepResultMessage = ({ grepSearchResult }: GrepResultMessageProps) => {
     const hasResults = grepSearchResult.files.length > 0;
 
     return (
-        <div className={classes.root}>
-            {/* VS Code-style collapsed summary line */}
+        <div className={classes.card}>
+            {/* Card header with icon container */}
             <div
-                className={classes.summaryLine}
+                className={mergeClasses(classes.cardHeader, !hasResults && classes.cardHeaderNoResults)}
                 onClick={() => hasResults && setIsExpanded(!isExpanded)}
-                style={{ cursor: hasResults ? 'pointer' : 'default' }}
             >
-                {hasResults ? (
-                    isExpanded ? (
+                <div className={classes.iconContainer}>
+                    <Search24Regular className={classes.icon} />
+                </div>
+                <div className={classes.headerContent}>
+                    <div className={classes.primaryText}>
+                        <Text>{intl.formatMessage(SreAgentResources.grepSearchedFor)}</Text>
+                        <Text className={classes.queryText}>{grepSearchResult.query}</Text>
+                        {grepSearchResult.isRegex && (
+                            <Badge appearance="outline" size="small" color="subtle">
+                                {intl.formatMessage(SreAgentResources.grepRegex)}
+                            </Badge>
+                        )}
+                    </div>
+                    {hasResults ? (
+                        <Text className={classes.secondaryText}>
+                            {intl.formatMessage(SreAgentResources.grepMatchesFound, {
+                                count: grepSearchResult.totalMatches,
+                                fileCount: grepSearchResult.files.length,
+                            })}
+                        </Text>
+                    ) : (
+                        <Text className={classes.noResultsText}>{intl.formatMessage(SreAgentResources.grepNoResults)}</Text>
+                    )}
+                </div>
+                {hasResults &&
+                    (isExpanded ? (
                         <ChevronDown20Regular className={classes.chevronIcon} />
                     ) : (
                         <ChevronRight20Regular className={classes.chevronIcon} />
-                    )
-                ) : null}
-                <Search16Regular className={classes.summaryIcon} />
-                <span>{intl.formatMessage(SreAgentResources.grepSearchedFor)}</span>
-                <span className={classes.queryText}>{grepSearchResult.query}</span>
-                {hasResults ? (
-                    <span className={classes.resultCount}>
-                        {grepSearchResult.totalMatches}{' '}
-                        {grepSearchResult.totalMatches === 1
-                            ? intl.formatMessage(SreAgentResources.grepMatch)
-                            : intl.formatMessage(SreAgentResources.grepMatches)}
-                    </span>
-                ) : (
-                    <span className={classes.noResultsText}>{intl.formatMessage(SreAgentResources.grepNoResults)}</span>
-                )}
-                {grepSearchResult.isRegex && (
-                    <Badge appearance="outline" size="small" color="subtle">
-                        {intl.formatMessage(SreAgentResources.grepRegex)}
-                    </Badge>
-                )}
+                    ))}
             </div>
 
-            {/* Expanded results */}
+            {/* Expanded results inside the card */}
             {isExpanded && hasResults && (
                 <div className={classes.expandedContainer}>
                     {/* Results header with copy button */}

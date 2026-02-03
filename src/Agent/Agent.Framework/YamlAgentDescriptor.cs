@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Framework.Hooks;
 using Agent.Framework.Models;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -145,6 +146,15 @@ public class YamlAgentDescriptor : IAgentDescriptor
     public string? OutputType { get; set; } = null;
     [YamlMember(Alias = "meta_data")]
     public YamlMetadata Metadata { get; set; } = new();
+
+    // === Hook Configuration ===
+
+    /// <summary>
+    /// Hook configuration for this agent. Hooks can intercept events like Stop
+    /// to perform validation or prevent actions.
+    /// </summary>
+    [YamlMember(Alias = "hooks")]
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; }
 
     public static YamlAgentDescriptor FromYaml(string yamlContent)
     {

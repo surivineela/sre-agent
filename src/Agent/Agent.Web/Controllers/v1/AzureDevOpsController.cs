@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
@@ -20,7 +21,8 @@ public class AzureDevOpsController(
     IThreadRepository _threadRepository,
     IAzureDevOpsWorkItemPlugin _azureDevOpsWorkItemPlugin,
     IGraphDatabaseClient _graphDbClient,
-    ICrawlerTriggerService _crawlerTriggerService) : ControllerBase
+    ICrawlerTriggerService _crawlerTriggerService,
+    JwtValidationHelper _jwtValidationHelper) : ControllerBase
 {
     [HttpGet("auth/start")]
 #pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation
@@ -67,6 +69,54 @@ public class AzureDevOpsController(
         {
             _logger.LogInternalError(ex, "Error starting Azure DevOps authentication");
             return StatusCode(500, "Unable to generate an Azure DevOps token for your repository - please check if you have all the necessary permissions.");
+        }
+    }
+
+    [HttpPost("aadauth/complete")]
+#pragma warning disable CUSTOM004 // HTTP action must declare AuthorizeArmOperation
+    public async Task<IActionResult> CompleteAzureDevOpsAuth([FromQuery] string organization)
+#pragma warning restore CUSTOM004
+    {
+        try
+        {
+            // Read access token from Authorization header
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInternalWarning("CompleteAzureDevOpsAuth called without valid Authorization header");
+                return BadRequest("Authorization header with Bearer token is required.");
+            }
+
+            var accessToken = authHeader.Substring("Bearer ".Length).Trim();
+
+            // Validate the JWT token - validates issuer (any Azure AD tenant),
+            // audience (must be Azure DevOps), signature, and lifetime
+            var validatedToken = _jwtValidationHelper.ValidateAzureDevOpsToken(accessToken);
+
+            if (validatedToken == null)
+            {
+                _logger.LogInternalWarning("Token validation failed for organization {Organization}", organization);
+                return Unauthorized(new { message = "Invalid or expired token", success = false });
+            }
+
+            // Log authentication details (without sensitive token data)
+            _logger.LogExternalInformation(
+                "Azure DevOps authentication completed for organization " + organization);
+
+            // Read refresh token from custom header
+            var refreshToken = Request.Headers["x-sreagent-exchanged-refresh-tokens"].FirstOrDefault();
+
+            // Save tokens to database with proper expiration from the validated token
+            await _threadRepository.CreateOrUpdateAzureDevOpsOAuthTokenAsync(
+                new AzureDevOpsAccessToken(accessToken, ExpiresOn: validatedToken.ValidTo, refreshToken),
+                organization);
+
+            return Ok(new { message = "You are now logged into your Azure DevOps account!", success = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogExternalWarning("Error completing Azure DevOps OAuth for organization " + organization);
+            return StatusCode(500, new { message = "Failed to complete authentication", success = false, error = ex.Message });
         }
     }
 

@@ -252,5 +252,27 @@ public class MockCommunicationService : IAgentOutboundCommunicationService
         Messages.Add(terminalResult?.Command ?? string.Empty);
         return Task.FromResult(Guid.NewGuid());
     }
+
+    public Task UpdateInvestigationStatusAsync(Guid threadId, InvestigationStatus status, CancellationToken cancellationToken = default)
+    {
+        _logger?.LogInternalInformation($"ThreadId: {threadId}, InvestigationStatus: {status}");
+        Messages.Add($"InvestigationStatus: {status}");
+        return Task.CompletedTask;
+    }
+
+    public Task StreamTaskToolExecutionUpdateAsync(Guid threadId, string executionData, StreamMessageType messageType, Guid? messageId = null, DateTime? recordedDateTime = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _logger?.LogInternalInformation($"Mock: Task tool execution update for thread {threadId} with type {messageType}: {executionData}");
+        Messages.Add(executionData);
+        return Task.CompletedTask;
+    }
+
+    public Task<Guid> AppendAgentTaskToolExecutionGroupMessage(Guid threadId, TaskToolExecutionGroup executionGroup, Guid messageId = default)
+    {
+        _logger?.LogInternalInformation($"Mock: Task tool execution group message for thread {threadId} with {executionGroup.Executions.Count} executions");
+        Messages.Add($"TaskToolExecutionGroup: {executionGroup.Id}");
+        return Task.FromResult(messageId == default ? Guid.NewGuid() : messageId);
+    }
 }
 

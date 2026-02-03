@@ -31,5 +31,8 @@ export const loginRequest: RedirectRequest = {
     scopes: ['User.Read'],
 };
 
-/** No need to call `msalInstance.initialize()` as `MsalProvider` does hit under-the-hood */
+/**
+ * MSAL v3+ requires `initialize()` before using MSAL APIs, but MsalProvider
+ * handles this automatically - no manual initialization needed.
+ */
 export const msalInstance = new PublicClientApplication(msalConfig);

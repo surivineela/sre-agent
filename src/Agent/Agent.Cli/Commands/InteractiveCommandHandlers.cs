@@ -1452,7 +1452,7 @@ public static class InteractiveCommandHandlers
                 Tools = finalTools,
                 Handoffs = [],
                 HandoffDescription = string.Empty,
-                AllowParallelToolCalls = false,
+                AllowParallelToolCalls = true,
                 MaxReflectionCount = 0,
                 CriticPromptPath = string.Empty,
                 CriticOnHandoff = false,
@@ -1531,7 +1531,7 @@ public static class InteractiveCommandHandlers
   - On failure: broaden/read/help; SearchDocuments if needed.
   - Verify outcomes with targeted reads.",
                 Temperature = 0.2f,
-                AllowParallelToolCalls = false,
+                AllowParallelToolCalls = true,
                 CriticOnHandoff = false,
                 OutputType = null
             };
@@ -1610,7 +1610,7 @@ public static class InteractiveCommandHandlers
                 CriticPromptPath = string.Empty,
                 CustomReflectionNote = string.Empty,
                 Temperature = null,
-                AllowParallelToolCalls = false,
+                AllowParallelToolCalls = true,
                 CriticOnHandoff = false
             };
 
@@ -1651,7 +1651,7 @@ public static class InteractiveCommandHandlers
                 CriticPromptPath = string.Empty,
                 CustomReflectionNote = string.Empty,
                 Temperature = 0.2f,
-                AllowParallelToolCalls = false,
+                AllowParallelToolCalls = true,
                 CriticOnHandoff = false,
                 OutputType = null
             };
@@ -1701,7 +1701,7 @@ public static class InteractiveCommandHandlers
                 CriticPromptPath = string.Empty,
                 CustomReflectionNote = string.Empty,
                 Temperature = null,
-                AllowParallelToolCalls = false,
+                AllowParallelToolCalls = true,
                 CriticOnHandoff = false,
                 OutputType = null
             };
@@ -1789,7 +1789,7 @@ public static class InteractiveCommandHandlers
                 Tools = ["CheckAllScenarioImpact"],
                 Handoffs = [],
                 HandoffDescription = string.Empty,
-                AllowParallelToolCalls = false,
+                AllowParallelToolCalls = true,
                 MaxReflectionCount = 0,
                 CriticPromptPath = string.Empty,
                 CriticOnHandoff = false,

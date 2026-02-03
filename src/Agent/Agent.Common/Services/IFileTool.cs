@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Common.ApiModels;
+
 namespace Agent.Common.Services;
 
 /// <summary>

@@ -13,7 +13,16 @@ public record IncidentStateSnapshot(
     string IncidentId,
     string State,
     DateTimeOffset CreatedDate,
-    DateTimeOffset LastModifiedDate
+    DateTimeOffset LastModifiedDate,
+    long? HitCount = null
+);
+
+/// <summary>
+/// Information about a hit count change for correlation detection.
+/// </summary>
+public record HitCountChangeInfo(
+    long PreviousHitCount,
+    long CurrentHitCount
 );
 
 /// <summary>
@@ -31,7 +40,8 @@ public record DiscussionEntryInfo(
 /// </summary>
 public record IncidentEventDetectionResult(
     HashSet<IcmIncidentTriggerEvent> DetectedEvents,
-    List<DiscussionEntryInfo> TriggeredDiscussionEntries
+    List<DiscussionEntryInfo> TriggeredDiscussionEntries,
+    HitCountChangeInfo? HitCountChange = null
 )
 {
     /// <summary>

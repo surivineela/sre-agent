@@ -66,7 +66,10 @@ Use these instructions once the user intent involves a PagerDuty incident affect
 
 ### Acknowledge
 
-- Do when taking ownership or starting active investigation.
+- **CRITICAL**: Before acknowledging, ALWAYS fetch the latest incident details using GetPagerDutyIncidentById and check the incident status.
+- **Only acknowledge incidents in "triggered" status**. Do NOT acknowledge incidents that are already "acknowledged", "resolved", or "closed".
+- Acknowledging a resolved incident will reactivate it and trigger unnecessary alerts to on-call engineers.
+- Do when taking ownership or starting active investigation of a triggered incident.
 - Note template:
   "Acknowledged at [UTC timestamp]. Observations: [key signal]. Hypothesis: [initial]. Next update: [ETA]."
 
@@ -124,7 +127,7 @@ Input: VM resource ID → map service → list active incidents (ID, title, stat
 
 ## Quick Reference Checklists
 
-Acknowledgment: status confirmed → ownership established → diagnostic outline → ETA set.
+Acknowledgment: fetch latest incident → verify status is "triggered" → acknowledge → ownership established → diagnostic outline → ETA set.
 Resolution: impact ended → metrics normal → cause identified → fix validated → follow-up logged.
 AI Query: clear question → incident context packaged → narrow objective → verify output.
 

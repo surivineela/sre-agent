@@ -166,6 +166,17 @@ public static class AgentDataConfiguration
             return new CosmosDbTsgConnectorRepository(cosmosClient, cosmosDatabaseName, logger);
         });
 
+        // Register the CodeRepo repository
+        serviceCollection.AddSingleton<ICodeRepoRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbCodeRepoRepository>>();
+            return new CosmosDbCodeRepoRepository(cosmosClient, cosmosDatabaseName, logger);
+        });
+
         return serviceCollection;
     }
 

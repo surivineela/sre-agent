@@ -1170,4 +1170,12 @@ Example structure:
 
         return System.Text.Json.JsonSerializer.Serialize(entry, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
     }
+
+    public async Task<string> AssignIncidentToUser(string incidentId, string userAlias)
+    {
+        _logger.LogInternalInformation($"[{nameof(ICMPlugin)}_{nameof(AssignIncidentToUser)}][{DateTime.UtcNow}] Assigning incident {incidentId} to user {userAlias}");
+        var message = await _icmApiClient.AssignIncidentToUser(incidentId, userAlias);
+        _logger.LogInternalInformation($"[{nameof(ICMPlugin)}_{nameof(AssignIncidentToUser)}][{DateTime.UtcNow}] Assignment message: {message}");
+        return message;
+    }
 }

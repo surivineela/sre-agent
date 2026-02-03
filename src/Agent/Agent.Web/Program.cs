@@ -70,6 +70,8 @@ using Agent.ScheduledTasks.Services;
 using Agent.Web.Authorization;
 using Agent.Web.Services;
 using Agent.Web.Validation;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -451,6 +453,7 @@ public class Program
             .AddSingleton<INSGRulePlugin, NSGRulePlugin>()
             .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
             .AddSingleton<AzureSupportCenterHelper>()
+            .AddSingleton<JwtValidationHelper>()
             .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()
             .AddSingleton<AppInsightsSettings>()
             .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
@@ -545,6 +548,14 @@ public class Program
             .AddTransient<ICMPluginDefinition>()
             .AddTransient<AzureAlertingPluginDefinition>()
             .AddTransient<WebAppPluginDefinition>()
+            // ServiceNow API Connection services
+            .AddSingleton<TokenCredential>(sp =>
+            {
+                var authService = sp.GetRequiredService<IAuthenticationService>();
+                return authService.GetArmOperationCredential().GetAwaiter().GetResult();
+            })
+            .AddSingleton<IApiConnectionService, ApiConnectionService>()
+            .AddSingleton<IAgentContextProvider, AgentContextProvider>()
             .AddTransient<IServiceNowPlugin, ServiceNowPlugin>()
             .AddTransient<ServiceNowPluginDefinition>()
             .AddTransient<ScheduledTaskPluginDefinition>()
@@ -593,7 +604,9 @@ public class Program
                     return new NullRemoteFileStorage();
                 }
             })
-            .AddSingleton<IThreadFileStorageService, ThreadFileStorageService>()
+            .AddSingleton<IAgentFileStorageService, AgentFileStorageService>()
+            .AddHostedService<WorkspaceSyncService>()
+            .AddHostedService<MemoryUploadBackgroundService>()
             .AddTransient<IToolOutputRetrieverPlugin, ToolOutputRetrieverPlugin>()
             .AddTransient<ToolOutputRetrieverPluginDefinition>()
             .AddSingleton<IToolOutputProcessService, ToolOutputProcessService>()
@@ -841,6 +854,9 @@ public class Program
 
         builder.Services.ConfigureFrameworkAsyncInitializers<AgentContext>();
 
+        // Register hook infrastructure for Claude-style agent hooks
+        builder.Services.AddHooks();
+
         builder.Services
             .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
             .AddSingleton<ISearchPlugin, SearchPlugin>()
@@ -885,6 +901,8 @@ public class Program
         builder.Services.AddTransient<IExtendedAgentValidator, ExtendedAgentValidator>();
         builder.Services.AddSingleton<IIncidentFilterValidator, IncidentFilterValidator>();
         builder.Services.AddSingleton<IIncidentFilterApiService, IncidentFilterApiService>();
+        builder.Services.AddScoped<ICodeRepoValidator, CodeRepoValidator>();
+        builder.Services.AddScoped<ICodeRepoService, CodeRepoService>();
         builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();
 
         builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();
@@ -921,6 +939,7 @@ public class Program
         });
 
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
+        builder.Services.AddSingleton<IOAuthTokenService, OAuthTokenService>();
         builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
         builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
         builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
@@ -1810,8 +1829,25 @@ public class Program
 
     private static string GetRuntimeForcedExperimentVariants(WebApplicationBuilder builder)
     {
+        var variants = new List<string>();
+
         var forcedVariants = builder.Configuration.GetValue<string>("ForcedExperimentVariants");
-        return forcedVariants ?? string.Empty;
+        if (!string.IsNullOrEmpty(forcedVariants))
+        {
+            variants.Add(forcedVariants);
+        }
+
+        // Force workspace experiment when EnableWorkspaceTools is configured
+        var experimentalSettings = builder.Configuration
+            .GetSection("AppSettings:Core:Experimental")
+            .Get<ExperimentalSettings>();
+
+        if (experimentalSettings?.EnableWorkspaceTools ?? false)
+        {
+            variants.Add("workspace=workspace_agent");
+        }
+
+        return string.Join(";", variants);
     }
 }
 

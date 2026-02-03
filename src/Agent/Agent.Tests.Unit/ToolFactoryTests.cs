@@ -395,6 +395,120 @@ namespace Agent.Tests.Unit
             return toolFactory;
         }
 
+        [Fact]
+        public async Task ExpandToolPattern_ExactMatch_ReturnsSingleTool()
+        {
+            // Arrange
+            var toolFactory = await CreateInitializedToolFactoryAsync();
+
+            // Act
+            var result = toolFactory.ExpandToolPattern("SayHello");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Contains("SayHello", result);
+        }
+
+        [Fact]
+        public async Task ExpandToolPattern_ExactMatchNonExistent_ReturnsEmptyList()
+        {
+            // Arrange
+            var toolFactory = await CreateInitializedToolFactoryAsync();
+
+            // Act
+            var result = toolFactory.ExpandToolPattern("NonExistentTool");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task ExpandToolPattern_WildcardWithMatches_ReturnsAllMatchingTools()
+        {
+            // Arrange
+            var toolFactory = await CreateInitializedToolFactoryAsync();
+
+            // Add some mock MCP tools to test wildcard expansion
+            var mockMcpFunctions = new List<AIFunction>
+            {
+                AIFunctionFactory.Create(() => "result1", "kusto-mcp_query"),
+                AIFunctionFactory.Create(() => "result2", "kusto-mcp_execute"),
+                AIFunctionFactory.Create(() => "result3", "kusto-mcp_schema"),
+                AIFunctionFactory.Create(() => "result4", "other-mcp_tool")
+            };
+            _mockMcpToolsRepository.Setup(m => m.GetAllFunctions()).Returns(mockMcpFunctions);
+            await toolFactory.RefreshMcpToolsAsync();
+
+            // Act
+            var result = toolFactory.ExpandToolPattern("kusto-mcp/*");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Count);
+            Assert.Contains("kusto-mcp_query", result);
+            Assert.Contains("kusto-mcp_execute", result);
+            Assert.Contains("kusto-mcp_schema", result);
+            Assert.DoesNotContain("other-mcp_tool", result);
+        }
+
+        [Fact]
+        public async Task ExpandToolPattern_WildcardNoMatches_ReturnsEmptyList()
+        {
+            // Arrange
+            var toolFactory = await CreateInitializedToolFactoryAsync();
+
+            // Act - wildcard for connection that doesn't exist
+            var result = toolFactory.ExpandToolPattern("nonexistent-mcp/*");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task ExpandToolPattern_EmptyPattern_ReturnsEmptyList()
+        {
+            // Arrange
+            var toolFactory = await CreateInitializedToolFactoryAsync();
+
+            // Act
+            var result = toolFactory.ExpandToolPattern("");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task ExpandToolPattern_NullPattern_ReturnsEmptyList()
+        {
+            // Arrange
+            var toolFactory = await CreateInitializedToolFactoryAsync();
+
+            // Act
+            var result = toolFactory.ExpandToolPattern(null!);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task ExpandToolPattern_InvalidWildcardSyntax_TreatedAsExactMatch()
+        {
+            // Arrange
+            var toolFactory = await CreateInitializedToolFactoryAsync();
+
+            // Act - invalid wildcard syntax (no slash before *)
+            var result = toolFactory.ExpandToolPattern("kusto*");
+
+            // Assert - treated as exact match for tool named "kusto*", which doesn't exist
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
         public void Dispose()
         {
         }

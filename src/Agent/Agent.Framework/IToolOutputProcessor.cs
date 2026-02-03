@@ -9,6 +9,7 @@ namespace Agent.Framework;
 /// </summary>
 /// <param name="threadId">The thread ID</param>
 /// <param name="toolName">The tool name</param>
+/// <param name="callId">The unique call ID for this tool invocation</param>
 /// <param name="content">The content to save</param>
 /// <param name="contentType">The content type (e.g., "json", "txt")</param>
 /// <param name="cancellationToken">Cancellation token</param>
@@ -16,6 +17,7 @@ namespace Agent.Framework;
 public delegate Task<string> SaveToolOutputDelegate(
     Guid threadId,
     string toolName,
+    string callId,
     string content,
     string contentType,
     CancellationToken cancellationToken);
@@ -34,6 +36,11 @@ public class ToolOutputProcessorContext
     /// The name of the tool that produced the output.
     /// </summary>
     public required string ToolName { get; init; }
+
+    /// <summary>
+    /// The unique call ID for this tool invocation.
+    /// </summary>
+    public required string CallId { get; init; }
 
     /// <summary>
     /// Delegate for saving output to storage.

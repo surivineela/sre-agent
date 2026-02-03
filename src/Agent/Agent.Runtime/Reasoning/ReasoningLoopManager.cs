@@ -136,20 +136,9 @@ public class ReasoningLoopManager : IReasoningLoopManager
     public void CancelCurrentOperation(AgentContext context)
     {
         // Check if thread ID exists before attempting removal
-        if (!_reasoningLoops.ContainsKey(context.ThreadId))
-        {
-            return;
-        }
-
-        if (_reasoningLoops.TryRemove(context.ThreadId, out var loop))
+        if (_reasoningLoops.TryGetValue(context.ThreadId, out var loop))
         {
             loop.CancelCurrentOperation();
-            // Dispose the loop since it's no longer needed
-            loop.Dispose();
-        }
-        else
-        {
-            throw new InvalidOperationException($"No reasoning loop found for thread ID {context.ThreadId}");
         }
     }
 }

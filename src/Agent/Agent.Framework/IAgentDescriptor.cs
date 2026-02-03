@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Framework.Hooks;
 using Agent.Framework.Models;
 
 namespace Agent.Framework;
@@ -52,4 +53,9 @@ public interface IAgentDescriptor
     public List<string> OrchestrationStartAgents { get; set; }
     public string? ResultSummarizationPrompt { get; set; }
     public List<NextAgentMapping> NextAgentMappings { get; set; }
+
+    /// <summary>
+    /// Hook definitions for the agent, organized by event type.
+    /// </summary>
+    public Dictionary<string, List<HookDefinition>>? Hooks { get; set; }
 }

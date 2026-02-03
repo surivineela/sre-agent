@@ -73,4 +73,16 @@ public interface IRemoteFileStorage
         string containerName,
         string blobPath,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists all blobs in a container with an optional prefix
+    /// </summary>
+    /// <param name="containerName">The container name to list from</param>
+    /// <param name="prefix">Optional prefix to filter blobs</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>List of blob paths</returns>
+    IAsyncEnumerable<string> ListBlobsAsync(
+        string containerName,
+        string? prefix = null,
+        CancellationToken cancellationToken = default);
 }

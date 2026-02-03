@@ -46,11 +46,13 @@ const Wrapper: React.FC<{ children: React.ReactNode; permission?: boolean }> = (
                             startMessageStreamingOnNewThread: () => {},
                             startMessageStreamingOnExistingThread: () => {},
                             cancelMessageStreaming: () => {},
+                            cancelTaskExecution: () => {},
                             submitUserQuestionResponse: (_threadId, _questionId, _response) => {},
                             subscribeMessageUpdateEvent: () => () => {},
                             subscribeThreadUpdateEvent: () => () => {},
                             subscribeTaskUpdateEvent: () => () => {},
                             subscribeTodoPlanUpdateEvent: () => () => {},
+                            subscribeSubagentUpdateEvent: () => () => {},
                         }}
                     >
                         <PermissionContext.Provider

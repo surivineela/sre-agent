@@ -124,7 +124,12 @@ const processMessageText = (text: string) => {
     return parts;
 };
 
-const TextOrImageMessage = ({ text }: { text: string }) => {
+interface TextOrImageMessageProps {
+    text: string;
+    threadId?: string;
+}
+
+const TextOrImageMessage = ({ text, threadId }: TextOrImageMessageProps) => {
     const regularMessageContent = useMemo(() => {
         const content = processMessageText(text);
         return Array.isArray(content) ? content : text;
@@ -193,7 +198,7 @@ const TextOrImageMessage = ({ text }: { text: string }) => {
     const RegularMessagePart = ({ part, index }: { part: any; index: number }) => {
         // Plain text markdown
         if (typeof part === 'string') {
-            return <ReactMarkdownComponent key={index} content={part} variant="chat" />;
+            return <ReactMarkdownComponent key={index} content={part} variant="chat" threadId={threadId} />;
         }
 
         // Handle different content types
@@ -235,7 +240,7 @@ const TextOrImageMessage = ({ text }: { text: string }) => {
         if (!Array.isArray(regularMessageContent)) {
             return (
                 <div style={{ marginLeft: '2px' }}>
-                    <ReactMarkdownComponent content={regularMessageContent} variant="chat" />
+                    <ReactMarkdownComponent content={regularMessageContent} variant="chat" threadId={threadId} />
                 </div>
             );
         }

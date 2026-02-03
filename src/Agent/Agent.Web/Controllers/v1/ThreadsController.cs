@@ -57,7 +57,7 @@ public class ThreadsController(
     ISessionInsightRepository sessionInsightRepository,
     IStreamingMessageRepository streamingMessageRepository,
     IChatClientProvider chatClientProvider,
-    IThreadFileStorageService threadFileStorageService) : ControllerBase
+    IAgentFileStorageService agentFileStorageService) : ControllerBase
 {
     // By default, returns threads ordered by timestamp in ascending order.
     // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
@@ -498,7 +498,7 @@ public class ThreadsController(
         // Clean up all files (tool outputs and thread files) associated with this thread
         try
         {
-            var deletedFilesCount = await threadFileStorageService.CleanupThreadFilesAsync(threadId);
+            var deletedFilesCount = await agentFileStorageService.CleanupThreadFilesAsync(threadId);
             logger.LogInternalInformation("Deleted {Count} file(s) for thread {ThreadId}", deletedFilesCount, threadId);
         }
         catch (Exception ex)

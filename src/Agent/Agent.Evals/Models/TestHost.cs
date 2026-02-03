@@ -4,6 +4,7 @@
 
 using Agent.Core.Models.Api.v1;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,12 +21,15 @@ public sealed record TestHost(
 {
     public static TestHost Create(IHost host)
     {
+        var chatClientProvider = host.Services.GetRequiredService<IChatClientProvider>();
         var runConfig = new RunConfig
         {
-            ChatClient = host.Services.GetRequiredService<IChatClientProvider>().EvalModel,
+            ChatClient = chatClientProvider.EvalModel,
             LoggerFactory = host.Services.GetRequiredService<ILoggerFactory>(),
             SkillRegistry = host.Services.GetRequiredService<ISkillRegistry>(),
             AmbientContextProvider = DisabledAmbientContextProvider.Instance,
+            ChatClientProvider = chatClientProvider,
+            HookManager = host.Services.GetService<HookManager>()
         };
 
         return new(

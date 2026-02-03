@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SREAgent.Incidents.IcM.Model;
 using Attachment = Microsoft.AzureAd.Icm.IcmV3OData.Models.Attachment;
+using Contact = Microsoft.AzureAd.Icm.Types.Api.Contact;
 using IICMAPIClientSDKClient = Microsoft.SREAgent.Incidents.IcM.Interface.IICMAPIClient;
 using Incident = Microsoft.SREAgent.Incidents.IcM.Model.ICMIncident;
 using IncidentStatus = Microsoft.AzureAd.Icm.Types.IncidentStatus;
@@ -47,6 +48,9 @@ public interface IICMAPIClient
     Task<List<IcmTeamResult>> SearchTeamsAsync(uint limit, uint offset, string teamNameContains, bool withOnCallRotationsOnly = true, bool assignableOnly = true);
     Task<IcmTeamResult> GetTeamAsync(string teamId);
     Task<string> CreateRepairItemAsync(string incidentId, string title, string workItemType, string areaPath, RepairItemType repairItemType, RepairItemDeliveryType deliveryType, string adoProjectName, string? owner = null, int? incidentSeverity = null);
+    Task<List<Contact>> GetTeamMembersAsync(string teamId);
+    Task<string> AssignIncidentToUser(string incidentId, string userAlias);
+
 
     /// <summary>
     /// Gets the list of aliases currently on-call for the specified team.
@@ -55,6 +59,7 @@ public interface IICMAPIClient
     /// <param name="teamId">The ICM team ID to lookup on-call for.</param>
     /// <returns>List of on-call aliases, or empty list if none found.</returns>
     Task<List<string>> GetCurrentOnCallAliasesAsync(string teamId);
+    Task<EnrichedIncidentContext?> GetEnrichedIncidentContextAsync(string incidentId);
 }
 
 public class ICMAPIClient : IICMAPIClient
@@ -425,6 +430,26 @@ public class ICMAPIClient : IICMAPIClient
             return new List<string>();
         }
     }
+
+    public async Task<List<Contact>> GetTeamMembersAsync(string teamId)
+    {
+        return await _icmApiClientSDKService.GetTeamMembersAsync(teamId);
+    }
+
+    public async Task<string> AssignIncidentToUser(string incidentId, string userAlias)
+    {
+        var res = await _icmApiClientSDKService.AssignIncidentToUser(incidentId, userAlias);
+        if (!res.Success)
+        {
+            throw new Exception($"Failed to assign incident {incidentId} to user {userAlias}. Error: {res.Message}");
+        }
+        return res.Message;
+    }
+
+    public Task<EnrichedIncidentContext?> GetEnrichedIncidentContextAsync(string incidentId)
+    {
+        return _icmApiClientSDKService.GetEnrichedIncidentContextAsync(incidentId);
+    }
 }
 
 public class NullableICMAPIClient : IICMAPIClient
@@ -575,6 +600,21 @@ public class NullableICMAPIClient : IICMAPIClient
     }
 
     public Task<List<string>> GetCurrentOnCallAliasesAsync(string teamId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> AssignIncidentToUser(string incidentId, string userAlias)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<EnrichedIncidentContext?> GetEnrichedIncidentContextAsync(string incidentId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<List<Contact>> GetTeamMembersAsync(string teamId)
     {
         throw new NotImplementedException();
     }

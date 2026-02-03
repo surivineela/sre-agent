@@ -286,5 +286,41 @@ public class SinkService
 
         return messageId;
     }
+
+    public async Task<Guid> SinkAgentTaskToolExecutionGroupMessageAsync(
+        Guid threadId,
+        string messageText,
+        Guid agentResponseMessageId,
+        TaskToolExecutionGroup executionGroup)
+    {
+        var messageId = agentResponseMessageId == default ? Guid.NewGuid() : agentResponseMessageId;
+        var agentMessage = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+            IsImageContent: false,
+            Text: messageText,
+            Posted: new Posted(false),
+            TaskToolExecutionGroup: executionGroup
+        );
+
+        try
+        {
+            // Try to update first (for re-persisting on GroupEnd)
+            var updated = await _repository.UpdateMessageAsync(threadId, agentMessage);
+            if (updated == null)
+            {
+                // Message doesn't exist, add it (first time on GroupStart)
+                await _repository.AddMessageAsync(threadId, agentMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError("Error adding/updating task tool execution group message: {Message}", ex.Message);
+            throw;
+        }
+
+        return messageId;
+    }
 }
 

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { LocationClient } from '../../../Common/Clients/LocationClient';
 import { TelemetrySource } from '../../../Common/Constants/Telemetry';
+import { ModelProvider } from '../../../Common/Contracts/SreAgent';
 import { LogLevel } from '../../../Common/Contracts/Telemetry';
 import { SettingNames, useConfigSetting } from '../../../Common/Hooks/useConfigSettings';
 import { useTelemetry } from '../../../Common/Hooks/useTelemetry';
@@ -97,10 +98,12 @@ export const useSreSupportedModels = (subscriptionId: string, location: string, 
         {
             key: string;
             text: string;
+            disabled?: boolean;
         }[]
     >();
     const [isSupportedModelsLoading, setIsSupportedModelsLoading] = useState(false);
     const [getSupportedModelsFailure, setGetSupportedModelsFailure] = useState('');
+    const [showAnthropicDisabledMessage, setShowAnthropicDisabledMessage] = useState(false);
     const { setFieldValue } = useFormikContext<SreAgentCreateFormProps>();
 
     const locationClient = useMemo(() => LocationClient.getInstance(telemetrySource), [telemetrySource]);
@@ -121,10 +124,15 @@ export const useSreSupportedModels = (subscriptionId: string, location: string, 
             const providerMap = new Map(
                 supportedModels.map(model => [
                     model.properties.providerName,
-                    { key: model.properties.providerName, text: model.properties.providerDisplayName }
+                    { key: model.properties.providerName, text: model.properties.providerDisplayName, disabled: false },
                 ])
             );
             const supportedProviders = Array.from(providerMap.values());
+            // If Anthropic is not in the supported providers list, it isn't allowed by the administrator
+            if (!supportedProviders.find(provider => provider.key === ModelProvider.Anthropic)) {
+                supportedProviders.push({ key: ModelProvider.Anthropic, text: intl.formatMessage(PortalResources.anthropicProviderLabel), disabled: true });
+                setShowAnthropicDisabledMessage(true);
+            }
             const defaultProvider = supportedModels.find(model => model.properties.default)?.properties.providerName;
             setFieldValue(
                 'defaultModelProvider',
@@ -163,5 +171,6 @@ export const useSreSupportedModels = (subscriptionId: string, location: string, 
         supportedProviders,
         isSupportedModelsLoading,
         getSupportedModelsFailure,
+        showAnthropicDisabledMessage
     };
 };

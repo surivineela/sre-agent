@@ -1,5 +1,5 @@
 import { IColumn } from '@fluentui/react';
-import { Button, Combobox, Field, MessageBar, Option, Spinner, Text, Textarea } from '@fluentui/react-components';
+import { Button, Combobox, Field, mergeClasses, MessageBar, Option, Spinner, Text, Textarea, tokens } from '@fluentui/react-components';
 import { Beaker20Regular } from '@fluentui/react-icons';
 import { useFormikContext } from 'formik';
 import { FC, useContext, useMemo, useState } from 'react';
@@ -80,43 +80,17 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
     }, [intl]);
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'row',
-                gap: 16,
-                height: '100%',
-                width: 'calc(100% - 16px)',
-            }}
-        >
+        <div className={styles.reviewAndTestRoot}>
             {generatingUpdatedTools && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'rgba(255, 255, 255, 0.6)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1000,
-                    }}
-                >
+                <div className={styles.reviewAndTestOverlay}>
                     <Spinner size="large" aria-label={intl.formatMessage(IncidentManagementResources.generating)} />
                 </div>
             )}
             {(!view || view === 'review') && (
-                <div
-                    style={{
-                        width: !view ? '50%' : '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        paddingTop: 20,
-                        height: 'calc(100% - 20px)',
-                    }}
-                >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minHeight: '33%', flex: 'none' }}>
+                <div className={mergeClasses(styles.reviewPanelLeft, !view ? styles.reviewPanelLeftHalf : styles.reviewPanelLeftFull)}>
+                    <div className={styles.reviewSectionHeader}>
                         {!view && (
-                            <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
+                            <Text size={300} weight="semibold" as="h2" className={styles.reviewSectionTitle}>
                                 {intl.formatMessage(IncidentHandlerCreateResources.reviewCustomInstructionsTitle)}
                             </Text>
                         )}
@@ -133,8 +107,8 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                             aria-label={intl.formatMessage(IncidentHandlerCreateResources.customInstructionsAriaLabel)}
                         />
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '0%', flex: '1 1 auto' }}>
-                        <Text size={400} weight="semibold" style={{ marginTop: 32, marginBottom: 0 }} as="h2">
+                    <div className={styles.reviewToolsSection}>
+                        <Text size={300} weight="semibold" className={styles.reviewToolsTitle} as="h2">
                             {intl.formatMessage(IncidentHandlerCreateResources.reviewToolsTitle)}
                         </Text>
                         <Text size={300}>{intl.formatMessage(IncidentHandlerCreateResources.reviewToolsDescription)}</Text>
@@ -171,27 +145,21 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                     </div>
                 </div>
             )}
+
+            <div className={styles.formDivider}></div>
+
             {(!view || view === 'test') && (
-                <div
-                    style={{
-                        width: !view ? '50%' : '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 16,
-                        paddingTop: 20,
-                        height: 'calc(100% - 20px)',
-                    }}
-                >
+                <div className={mergeClasses(styles.testPanelRight, !view ? styles.testPanelRightHalf : styles.testPanelRightFull)}>
                     {!view && (
-                        <Text size={400} weight="semibold" as="h2" style={{ margin: 0 }}>
+                        <Text size={300} weight="semibold" as="h2" className={styles.reviewSectionTitle}>
                             {intl.formatMessage(IncidentHandlerCreateResources.testHandlerTitle)}
                         </Text>
                     )}
-                    <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'end', position: 'relative' }}>
+                    <div className={styles.testIncidentInputRow}>
                         <Field
                             id="testIncidentField"
                             label={intl.formatMessage(IncidentHandlerCreateResources.incidentLabel)}
-                            style={{ flexBasis: '500px' }}
+                            className={styles.testIncidentField}
                             required
                         >
                             <Combobox
@@ -216,22 +184,15 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                                     position: 'below',
                                     align: 'start',
                                 }}
-                                size={'small'}
                             >
                                 {loadingIncidents ? (
                                     <Spinner size="small" />
                                 ) : !incidents?.length ? (
-                                    <div style={{ margin: '2px 0px', paddingLeft: '10px' }}>
+                                    <div className={styles.testIncidentNoResults}>
                                         {intl.formatMessage(IncidentManagementResources.noIncidentsFound)}
                                     </div>
                                 ) : (
-                                    <div
-                                        style={{
-                                            maxHeight: '400px',
-                                            overflowY: 'scroll',
-                                            overflowX: 'auto',
-                                        }}
-                                    >
+                                    <div className={styles.testIncidentDropdownContent}>
                                         {incidents?.map(incident => (
                                             <Option
                                                 key={incident.id}
@@ -259,7 +220,7 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                         </Button>
                     </div>
                     {creatingTestThread ? (
-                        <Spinner size="huge" style={{ height: '100%' }} />
+                        <Spinner size="huge" className={styles.testIncidentSpinner} />
                     ) : createTestThreadFailure ? (
                         <MessageBar intent="error">
                             {intl.formatMessage(IncidentHandlerCreateResources.testHandlerRunFailure, {
@@ -303,12 +264,10 @@ export const ReviewAndTestContent: FC<ReviewAndTestContentProps> = ({ view, onOp
                         />
                     ) : (
                         <div className={styles.emptyState}>
-                            <div>
-                                <Beaker20Regular style={{ height: '100px', width: '100px' }} />
-                            </div>
-                            <div className={styles.emptyStateTitle}>
+                            <img src="./AIChatLM.svg" alt="AI Chat" style={{ height: 128 }} />
+                            <Text size={300} align="center" style={{ color: tokens.colorNeutralForeground2, width: '400px' }}>
                                 {intl.formatMessage(IncidentHandlerCreateResources.testHandlerEmptyMessage)}
-                            </div>
+                            </Text>
                         </div>
                     )}
                 </div>

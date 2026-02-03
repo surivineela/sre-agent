@@ -49,7 +49,7 @@ const CreateSubagentStepContent: FC<CreateSubagentStepContentProps> = ({ isSubmi
             <div className={styles.stepFooter}>
                 <Button
                     onClick={() => {
-                        setCurrentStep(IncidentHandlerCreateSteps.IncidentsAndGuidanceStep);
+                        setCurrentStep(IncidentHandlerCreateSteps.DefineAgentLearningStep);
                     }}
                     disabled={isSubmitting}
                 >
