@@ -28,7 +28,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
     private readonly ISessionPoolService _sessionPoolService;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly IAgentFileStorageService _agentFileStorageService;
-    private readonly string _sandboxRoot;
+    private readonly Lazy<Task<SandboxPaths>> _sandboxPaths;
 
     public Guid? ThreadId { get; set; }
 
@@ -36,13 +36,16 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
         ILogger<CodeInterpreterPlugin> logger,
         ISessionPoolService sessionPoolService,
         IHostEnvironment hostEnvironment,
-        IAgentFileStorageService agentFileStorageService)
+        IAgentFileStorageService agentFileStorageService,
+        ISandboxPaths sandboxPaths)
     {
         _logger = logger;
         _sessionPoolService = sessionPoolService;
         _hostEnvironment = hostEnvironment;
         _agentFileStorageService = agentFileStorageService;
-        _sandboxRoot = new LocalSandboxPaths().SandboxPaths.SandboxRoot;
+        _sandboxPaths = new Lazy<Task<SandboxPaths>>(
+            () => sandboxPaths.GetSandboxPathsAsync(),
+            LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
     public async Task<CodeExecutionResponse> ExecutePythonCodeAsync(string pythonCode, int timeoutSeconds)
@@ -154,7 +157,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
             // Save to ThreadFileStorage for persistence
             await SessionFileHelper.SaveToThreadFileStorageAsync(threadId, fileBytes, saveAsFilename, _agentFileStorageService, _logger);
 
-            var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
+            var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
             return $"✅ PDF report generated successfully. Download: [Download {saveAsFilename}]({relativeLink})";
         }
         catch (Exception ex)
@@ -292,7 +295,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
             await SessionFileHelper.SaveToThreadFileStorageAsync(threadId, fileBytes, saveAsFilename, _agentFileStorageService, _logger);
 
             var extension = Path.GetExtension(saveAsFilename).ToLowerInvariant();
-            var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
+            var relativeLink = $"/api/files/{Uri.EscapeDataString(Path.GetFileName(saveAsFilename))}";
 
             // Check if it's an image file (matplotlib, seaborn, PIL, and other graphics outputs)
             if (extension is ".png" or ".jpg" or ".jpeg" or ".gif" or ".svg" or ".webp" or
@@ -483,6 +486,8 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
 
         try
         {
+            var sandboxPaths = await _sandboxPaths.Value;
+
             // Validate that the file path doesn't contain wildcard characters
             if (filePath.IndexOfAny(new[] { '*', '?' }) >= 0)
             {
@@ -495,7 +500,7 @@ public class CodeInterpreterPlugin : ICodeInterpreterPlugin
             var normalizedPath = filePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
 
             // Validate path security against sandbox root (prevents path traversal and symlink attacks)
-            if (!PathSecurityHelper.TryGetSafeFilePath(_sandboxRoot, normalizedPath, out var resolvedFilePath)
+            if (!PathSecurityHelper.TryGetSafeFilePath(sandboxPaths.SandboxRoot, normalizedPath, out var resolvedFilePath)
                 || resolvedFilePath == null)
             {
                 var errorMsg = $"Error: File path '{filePath}' is not within the sandbox directory.";

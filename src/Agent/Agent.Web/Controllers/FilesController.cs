@@ -207,30 +207,26 @@ public class FilesController(IAgentFileStorageService agentFileStorageService) :
     /// <summary>
     /// Download an artifact file by thread ID and filename.
     /// Uses IAgentFileStorageService to retrieve thread-specific files.
+    /// Supports nested paths for files in subdirectories.
     /// </summary>
-    [HttpGet("{threadId}/{fileName}")]
+    [HttpGet("{threadId}/{**filePath}")]
     [AuthorizeArmOperation(ArmOperations.AgentThreadReadActionId)]
-    public async Task<IActionResult> GetByThread(Guid threadId, string fileName)
+    public async Task<IActionResult> GetByThread(Guid threadId, string filePath)
     {
         // Basic validation
-        if (string.IsNullOrWhiteSpace(fileName))
+        if (string.IsNullOrWhiteSpace(filePath))
         {
-            return BadRequest("fileName required");
+            return BadRequest("filePath required");
         }
 
-        // Security: Check for invalid characters
-        if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        // Security: Prevent path traversal attacks - check for parent directory traversal
+        if (filePath.Contains(".."))
         {
-            return BadRequest("invalid file name");
+            return BadRequest("invalid path - parent directory traversal not allowed");
         }
 
-        // Security: Prevent path traversal attacks
-        if (fileName.Contains('/') || fileName.Contains('\\') || fileName.Contains(".."))
-        {
-            return BadRequest("invalid path - only filenames allowed");
-        }
-
-        // Security: Validate file extension
+        // Security: Validate file extension (check the actual filename at the end of the path)
+        var fileName = Path.GetFileName(filePath);
         var extension = Path.GetExtension(fileName);
         if (string.IsNullOrEmpty(extension) || !AllowedExtensions.Contains(extension))
         {
@@ -238,13 +234,13 @@ public class FilesController(IAgentFileStorageService agentFileStorageService) :
         }
 
         // Download from thread file storage
-        var filePath = await agentFileStorageService.DownloadThreadFileAsync(threadId, fileName);
-        if (filePath == null)
+        var localFilePath = await agentFileStorageService.DownloadThreadFileAsync(threadId, filePath);
+        if (localFilePath == null)
         {
             return NotFound();
         }
 
-        var stream = System.IO.File.OpenRead(filePath);
+        var stream = System.IO.File.OpenRead(localFilePath);
         var mimeType = MimeTypes.TryGetValue(extension, out var type) ? type : "application/octet-stream";
         return File(stream, mimeType, fileName);
     }

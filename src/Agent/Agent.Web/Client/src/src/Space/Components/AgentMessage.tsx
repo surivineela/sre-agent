@@ -12,12 +12,12 @@ import ExecutionMessage, { ExecutionMessageType } from './ExecutionMessage';
 import KnowledgeGraphChatMessage from './KnowledgeGraphChatMessage';
 import McpToolExecutionMessage from './McpToolExecutionMessage';
 import MemoryChatMessage from './MemoryChatMessage';
-import TaskToolExecutionMessage from './TaskToolExecutionMessage';
 import PsqlExecutionMessage from './PsqlExecutionMessage';
 import ReasoningChatMessage from './ReasoningChatMessage';
 import ScheduledTaskCreationChatMessage from './ScheduledTaskCreationChatMessage';
 import ScheduledTaskExecutionChatMessage from './ScheduledTaskExecutionChatMessage';
 import SessionInsightCard from './SessionInsightCard';
+import TaskToolExecutionMessage from './TaskToolExecutionMessage';
 import TextOrImageMessage from './TextOrImageMessage';
 import TodoPlanChatMessage from './TodoPlanChatMessage';
 import { ToolCallCard } from './ToolCallCard';
@@ -132,7 +132,7 @@ const AgentMessage = ({
             ) : (message.text || isTyping) &&
               !scheduledTaskData.isScheduledTaskMessage &&
               !scheduledTaskData.isScheduledTaskCreationMessage ? (
-                <TextOrImageMessage text={message.text} />
+                <TextOrImageMessage text={message.text} threadId={threadId} />
             ) : null}
         </>
     );

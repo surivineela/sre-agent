@@ -3,9 +3,11 @@
 // ------------------------------------------------------------
 
 using Agent.Common.Services;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Framework;
 using Agent.Framework.Hooks;
+using Agent.Plugins.Services;
 using Agent.Runtime.Hooks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,7 +28,18 @@ public static class HookServiceCollectionExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddHooks(this IServiceCollection services)
     {
-        services.AddSingleton<ISandboxPaths, LocalSandboxPaths>();
+        // Register ISandboxPaths based on ADC configuration:
+        // - When ADC is enabled, use AdcRemoteWorkspaceService (which implements ISandboxPaths)
+        // - When ADC is disabled, use LocalSandboxPaths
+        services.AddSingleton<ISandboxPaths>(sp =>
+        {
+            var coreSettings = sp.GetRequiredService<CoreSettings>();
+            if (coreSettings.Azure.Adc.Enabled)
+            {
+                return sp.GetRequiredService<AdcRemoteWorkspaceService>();
+            }
+            return new LocalSandboxPaths();
+        });
 
         // Register hook file tools for transcript handling
         services.AddSingleton<IHookFileTools>(sp =>

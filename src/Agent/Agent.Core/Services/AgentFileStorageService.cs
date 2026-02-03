@@ -28,44 +28,50 @@ public class AgentFileStorageService : IAgentFileStorageService
     private readonly IRemoteFileStorage _remoteStorage;
     private readonly ToolOutputSettings _settings;
     private readonly ILogger<AgentFileStorageService> _logger;
-    private readonly string _sandboxRoot;
-    private readonly string _localToolOutputPath;
-    private readonly string _localThreadFilesPath;
-    private readonly string _localSandboxMemoryPath;
     private readonly ConcurrentDictionary<string, DateTime> _memoryFileLastUploaded = new();
+    private readonly Lazy<Task<SandboxPaths>> _sandboxPaths;
+    private readonly bool _workspaceToolsEnabled;
+    private string? _basePath;
 
     public AgentFileStorageService(
         IOptions<ToolOutputSettings> settings,
         ILogger<AgentFileStorageService> logger,
         IRemoteFileStorage remoteStorage,
-        IWorkspaceToolsPlugin workspaceToolsPlugin)
+        IWorkspaceToolsPlugin workspaceToolsPlugin,
+        ISandboxPaths sandboxPathsProvider)
     {
         _remoteStorage = remoteStorage;
         _settings = settings.Value;
         _logger = logger;
+        _workspaceToolsEnabled = workspaceToolsPlugin.Enabled;
 
-        // Get sandbox root for relative path computation
-        var sandboxPaths = new LocalSandboxPaths().SandboxPaths;
-        _sandboxRoot = sandboxPaths.SandboxRoot;
+        _sandboxPaths = new Lazy<Task<SandboxPaths>>(
+            sandboxPathsProvider.GetSandboxPathsAsync,
+            LazyThreadSafetyMode.ExecutionAndPublication);
+    }
 
-        // Determine base path for tool outputs and thread files
-        var basePath = workspaceToolsPlugin.Enabled
+    private string GetBasePath(SandboxPaths sandboxPaths)
+    {
+        return _basePath ??= _workspaceToolsEnabled
             // When workspace tools are enabled, use sandbox tmp path
             ? sandboxPaths.TmpPath
             // Use configured path if available, otherwise fall back to temp directory
             : !string.IsNullOrEmpty(_settings.StoragePath)
                 ? _settings.StoragePath
                 : Path.Combine(Path.GetTempPath(), "SREAgent");
+    }
 
-        _localToolOutputPath = Path.Combine(basePath, "ToolOutputs");
-        _localThreadFilesPath = Path.Combine(basePath, "ThreadFiles");
-        _localSandboxMemoryPath = sandboxPaths.MemoriesPath;
+    private string GetLocalToolOutputPath(SandboxPaths sandboxPaths) => Path.Combine(GetBasePath(sandboxPaths), "ToolOutputs");
 
-        // Ensure local directories exist
+    private string GetLocalThreadFilesPath(SandboxPaths sandboxPaths) => Path.Combine(GetBasePath(sandboxPaths), "ThreadFiles");
+
+    private void EnsureDirectoriesExist(SandboxPaths sandboxPaths)
+    {
+        var basePath = GetBasePath(sandboxPaths);
         try
         {
-            Directory.CreateDirectory(_localToolOutputPath);
-            Directory.CreateDirectory(_localThreadFilesPath);
+            Directory.CreateDirectory(GetLocalToolOutputPath(sandboxPaths));
+            Directory.CreateDirectory(GetLocalThreadFilesPath(sandboxPaths));
         }
         catch (Exception ex)
         {
@@ -101,8 +107,11 @@ public class AgentFileStorageService : IAgentFileStorageService
         // Create blob path: {threadId}/{fileName}
         var blobPath = $"{threadId}/{sanitizedFileName}";
 
+        var sandboxPaths = await _sandboxPaths.Value;
+        EnsureDirectoriesExist(sandboxPaths);
+
         // Always save locally first
-        var threadDir = Path.Combine(_localThreadFilesPath, threadId.ToString());
+        var threadDir = Path.Combine(GetLocalThreadFilesPath(sandboxPaths), threadId.ToString());
         Directory.CreateDirectory(threadDir);
         var localFilePath = Path.Combine(threadDir, sanitizedFileName);
 
@@ -148,18 +157,17 @@ public class AgentFileStorageService : IAgentFileStorageService
             throw new ArgumentException("File name cannot be null or empty.", nameof(fileName));
         }
 
-        // Sanitize filename to prevent path traversal
-        var sanitizedFileName = Path.GetFileName(fileName);
-        if (string.IsNullOrWhiteSpace(sanitizedFileName))
-        {
-            throw new ArgumentException("Invalid file name.", nameof(fileName));
-        }
+        // Normalize path separators to the OS-specific separator
+        var normalizedPath = fileName.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
 
-        // Check local cache first
-        var threadDir = Path.Combine(_localThreadFilesPath, threadId.ToString());
+        var sandboxPaths = await _sandboxPaths.Value;
+        EnsureDirectoriesExist(sandboxPaths);
+
+        // Build the thread directory path
+        var threadDir = Path.Combine(GetLocalThreadFilesPath(sandboxPaths), threadId.ToString());
 
         // Validate path security (prevents path traversal and symlink attacks)
-        if (!PathSecurityHelper.TryGetSafeFilePath(threadDir, sanitizedFileName, out var localFilePath) || localFilePath == null)
+        if (!PathSecurityHelper.TryGetSafeFilePath(threadDir, normalizedPath, out var localFilePath) || localFilePath == null)
         {
             _logger.LogInternalWarning("Path traversal or symlink attack detected for thread file: {ThreadId}/{FileName}", threadId, fileName);
             return null;
@@ -171,11 +179,16 @@ public class AgentFileStorageService : IAgentFileStorageService
             return localFilePath;
         }
 
-        // Ensure thread directory exists for remote download
-        Directory.CreateDirectory(threadDir);
+        // Ensure thread directory and subdirectories exist for remote download
+        var fileDirectory = Path.GetDirectoryName(localFilePath);
+        if (!string.IsNullOrEmpty(fileDirectory))
+        {
+            Directory.CreateDirectory(fileDirectory);
+        }
 
         // Try remote storage (no-op returns false if not configured)
-        var blobPath = $"{threadId}/{sanitizedFileName}";
+        // Use the normalized path for the blob path (with forward slashes for blob storage)
+        var blobPath = $"{threadId}/{normalizedPath.Replace(Path.DirectorySeparatorChar, '/')}";
         var downloaded = await _remoteStorage.DownloadAsync(
             _settings.ThreadFilesContainerName,
             blobPath,
@@ -188,7 +201,7 @@ public class AgentFileStorageService : IAgentFileStorageService
             return localFilePath;
         }
 
-        _logger.LogInternalWarning("Thread file not found: {ThreadId}/{FileName}", threadId, sanitizedFileName);
+        _logger.LogInternalWarning("Thread file not found: {ThreadId}/{FileName}", threadId, normalizedPath);
         return null;
     }
 
@@ -212,8 +225,12 @@ public class AgentFileStorageService : IAgentFileStorageService
             extension = $".{extension}";
         }
 
+        var sandboxPaths = await _sandboxPaths.Value;
+        EnsureDirectoriesExist(sandboxPaths);
+        var localToolOutputPath = GetLocalToolOutputPath(sandboxPaths);
+
         // Compute file key as path relative to sandbox root: tmp/ToolOutputs/{threadId}/{toolName}_{callId}{extension}
-        var relativePath = Path.GetRelativePath(_sandboxRoot, _localToolOutputPath);
+        var relativePath = Path.GetRelativePath(sandboxPaths.SandboxRoot, localToolOutputPath);
         var fileKey = $"{relativePath}/{threadId}/{toolName}_{callId}{extension}".Replace('\\', '/');
         var lineCount = content.Split('\n').Length;
         var contentLength = content.Length;
@@ -223,11 +240,11 @@ public class AgentFileStorageService : IAgentFileStorageService
             threadId, toolName, callId, fileKey, lineCount, contentLength, extension);
 
         // Ensure thread directory exists
-        var threadDir = Path.Combine(_localToolOutputPath, threadId.ToString());
+        var threadDir = Path.Combine(localToolOutputPath, threadId.ToString());
         Directory.CreateDirectory(threadDir);
 
         // Always save locally first
-        var localFilePath = Path.Combine(_localToolOutputPath, fileKey);
+        var localFilePath = Path.Combine(localToolOutputPath, fileKey);
         try
         {
             await File.WriteAllTextAsync(localFilePath, content, cancellationToken);
@@ -278,8 +295,10 @@ public class AgentFileStorageService : IAgentFileStorageService
             // Normalize path separators
             var normalizedFileKey = fileKey.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
 
+            var sandboxPaths = await _sandboxPaths.Value;
+
             // Validate path security against sandbox root (prevents path traversal and symlink attacks)
-            if (!PathSecurityHelper.TryGetSafeFilePath(_sandboxRoot, normalizedFileKey, out var toolOutputFilePath)
+            if (!PathSecurityHelper.TryGetSafeFilePath(sandboxPaths.SandboxRoot, normalizedFileKey, out var toolOutputFilePath)
                 || toolOutputFilePath == null)
             {
                 _logger.LogInternalWarning("Path traversal or symlink attack detected for {FileKey}", fileKey);
@@ -330,8 +349,10 @@ public class AgentFileStorageService : IAgentFileStorageService
     {
         var deletedCount = 0;
 
+        var sandboxPaths = await _sandboxPaths.Value;
+
         // Clean up local thread files
-        var threadDir = Path.Combine(_localThreadFilesPath, threadId.ToString());
+        var threadDir = Path.Combine(GetLocalThreadFilesPath(sandboxPaths), threadId.ToString());
         if (Directory.Exists(threadDir))
         {
             try
@@ -367,7 +388,7 @@ public class AgentFileStorageService : IAgentFileStorageService
         }
 
         // Clean up local tool output files - stored in {threadId}/ subdirectory
-        var toolOutputDir = Path.Combine(_localToolOutputPath, threadId.ToString());
+        var toolOutputDir = Path.Combine(GetLocalToolOutputPath(sandboxPaths), threadId.ToString());
         if (Directory.Exists(toolOutputDir))
         {
             try
@@ -448,8 +469,10 @@ public class AgentFileStorageService : IAgentFileStorageService
             throw new ArgumentException("Repository name cannot be null or empty.", nameof(repoName));
         }
 
+        var sandboxPaths = await _sandboxPaths.Value;
+
         // Local path: {MemoriesPath}/{repoName}/.github/
-        var localFolder = Path.Combine(_localSandboxMemoryPath, repoName, RepoInstructionsFolderName);
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, repoName, RepoInstructionsFolderName);
         if (!Directory.Exists(localFolder))
         {
             _logger.LogInternalDebug("Repo instructions folder does not exist: {Path}", localFolder);
@@ -505,7 +528,8 @@ public class AgentFileStorageService : IAgentFileStorageService
         Guid threadId,
         CancellationToken cancellationToken = default)
     {
-        var localFolder = Path.Combine(_localSandboxMemoryPath, SessionInsightsFolderName, threadId.ToString());
+        var sandboxPaths = await _sandboxPaths.Value;
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, SessionInsightsFolderName, threadId.ToString());
         if (!Directory.Exists(localFolder))
         {
             _logger.LogInternalDebug("Session insights folder does not exist: {Path}", localFolder);
@@ -559,7 +583,8 @@ public class AgentFileStorageService : IAgentFileStorageService
     public async Task<int> UploadWorkspaceSynthesizedKnowledgeAsync(
         CancellationToken cancellationToken = default)
     {
-        var localFolder = Path.Combine(_localSandboxMemoryPath, SynthesizedKnowledgeFolderName);
+        var sandboxPaths = await _sandboxPaths.Value;
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, SynthesizedKnowledgeFolderName);
         if (!Directory.Exists(localFolder))
         {
             _logger.LogInternalDebug("Synthesized knowledge folder does not exist: {Path}", localFolder);
@@ -616,8 +641,10 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         try
         {
+            var sandboxPaths = await _sandboxPaths.Value;
+
             // Ensure memories directory exists
-            Directory.CreateDirectory(_localSandboxMemoryPath);
+            Directory.CreateDirectory(sandboxPaths.MemoriesPath);
 
             await foreach (var blobPath in _remoteStorage.ListBlobsAsync(MemoriesContainerName, null, cancellationToken))
             {
@@ -629,7 +656,7 @@ public class AgentFileStorageService : IAgentFileStorageService
                     continue;
                 }
 
-                var localFilePath = Path.Combine(_localSandboxMemoryPath, blobPath.Replace('/', Path.DirectorySeparatorChar));
+                var localFilePath = Path.Combine(sandboxPaths.MemoriesPath, blobPath.Replace('/', Path.DirectorySeparatorChar));
 
                 // Ensure directory exists for the file
                 var directory = Path.GetDirectoryName(localFilePath);
@@ -684,11 +711,13 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         try
         {
+            var sandboxPaths = await _sandboxPaths.Value;
+
             await foreach (var blobPath in _remoteStorage.ListBlobsAsync(MemoriesContainerName, blobPrefix, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var localFilePath = Path.Combine(_localSandboxMemoryPath, blobPath.Replace('/', Path.DirectorySeparatorChar));
+                var localFilePath = Path.Combine(sandboxPaths.MemoriesPath, blobPath.Replace('/', Path.DirectorySeparatorChar));
 
                 // Ensure directory exists for the file
                 var directory = Path.GetDirectoryName(localFilePath);
@@ -736,11 +765,13 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         try
         {
+            var sandboxPaths = await _sandboxPaths.Value;
+
             await foreach (var blobPath in _remoteStorage.ListBlobsAsync(MemoriesContainerName, blobPrefix, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var localFilePath = Path.Combine(_localSandboxMemoryPath, blobPath.Replace('/', Path.DirectorySeparatorChar));
+                var localFilePath = Path.Combine(sandboxPaths.MemoriesPath, blobPath.Replace('/', Path.DirectorySeparatorChar));
 
                 // Ensure directory exists for the file
                 var directory = Path.GetDirectoryName(localFilePath);
@@ -911,8 +942,10 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         var deletedCount = 0;
 
+        var sandboxPaths = await _sandboxPaths.Value;
+
         // Delete local files: {MemoriesPath}/{repoName}/.github
-        var localFolder = Path.Combine(_localSandboxMemoryPath, repoName, RepoInstructionsFolderName);
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, repoName, RepoInstructionsFolderName);
         if (Directory.Exists(localFolder))
         {
             try
@@ -963,18 +996,20 @@ public class AgentFileStorageService : IAgentFileStorageService
     {
         var deletedCount = 0;
 
+        var sandboxPaths = await _sandboxPaths.Value;
+
         // Determine which folder(s) to delete
         string localFolder;
         string blobPrefix;
 
         if (threadId.HasValue)
         {
-            localFolder = Path.Combine(_localSandboxMemoryPath, SessionInsightsFolderName, threadId.Value.ToString());
+            localFolder = Path.Combine(sandboxPaths.MemoriesPath, SessionInsightsFolderName, threadId.Value.ToString());
             blobPrefix = $"{SessionInsightsFolderName}/{threadId.Value}/";
         }
         else
         {
-            localFolder = Path.Combine(_localSandboxMemoryPath, SessionInsightsFolderName);
+            localFolder = Path.Combine(sandboxPaths.MemoriesPath, SessionInsightsFolderName);
             blobPrefix = $"{SessionInsightsFolderName}/";
         }
 
@@ -1027,8 +1062,10 @@ public class AgentFileStorageService : IAgentFileStorageService
     {
         var deletedCount = 0;
 
+        var sandboxPaths = await _sandboxPaths.Value;
+
         // Delete local files
-        var localFolder = Path.Combine(_localSandboxMemoryPath, SynthesizedKnowledgeFolderName);
+        var localFolder = Path.Combine(sandboxPaths.MemoriesPath, SynthesizedKnowledgeFolderName);
         if (Directory.Exists(localFolder))
         {
             try
@@ -1081,10 +1118,12 @@ public class AgentFileStorageService : IAgentFileStorageService
 
         try
         {
+            var sandboxPaths = await _sandboxPaths.Value;
+
             // 1. Upload repo instructions - scan for all {repoName}/.github/ folders
-            if (Directory.Exists(_localSandboxMemoryPath))
+            if (Directory.Exists(sandboxPaths.MemoriesPath))
             {
-                foreach (var repoDir in Directory.GetDirectories(_localSandboxMemoryPath))
+                foreach (var repoDir in Directory.GetDirectories(sandboxPaths.MemoriesPath))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -1114,7 +1153,7 @@ public class AgentFileStorageService : IAgentFileStorageService
             }
 
             // 2. Upload session insights - scan for all thread folders
-            var sessionInsightsPath = Path.Combine(_localSandboxMemoryPath, SessionInsightsFolderName);
+            var sessionInsightsPath = Path.Combine(sandboxPaths.MemoriesPath, SessionInsightsFolderName);
             if (Directory.Exists(sessionInsightsPath))
             {
                 foreach (var threadDir in Directory.GetDirectories(sessionInsightsPath))

@@ -76,7 +76,7 @@ public static class SessionFileHelper
 
             await SaveToThreadFileStorageAsync(threadId, imageBytes, imageFilename, agentFileStorageService, logger);
 
-            var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(imageFilename)}";
+            var relativeLink = $"/api/files/{Uri.EscapeDataString(imageFilename)}";
             return new CodeFileInfo
             {
                 Filename = imageFilename,
@@ -147,11 +147,11 @@ public static class SessionFileHelper
                             // Store to ThreadFileStorage for persistence
                             await SaveToThreadFileStorageAsync(threadId, fileBytes, file.Filename, agentFileStorageService, logger);
 
-                            var relativeLink = $"/api/files/{threadId}/{Uri.EscapeDataString(Path.GetFileName(file.Filename))}";
+                            var relativeLink = $"/api/files/{Uri.EscapeDataString(file.Filename)}";
 
                             retrievedFiles.Add(new CodeFileInfo
                             {
-                                Filename = Path.GetFileName(file.Filename),
+                                Filename = file.Filename,
                                 DownloadLink = relativeLink,
                                 FileType = fileType
                             });

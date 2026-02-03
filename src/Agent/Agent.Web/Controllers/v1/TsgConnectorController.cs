@@ -249,7 +249,7 @@ public class TsgConnectorController : ControllerBase
                 return NotFound(new { error = $"Connector '{name}' not found" });
             }
 
-            _cloneService.DeleteLocalRepository(name);
+            await _cloneService.DeleteLocalRepositoryAsync(name);
 
             return NoContent();
         }

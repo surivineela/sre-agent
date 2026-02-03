@@ -32,19 +32,54 @@ import { getAgentHeaders } from '../Helpers/headers';
 import CopyButton from './CopyButton';
 
 /**
+ * Resolves file URLs by prepending threadId when necessary.
+ * URLs in format api/files/{path} become api/files/{threadId}/{path}
+ * URLs already containing a threadId (GUID format) are left unchanged.
+ */
+const resolveFileUrl = (url: string | undefined, threadId?: string): string | undefined => {
+    if (!url) return url;
+
+    // Only process api/files URLs
+    const isApiFileUrl = url.startsWith('/api/files/') || url.startsWith('api/files/');
+    if (!isApiFileUrl || !threadId) return url;
+
+    // Normalize URL (remove leading slash for parsing)
+    const normalizedUrl = url.startsWith('/') ? url.substring(1) : url;
+    const parts = normalizedUrl.split('/');
+
+    // Format: api/files/{path} -> needs threadId
+    // Format: api/files/{guid}/{path} -> already has threadId
+    if (parts.length >= 3) {
+        const potentialGuid = parts[2];
+        // Check if third segment is already a GUID (threadId)
+        const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(potentialGuid);
+        if (!isGuid) {
+            // Insert threadId: api/files/{path} -> api/files/{threadId}/{path}
+            const path = parts.slice(2).join('/');
+            return `/api/files/${threadId}/${path}`;
+        }
+    }
+
+    return url.startsWith('/') ? url : `/${url}`;
+};
+
+/**
  * Image component that fetches images with authentication headers for API URLs.
  * Falls back to standard <img> for external URLs or data URIs.
  */
-const AuthenticatedImage = ({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+const AuthenticatedImage = ({ src, alt, threadId, ...props }: React.ImgHTMLAttributes<HTMLImageElement> & { threadId?: string }) => {
     const intl = useIntl();
     const [blobUrl, setBlobUrl] = useState<string | undefined>();
     const [error, setError] = useState(false);
 
+    // Resolve the URL with threadId if needed
+    const resolvedSrc = resolveFileUrl(src, threadId);
+
     // Determine if this URL requires authentication (API file paths)
-    const requiresAuth = src?.startsWith('/api/files/') || src?.startsWith('api/files/');
+    const requiresAuth = resolvedSrc?.startsWith('/api/files/') || resolvedSrc?.startsWith('api/files/');
 
     useEffect(() => {
-        if (!src || !requiresAuth) {
+        if (!resolvedSrc || !requiresAuth) {
             return;
         }
 
@@ -53,7 +88,7 @@ const AuthenticatedImage = ({ src, alt, ...props }: React.ImgHTMLAttributes<HTML
 
         const fetchImage = async () => {
             try {
-                const response = await fetch(src, {
+                const response = await fetch(resolvedSrc, {
                     headers: getAgentHeaders(),
                     signal: controller.signal,
                 });
@@ -84,16 +119,16 @@ const AuthenticatedImage = ({ src, alt, ...props }: React.ImgHTMLAttributes<HTML
                 URL.revokeObjectURL(blobUrl);
             }
         };
-    }, [src, requiresAuth]);
+    }, [resolvedSrc, requiresAuth]);
 
     // For non-authenticated URLs, render directly
     if (!requiresAuth) {
-        return <img src={src} alt={alt} {...props} style={{ maxWidth: '100%', height: 'auto', ...props.style }} />;
+        return <img src={resolvedSrc} alt={alt} {...props} style={{ maxWidth: '100%', height: 'auto', ...props.style }} />;
     }
 
     // Show error state
     if (error) {
-        return <span title={`Failed to load image: ${src}`}>{intl.formatMessage(SreAgentResources.imageFailedToLoad)}</span>;
+        return <span title={`Failed to load image: ${resolvedSrc}`}>{intl.formatMessage(SreAgentResources.imageFailedToLoad)}</span>;
     }
 
     // Show loading or render authenticated image
@@ -203,6 +238,7 @@ interface ReactMarkdownComponentProps {
     content?: string | null;
     className?: string;
     variant?: 'chat' | 'panel' | 'default';
+    threadId?: string;
 }
 
 interface MarkdownNode {
@@ -429,7 +465,7 @@ const renderMarkdownTable = (props: ReactMarkdownTableProps, proxy: any, tableWr
     }
 };
 
-const ReactMarkdownComponent = ({ content, className, variant = 'default' }: ReactMarkdownComponentProps) => {
+const ReactMarkdownComponent = ({ content, className, variant = 'default', threadId }: ReactMarkdownComponentProps) => {
     const styles = useStyles();
     const proxy = useContext(AzPortalContext);
     // Note: chatRoot styling removed for chat variant to make agent text appear as plain text (no bubble)
@@ -492,13 +528,14 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default' }: Rea
                     u: ({ children }: any) => <Text underline>{children}</Text>,
                     blockquote: ({ children }: any) => <blockquote className={styles.blockquote}>{children}</blockquote>,
                     a: ({ children, href }: any) => {
-                        const isApiFileLink = href?.startsWith('/api/files/');
+                        const resolvedHref = resolveFileUrl(href, threadId);
+                        const isApiFileLink = resolvedHref?.startsWith('/api/files/');
 
                         const handleFileDownload = async (e: React.MouseEvent) => {
                             e.preventDefault();
 
                             try {
-                                const response = await fetch(href, {
+                                const response = await fetch(resolvedHref!, {
                                     headers: getAgentHeaders(),
                                 });
 
@@ -510,14 +547,14 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default' }: Rea
                                 const url = window.URL.createObjectURL(blob);
                                 const a = document.createElement('a');
                                 a.href = url;
-                                a.download = href.split('/').pop() || 'download';
+                                a.download = resolvedHref!.split('/').pop() || 'download';
                                 document.body.appendChild(a);
                                 a.click();
                                 document.body.removeChild(a);
                                 window.URL.revokeObjectURL(url);
                             } catch (error) {
                                 console.error('Error downloading file:', error);
-                                window.open(href, '_blank');
+                                window.open(resolvedHref, '_blank');
                             }
                         };
 
@@ -530,7 +567,7 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default' }: Rea
                         }
 
                         return (
-                            <Link href={href} target="_blank" rel="noopener noreferrer">
+                            <Link href={resolvedHref} target="_blank" rel="noopener noreferrer">
                                 {children}
                             </Link>
                         );
@@ -573,7 +610,7 @@ const ReactMarkdownComponent = ({ content, className, variant = 'default' }: Rea
                         </TableHeaderCell>
                     ),
                     td: ({ children }: any) => <TableCell>{children ?? '-'}</TableCell>,
-                    img: ({ src, alt, ...props }: any) => <AuthenticatedImage src={src} alt={alt} {...props} />,
+                    img: ({ src, alt, ...props }: any) => <AuthenticatedImage src={src} alt={alt} threadId={threadId} {...props} />,
                 }}
             >
                 {content}

@@ -198,6 +198,26 @@ variants:
 
             </outputFormatting>
 
+            <fileAndRepoLinkGuidance>
+            When referencing files in your responses:
+            1. **Repository Source Files** (files under codeRef/ folder):
+               - Use full remote URLs to link to the source repository
+               - Construct URL from repository info: `https://github.com/{owner}/{repo}/blob/{branch}/{path}`
+               - Example: `[src/main.py](https://github.com/contoso/myrepo/blob/main/src/main.py)`
+               - For Azure DevOps: `https://dev.azure.com/{org}/{project}/_git/{repo}?path=/{path}&version=GB{branch}`
+
+            2. **Temp Workspace Files** (files under tmp/threadFiles/<threadId>/ folder):
+               - Use markdown download links: `[Download filename](api/files/<relative-path>)`
+               - Use relative path from tmp/threadFiles/<threadId>/ onward. 
+                 Example: for file tmp/threadFiles/<threadId>/output.txt: `[Download output.txt](/api/files/output.txt)`
+               - The UI will automatically handle authentication and threadId routing.
+
+            3. **Other Workspace Files** (files outside codeRef and tmp folders):
+               - You should NEVER link to these files directly.
+
+            Always prefer linking to the remote repository URL for source code files so users can view them in context with full git history and blame information.
+            </fileAndRepoLinkGuidance>
+
             <reminderInstructions>
             When using the replace_string_in_file tool, include 3-5 lines of unchanged code before and after the string you want to replace, to make it unambiguous which part of the file should be edited.
             For maximum efficiency, whenever you plan to perform multiple independent edit operations, invoke them simultaneously using multi_replace_string_in_file tool rather than sequentially. This will greatly improve user's cost and time efficiency leading to a better user experience. Do not announce which tool you're using (for example, avoid saying "I'll implement all the changes using multi_replace_string_in_file").

@@ -51,17 +51,34 @@ public record WorkspaceMemoryListResponse(
 /// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
-public class WorkspaceMemoryController(
-    ILogger<WorkspaceMemoryController> logger,
-    IAgentFileStorageService agentFileStorageService)
-    : ControllerBase
+public class WorkspaceMemoryController : ControllerBase
 {
     // Memory folder constants (same as in AgentFileStorageService)
     private const string RepoInstructionsFolderName = ".github";
     private const string SessionInsightsFolderName = "sessionInsights";
     private const string SynthesizedKnowledgeFolderName = "synthesizedKnowledge";
 
-    private readonly string _localMemoryPath = new LocalSandboxPaths().SandboxPaths.MemoriesPath;
+    private readonly ILogger<WorkspaceMemoryController> logger;
+    private readonly IAgentFileStorageService agentFileStorageService;
+    private readonly Lazy<Task<SandboxPaths>> _sandboxPaths;
+
+    public WorkspaceMemoryController(
+        ILogger<WorkspaceMemoryController> logger,
+        IAgentFileStorageService agentFileStorageService,
+        ISandboxPaths sandboxPaths)
+    {
+        this.logger = logger;
+        this.agentFileStorageService = agentFileStorageService;
+        _sandboxPaths = new Lazy<Task<SandboxPaths>>(
+            () => sandboxPaths.GetSandboxPathsAsync(),
+            LazyThreadSafetyMode.ExecutionAndPublication);
+    }
+
+    /// <summary>
+    /// Helper to get the local memory path asynchronously.
+    /// </summary>
+    private async Task<string> GetLocalMemoryPathAsync()
+        => (await _sandboxPaths.Value).MemoriesPath;
 
     #region Repo Instructions (.github)
 
@@ -98,9 +115,11 @@ public class WorkspaceMemoryController(
 
         try
         {
+            var localMemoryPath = await GetLocalMemoryPathAsync();
+
             // Local path: {MemoriesPath}/{repo}/.github
             var (uploadedFiles, totalSize) = await ExtractTarGzToFolderAsync(
-                Path.Combine(_localMemoryPath, repo, RepoInstructionsFolderName),
+                Path.Combine(localMemoryPath, repo, RepoInstructionsFolderName),
                 cancellationToken);
 
             // Sync to blob storage
@@ -153,8 +172,10 @@ public class WorkspaceMemoryController(
 
         try
         {
+            var localMemoryPath = await GetLocalMemoryPathAsync();
+
             // Local path: {MemoriesPath}/{repo}/.github
-            var folderPath = Path.Combine(_localMemoryPath, repo, RepoInstructionsFolderName);
+            var folderPath = Path.Combine(localMemoryPath, repo, RepoInstructionsFolderName);
 
             logger.LogInternalInformation("Downloading from blob storage", repo);
             var downloadedCount = await agentFileStorageService.DownloadWorkspaceRepoInstructionsAsync(repo, cancellationToken);
@@ -247,17 +268,18 @@ public class WorkspaceMemoryController(
 
         try
         {
+            var localMemoryPath = await GetLocalMemoryPathAsync();
             string folderPath;
             string archiveName;
 
             if (threadId.HasValue)
             {
-                folderPath = Path.Combine(_localMemoryPath, SessionInsightsFolderName, threadId.Value.ToString());
+                folderPath = Path.Combine(localMemoryPath, SessionInsightsFolderName, threadId.Value.ToString());
                 archiveName = $"session-insights-{threadId}.tar.gz";
             }
             else
             {
-                folderPath = Path.Combine(_localMemoryPath, SessionInsightsFolderName);
+                folderPath = Path.Combine(localMemoryPath, SessionInsightsFolderName);
                 archiveName = "session-insights.tar.gz";
             }
 
@@ -363,7 +385,8 @@ public class WorkspaceMemoryController(
 
         try
         {
-            var destPath = Path.Combine(_localMemoryPath, SynthesizedKnowledgeFolderName);
+            var localMemoryPath = await GetLocalMemoryPathAsync();
+            var destPath = Path.Combine(localMemoryPath, SynthesizedKnowledgeFolderName);
 
             var (uploadedFiles, totalSize) = await ExtractTarGzToFolderAsync(destPath, cancellationToken);
 
@@ -409,7 +432,8 @@ public class WorkspaceMemoryController(
 
         try
         {
-            var folderPath = Path.Combine(_localMemoryPath, SynthesizedKnowledgeFolderName);
+            var localMemoryPath = await GetLocalMemoryPathAsync();
+            var folderPath = Path.Combine(localMemoryPath, SynthesizedKnowledgeFolderName);
 
             logger.LogInternalInformation("Downloading from blob storage");
             var downloadedCount = await agentFileStorageService.DownloadWorkspaceSynthesizedKnowledgeAsync(cancellationToken);
@@ -487,7 +511,7 @@ public class WorkspaceMemoryController(
     [AuthorizeArmOperation(ArmOperations.AgentMemoryReadActionId)]
     [ProducesResponseType(typeof(WorkspaceMemoryListResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public Task<IActionResult> List(
+    public async Task<IActionResult> List(
         [FromQuery] string? type = null,
         [FromQuery] string? repo = null,
         [FromQuery] Guid? threadId = null,
@@ -499,15 +523,16 @@ public class WorkspaceMemoryController(
 
         try
         {
+            var localMemoryPath = await GetLocalMemoryPathAsync();
             var files = new List<WorkspaceMemoryFileInfo>();
             long totalSize = 0;
 
-            if (!Directory.Exists(_localMemoryPath))
+            if (!Directory.Exists(localMemoryPath))
             {
-                return Task.FromResult<IActionResult>(Ok(new WorkspaceMemoryListResponse(
+                return Ok(new WorkspaceMemoryListResponse(
                     Files: files,
                     TotalCount: 0,
-                    TotalSize: 0)));
+                    TotalSize: 0));
             }
 
             // Determine which folders to include
@@ -523,9 +548,9 @@ public class WorkspaceMemoryController(
                 else
                 {
                     // Scan all repo folders for .github subdirectories
-                    if (Directory.Exists(_localMemoryPath))
+                    if (Directory.Exists(localMemoryPath))
                     {
-                        foreach (var repoDir in Directory.GetDirectories(_localMemoryPath))
+                        foreach (var repoDir in Directory.GetDirectories(localMemoryPath))
                         {
                             var githubDir = Path.Combine(repoDir, RepoInstructionsFolderName);
                             if (Directory.Exists(githubDir))
@@ -557,7 +582,7 @@ public class WorkspaceMemoryController(
 
             foreach (var folder in foldersToScan)
             {
-                var folderPath = Path.Combine(_localMemoryPath, folder);
+                var folderPath = Path.Combine(localMemoryPath, folder);
                 if (!Directory.Exists(folderPath))
                 {
                     continue;
@@ -568,7 +593,7 @@ public class WorkspaceMemoryController(
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var fileInfo = new FileInfo(file);
-                    var relativePath = Path.GetRelativePath(_localMemoryPath, file).Replace('\\', '/');
+                    var relativePath = Path.GetRelativePath(localMemoryPath, file).Replace('\\', '/');
 
                     files.Add(new WorkspaceMemoryFileInfo(
                         Path: relativePath,
@@ -583,16 +608,16 @@ public class WorkspaceMemoryController(
                 "Workspace memory list completed. Files: {FileCount}, TotalSize: {TotalSize} bytes",
                 files.Count, totalSize);
 
-            return Task.FromResult<IActionResult>(Ok(new WorkspaceMemoryListResponse(
+            return Ok(new WorkspaceMemoryListResponse(
                 Files: files,
                 TotalCount: files.Count,
-                TotalSize: totalSize)));
+                TotalSize: totalSize));
         }
         catch (Exception ex)
         {
             logger.LogInternalError(ex, "Failed to list workspace memory");
-            return Task.FromResult<IActionResult>(StatusCode(StatusCodes.Status500InternalServerError,
-                new { error = "Failed to list workspace memory" }));
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { error = "Failed to list workspace memory" });
         }
     }
 

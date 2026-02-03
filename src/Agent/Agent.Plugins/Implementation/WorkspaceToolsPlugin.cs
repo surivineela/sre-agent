@@ -50,6 +50,7 @@ public partial class WorkspaceToolsPlugin : IWorkspaceToolsPlugin, IAmbientConte
         ExperimentalSettings experimentalSettings,
         IExperimentLoader experimentLoader,
         CoreSettings coreSettings,
+        ISandboxPaths sandboxPaths,
         AdcRemoteWorkspaceService adcRemoteWorkspaceService)
     {
         _logger = logger;
@@ -72,14 +73,14 @@ public partial class WorkspaceToolsPlugin : IWorkspaceToolsPlugin, IAmbientConte
         }
         else
         {
-            // Local mode: use local implementations (directories created in LocalSandboxPaths constructor)
-            var localSandboxPaths = new LocalSandboxPaths();
-            _sandboxPaths = localSandboxPaths;
-            // LocalSandboxPaths.GetSandboxPathsAsync returns synchronously via Task.FromResult
-            var sandboxRoot = localSandboxPaths.GetSandboxPathsAsync().GetAwaiter().GetResult().SandboxRoot;
+            // Local mode: use local implementations via DI-provided sandbox paths
+            _sandboxPaths = sandboxPaths;
+            // LocalSandboxPaths.GetSandboxPathsAsync returns synchronously via Task.FromResult,
+            // so this is safe to call synchronously here for local mode only
+            var sandboxRoot = sandboxPaths.GetSandboxPathsAsync().GetAwaiter().GetResult().SandboxRoot;
             _fileTool = new LocalFileTools(logger, sandboxRoot);
             _bashTool = new LocalBashTools(logger, sandboxRoot);
-            _workspaceContext = new LocalWorkspaceContext(logger, localSandboxPaths);
+            _workspaceContext = new LocalWorkspaceContext(logger, sandboxPaths);
         }
     }
 
