@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -316,6 +317,12 @@ public sealed class AgentFactory<TContext> : AsyncInitializerBase, IAgentFactory
         }
 
         ConfigureAgentInstructions(agent, agentDescriptor);
+
+        // Load hook configuration if the descriptor defines hooks
+        if (agentDescriptor.Hooks != null)
+        {
+            agent.HookConfiguration = HookManager.CreateFromDictionary(agentDescriptor.Hooks);
+        }
 
         if (_agents.ContainsKey(agentDescriptor.Name) && !isCustomAgent && !overwrite)
         {

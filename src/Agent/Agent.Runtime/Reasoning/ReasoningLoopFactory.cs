@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
 using Agent.Logging;
 using Microsoft.Extensions.Hosting;
@@ -43,6 +44,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
     private readonly IToolOutputProcessService _toolOutputProcessService;
     private readonly IAgentFileStorageService _agentFileStorageService;
     private readonly IAmbientContextProvider _ambientContextProvider;
+    private readonly HookManager _hookManager;
 
     private readonly Tracer _tracer;
 
@@ -82,7 +84,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         IMeterFactory meterFactory,
         IncidentManagementSettings incidentManagementSettings,
         ISkillRegistry skillRegistry,
-        IAmbientContextProvider ambientContextProvider
+        IAmbientContextProvider ambientContextProvider,
+        HookManager hookManager
         )
     {
         _loggerFactory = loggerFactory;
@@ -110,6 +113,7 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
         _incidentManagementSettings = incidentManagementSettings;
         _skillRegistry = skillRegistry;
         _ambientContextProvider = ambientContextProvider;
+        _hookManager = hookManager;
 
         // enable handoff reasoning for developer envs
         var enableHandoffReasoning = coreSettings.Experimental?.EnableHandoffReasoning
@@ -200,7 +204,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     tracer: _tracer,
                     incidentManagementSettings: _incidentManagementSettings,
                     coreSettings: _coreSettings,
-                    skillRegistry: _skillRegistry);
+                    skillRegistry: _skillRegistry,
+                    hookManager: _hookManager);
 
                 await workflowOrchestrator.LoadChatHistoryAsync();
 
@@ -235,7 +240,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
                     toolOutputProcessService: _toolOutputProcessService,
                     agentFileStorageService: _agentFileStorageService,
                     hostEnvironment: _hostEnvironment,
-                    ambientContextProvider: _ambientContextProvider);
+                    ambientContextProvider: _ambientContextProvider,
+                    hookManager: _hookManager);
 
             }
             catch (Exception ex)
@@ -272,7 +278,8 @@ public class ReasoningLoopFactory : IReasoningLoopFactory
             hostEnvironment: _hostEnvironment,
             modeSwitchEnabled: ModeSwitchHelper.ModeSwitchEnabled(_coreSettings),
             skillRegistry: _skillRegistry,
-            ambientContextProvider: _ambientContextProvider);
+            ambientContextProvider: _ambientContextProvider,
+            hookManager: _hookManager);
 
         await loop.LoadChatHistoryAsync();
         return loop;

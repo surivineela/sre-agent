@@ -240,22 +240,21 @@ public static class SessionFileHelper
             execResp.RetrievedFiles = retrievedFiles;
         }
     }
+}
 
-    // Internal classes for JSON deserialization (same as CodeInterpreterPlugin)
-    private class FilesListResponse
-    {
-        public List<FileItemWrapper>? Value { get; set; }
-    }
+public class FilesListResponse
+{
+    public List<FileItemWrapper>? Value { get; set; }
+}
 
-    private class FileItemWrapper
-    {
-        public FileMetadata? Properties { get; set; }
-    }
+public class FileItemWrapper
+{
+    public FileMetadata? Properties { get; set; }
+}
 
-    private class FileMetadata
-    {
-        public string Filename { get; set; } = string.Empty;
-        public long? Size { get; set; }
-        public DateTime? LastModifiedTime { get; set; }
-    }
+public class FileMetadata
+{
+    public string Filename { get; set; } = string.Empty;
+    public long? Size { get; set; }
+    public DateTime? LastModifiedTime { get; set; }
 }

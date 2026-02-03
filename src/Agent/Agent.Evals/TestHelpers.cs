@@ -528,6 +528,8 @@ public static class TestHelpers
         builder.Services.AddWorkspaceServices();
         builder.Services.AddAdcServices(builder.Configuration);
 
+        builder.Services.AddHooks();
+
         return builder;
     }
 

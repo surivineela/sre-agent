@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
 
@@ -135,6 +136,80 @@ public class CriticFeedbackTrajectoryItem : TrajectoryItem
         return sb.ToString();
     }
 }
+
+#region JSON Trajectory DTOs
+
+/// <summary>
+/// Serializable representation of a trajectory for JSON output.
+/// </summary>
+public sealed record TrajectoryJson(
+    [property: JsonPropertyName("items")] List<TrajectoryItemJson> Items);
+
+/// <summary>
+/// Base class for trajectory item JSON representations.
+/// Uses polymorphic serialization with "type" discriminator.
+/// </summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(TextTrajectoryItemJson), "text")]
+[JsonDerivedType(typeof(FunctionCallTrajectoryItemJson), "function_call")]
+[JsonDerivedType(typeof(FunctionResultTrajectoryItemJson), "function_result")]
+[JsonDerivedType(typeof(CriticFeedbackTrajectoryItemJson), "critic_feedback")]
+[JsonDerivedType(typeof(AgentTextTrajectoryItemJson), "agent_text")]
+[JsonDerivedType(typeof(AgentReasoningTrajectoryItemJson), "agent_reasoning")]
+[JsonDerivedType(typeof(AgentFunctionCallTrajectoryItemJson), "agent_function_call")]
+public abstract record TrajectoryItemJson;
+
+/// <summary>
+/// JSON representation of a text message (user, assistant, system).
+/// </summary>
+public sealed record TextTrajectoryItemJson(
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("text")] string Text) : TrajectoryItemJson;
+
+/// <summary>
+/// JSON representation of a function/tool call.
+/// </summary>
+public sealed record FunctionCallTrajectoryItemJson(
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("function_name")] string FunctionName,
+    [property: JsonPropertyName("parameters")] string Parameters) : TrajectoryItemJson;
+
+/// <summary>
+/// JSON representation of a function/tool result.
+/// </summary>
+public sealed record FunctionResultTrajectoryItemJson(
+    [property: JsonPropertyName("call_id")] string CallId,
+    [property: JsonPropertyName("result")] string? Result) : TrajectoryItemJson;
+
+/// <summary>
+/// JSON representation of critic feedback.
+/// </summary>
+public sealed record CriticFeedbackTrajectoryItemJson(
+    [property: JsonPropertyName("feedback")] string Feedback) : TrajectoryItemJson;
+
+/// <summary>
+/// JSON representation of an agent text message (uses role display name).
+/// </summary>
+public sealed record AgentTextTrajectoryItemJson(
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("text")] string Text) : TrajectoryItemJson;
+
+/// <summary>
+/// JSON representation of agent reasoning content (from reasoning models).
+/// </summary>
+public sealed record AgentReasoningTrajectoryItemJson(
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("reasoning_text")] string ReasoningText) : TrajectoryItemJson;
+
+/// <summary>
+/// JSON representation of an agent function/tool call (uses role display name).
+/// </summary>
+public sealed record AgentFunctionCallTrajectoryItemJson(
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("function_name")] string FunctionName,
+    [property: JsonPropertyName("parameters")] string Parameters) : TrajectoryItemJson;
+
+#endregion
 
 public sealed class Trajectory
 {
@@ -389,17 +464,49 @@ public sealed class Trajectory
         return $"Recent handoffs: {string.Join(" → ", handoffs.TakeLast(10))}";
     }
 
-    public string GetFilteredTrajectory()
+    public string GetFilteredTrajectory(bool resetFunctionResults = true)
     {
         // Apply filtering strategy: keep all content but filter function results to reduce context size, and return the trajectory
         var trajectory = ToString(filterResults: true);
 
-        // Remove function result items from memory to reduce memory usage
-        _trajectoryItems.RemoveAll(item => item is FunctionResultTrajectoryItem);
+        if (resetFunctionResults)
+        {
+            // Remove function result items from memory to reduce memory usage
+            _trajectoryItems.RemoveAll(item => item is FunctionResultTrajectoryItem);
+        }
 
         // NOTE: CriticCount should be incremented only when critic actually runs, not here
         return trajectory;
     }
+
+    private static readonly JsonSerializerOptions s_trajectoryJsonOptions = new()
+    {
+        WriteIndented = false
+    };
+
+    /// <summary>
+    /// Gets the trajectory as a structured JSON string for programmatic parsing.
+    /// Function results are filtered for brevity (same as text format).
+    /// </summary>
+    /// <returns>JSON string with trajectory items array.</returns>
+    public string GetFilteredTrajectoryJson()
+    {
+        var items = _trajectoryItems.Select(ToTrajectoryItemJson).ToList();
+        var trajectoryJson = new TrajectoryJson(items);
+        return JsonSerializer.Serialize(trajectoryJson, s_trajectoryJsonOptions);
+    }
+
+    private static TrajectoryItemJson ToTrajectoryItemJson(TrajectoryItem item) => item switch
+    {
+        TextTrajectoryItem t => new TextTrajectoryItemJson(t.Role.ToString(), t.Text),
+        FunctionCallTrajectoryItem fc => new FunctionCallTrajectoryItemJson(fc.Role.ToString(), fc.FunctionName, fc.Parameters),
+        FunctionResultTrajectoryItem fr => new FunctionResultTrajectoryItemJson(fr.CallId, "[Result filtered for brevity]"),
+        CriticFeedbackTrajectoryItem cf => new CriticFeedbackTrajectoryItemJson(cf.Feedback),
+        AgentTextTrajectoryItem at => new AgentTextTrajectoryItemJson(at.RoleDisplayName, at.Text),
+        AgentReasoningTrajectoryItem ar => new AgentReasoningTrajectoryItemJson(ar.RoleDisplayName, ar.ReasoningText),
+        AgentFunctionCallTrajectoryItem afc => new AgentFunctionCallTrajectoryItemJson(afc.RoleDisplayName, afc.FunctionName, afc.Parameters),
+        _ => throw new InvalidOperationException($"Unknown trajectory item type: {item.GetType().Name}")
+    };
 
     /// <summary>
     /// Get the full trajectory without any filtering (for debugging or other purposes)

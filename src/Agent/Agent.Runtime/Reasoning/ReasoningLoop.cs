@@ -21,6 +21,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
 using Agent.Logging;
 using Agent.Plugins;
@@ -133,6 +134,9 @@ public class ReasoningLoop : IDisposable
     // ambient context provider for VS Code tools integration
     private readonly IAmbientContextProvider _ambientContextProvider;
 
+    // hook manager for executing agent hooks
+    private readonly HookManager _hookManager;
+
     public ReasoningLoop(
         ILoggerFactory loggerFactory,
         IChatClientProvider chatClientProvider,
@@ -160,7 +164,8 @@ public class ReasoningLoop : IDisposable
         IAgentFileStorageService agentFileStorageService,
         IHostEnvironment hostEnvironment,
         IAmbientContextProvider ambientContextProvider,
-        bool modeSwitchEnabled)
+        bool modeSwitchEnabled,
+        HookManager hookManager)
     {
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger<ReasoningLoop>();
@@ -196,6 +201,7 @@ public class ReasoningLoop : IDisposable
         _modeSwitchEnabled = modeSwitchEnabled;
         _skillRegistry = skillRegistry;
         _ambientContextProvider = ambientContextProvider;
+        _hookManager = hookManager;
         if (_modeSwitchEnabled)
         {
             // Initialize handler only when feature flag enabled to keep overhead minimal for other agents
@@ -929,7 +935,8 @@ public class ReasoningLoop : IDisposable
             SkillRegistry = _skillRegistry,
             EnablePartialToolOutput = _featureConfig.PartialOutputEnabled,
             AmbientContextProvider = _ambientContextProvider,
-            ChatClientProvider = _chatClientProvider
+            ChatClientProvider = _chatClientProvider,
+            HookManager = _hookManager
         };
 
         List<UserActionRequiredResult> userActionRequiredResults = [];
@@ -3562,7 +3569,8 @@ public class ReasoningLoop : IDisposable
                 SkillRegistry = _skillRegistry,
                 EnablePartialToolOutput = _featureConfig.PartialOutputEnabled,
                 AmbientContextProvider = _ambientContextProvider,
-                ChatClientProvider = _chatClientProvider
+                ChatClientProvider = _chatClientProvider,
+                HookManager = _hookManager
             };
 
             try

@@ -8,6 +8,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.AgentMemory;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 using Agent.Framework.Skills;
 using Agent.Logging;
 using Microsoft.Extensions.AI;
@@ -58,7 +59,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
         IToolOutputProcessService toolOutputProcessService,
         IAgentFileStorageService agentFileStorageService,
         IHostEnvironment hostEnvironment,
-        IAmbientContextProvider ambientContextProvider)
+        IAmbientContextProvider ambientContextProvider,
+        HookManager hookManager)
         : base(
             loggerFactory: loggerFactory,
             chatClientProvider: chatClientProvider,
@@ -86,7 +88,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             toolOutputProcessService: toolOutputProcessService,
             agentFileStorageService: agentFileStorageService,
             hostEnvironment: hostEnvironment,
-            ambientContextProvider: ambientContextProvider)
+            ambientContextProvider: ambientContextProvider,
+            hookManager: hookManager)
     {
         _workflowOrchestrator = new WorkflowOrchestrator(
             loggerFactory: loggerFactory,
@@ -99,7 +102,8 @@ public class WorkflowReasoningLoop : ReasoningLoop
             tracer: tracer,
             incidentManagementSettings: incidentManagementSettings,
             coreSettings: coreSettings,
-            skillRegistry: skillRegistry);
+            skillRegistry: skillRegistry,
+            hookManager: hookManager);
 
         _logger = loggerFactory.CreateLogger<WorkflowReasoningLoop>();
     }

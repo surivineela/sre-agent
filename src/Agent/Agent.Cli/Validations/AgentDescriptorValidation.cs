@@ -4,6 +4,7 @@
 
 using Agent.Cli.Services;
 using Agent.Framework;
+using Agent.Framework.Hooks;
 
 namespace Agent.Cli.Validations;
 
@@ -214,10 +215,74 @@ public static class AgentDescriptorValidation
             }
         }
 
+        // Validate hooks if present
+        if (agentDescriptor.Hooks != null && agentDescriptor.Hooks.Count > 0)
+        {
+            ValidateHooks(agentDescriptor.Hooks, errors);
+        }
+
         // Enhanced validation for handoffs (only if handoffs is not null)
         if (agentDescriptor.Handoffs != null && agentDescriptor.Handoffs.Count > 0)
         {
             ValidateHandoffTargets(agentDescriptor.Name, agentDescriptor.Handoffs, errors);
+        }
+    }
+
+    /// <summary>
+    /// Validates hook configuration.
+    /// </summary>
+    private static void ValidateHooks(Dictionary<string, List<HookDefinition>> hooks, List<string> errors)
+    {
+        var validEventTypes = Enum.GetNames<HookEventType>();
+
+        foreach (var kvp in hooks)
+        {
+            // Validate event type
+            if (!Enum.TryParse<HookEventType>(kvp.Key, ignoreCase: true, out _))
+            {
+                errors.Add($"Invalid hook event type '{kvp.Key}'. Valid types are: {string.Join(", ", validEventTypes)}");
+                continue;
+            }
+
+            // Validate hook definitions
+            if (kvp.Value == null || kvp.Value.Count == 0)
+            {
+                errors.Add($"Hook event '{kvp.Key}' has no hook definitions.");
+                continue;
+            }
+
+            foreach (var hook in kvp.Value)
+            {
+                ValidateHookDefinition(kvp.Key, hook, errors);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Validates a single hook definition.
+    /// </summary>
+    private static void ValidateHookDefinition(string eventType, HookDefinition hook, List<string> errors)
+    {
+        // Validate prompt-based hooks have a prompt
+        if (hook.Type == HookType.Prompt && string.IsNullOrWhiteSpace(hook.Prompt))
+        {
+            errors.Add($"Prompt hook in '{eventType}' must have a prompt defined.");
+        }
+
+        // Validate command-based hooks have a command
+        if (hook.Type == HookType.Command && string.IsNullOrWhiteSpace(hook.Command))
+        {
+            errors.Add($"Command hook in '{eventType}' must have a command defined.");
+        }
+
+        // Validate timeout is reasonable
+        if (hook.Timeout <= 0)
+        {
+            errors.Add($"Hook in '{eventType}' has invalid timeout ({hook.Timeout}). Timeout must be positive.");
+        }
+        else if (hook.Timeout > 300)
+        {
+            errors.Add($"Hook in '{eventType}' has excessive timeout ({hook.Timeout}s). Maximum is 300 seconds.");
         }
     }
 

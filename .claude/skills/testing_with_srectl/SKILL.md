@@ -51,12 +51,7 @@ dotnet run --no-restore -- thread list
 
 ### Connecting to a Locally-Running SRE Agent
 
-**Important:** Before running any SRECTL commands against a local agent, you must start the Agent.Web project in a separate background terminal:
-
-```powershell
-# Start the local SRE Agent server (run from repo root)
-dotnet run --project src/Agent/Agent.Web/Agent.Web.csproj
-```
+**Important:** Before running any SRECTL commands against a local agent, you must start the Agent.Web project. It is recommended to build the project first, then run without building. Always run the server in an external process so it stays running.
 
 Keep this running in a separate terminal. The server runs at `https://localhost:7023` by default.
 

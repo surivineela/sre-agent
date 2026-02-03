@@ -8,6 +8,7 @@ using Agent.Web.Authorization;
 using Agent.Web.Models.ExtendedAgents;
 using Agent.Web.Models.ExtendedAgents.Request;
 using Agent.Web.Services;
+using Agent.Web.Validation;
 using Agent.Web.Views.v2;
 using Microsoft.AspNetCore.Mvc;
 using ArmOperations = Agent.Core.Constants.ArmOperations;
@@ -54,6 +55,13 @@ public class ExtendedAgentApiController : ControllerBase
         var existingAgentResult = await _extendedAgentApiService.GetAgentAsync(agentName);
 
         var model = ExtendedAgentView.CreateModel(request, existingAgentResult.Response?.Metadata, null);
+
+        // Validate hooks if present
+        var hookErrors = HookValidationHelper.ValidateHooks(model.Spec.Hooks);
+        if (hookErrors.Count > 0)
+        {
+            return BadRequest(ErrorMap.ValidationFailure.CreateErrorEntity(string.Join("; ", hookErrors)));
+        }
 
         var result = await _extendedAgentApiService.CreateOrUpdateAgentAsync(agentName, model, dryRun);
 
@@ -104,6 +112,13 @@ public class ExtendedAgentApiController : ControllerBase
         }
 
         var model = ExtendedAgentView.CreateModel(request, baseModel: baseModelResult.Response);
+
+        // Validate hooks if present
+        var hookErrors = HookValidationHelper.ValidateHooks(model.Spec.Hooks);
+        if (hookErrors.Count > 0)
+        {
+            return BadRequest(ErrorMap.ValidationFailure.CreateErrorEntity(string.Join("; ", hookErrors)));
+        }
 
         var result = await _extendedAgentApiService.CreateOrUpdateAgentAsync(agentName, model, dryRun);
         if (result.IsStatusCodeResult)

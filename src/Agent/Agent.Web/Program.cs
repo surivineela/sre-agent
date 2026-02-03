@@ -854,6 +854,9 @@ public class Program
 
         builder.Services.ConfigureFrameworkAsyncInitializers<AgentContext>();
 
+        // Register hook infrastructure for Claude-style agent hooks
+        builder.Services.AddHooks();
+
         builder.Services
             .AddSingleton<IDiagnosticsPlugin, DiagnosticsPlugin>()
             .AddSingleton<ISearchPlugin, SearchPlugin>()
