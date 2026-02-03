@@ -566,6 +566,59 @@ public sealed class ToolFactory<TContext> : AsyncInitializerBase, IToolFactory<T
         return _tools.ContainsKey(name);
     }
 
+    /// <summary>
+    /// Expands a tool name pattern that may contain wildcards into a list of matching tool names.
+    /// Supports the pattern {connection-id}/* to include all tools from an MCP connection.
+    /// </summary>
+    /// <param name="pattern">Tool name or pattern (e.g., "kusto-mcp/*" or "SearchResource")</param>
+    /// <returns>List of tool names matching the pattern. Empty list if no matches.</returns>
+    public List<string> ExpandToolPattern(string pattern)
+    {
+        if (string.IsNullOrWhiteSpace(pattern))
+        {
+            return [];
+        }
+
+        // Check for wildcard pattern: {connection-id}/*
+        if (pattern.EndsWith("/*", StringComparison.Ordinal))
+        {
+            // Extract connection prefix (e.g., "kusto-mcp" from "kusto-mcp/*")
+            var connectionPrefix = pattern[..^2];
+            var searchPrefix = connectionPrefix + "_";
+
+            // Find all tools that start with this connection prefix
+            var matchingTools = _tools.Keys
+                .Where(toolName => toolName.StartsWith(searchPrefix, StringComparison.Ordinal))
+                .ToList();
+
+            if (matchingTools.Count > 0)
+            {
+                _logger.LogInternalInformation(
+                    "Expanded wildcard pattern '{Pattern}' to {Count} tools: {Tools}",
+                    pattern,
+                    matchingTools.Count,
+                    string.Join(", ", matchingTools));
+            }
+            else
+            {
+                _logger.LogInternalDebug(
+                    "Wildcard pattern '{Pattern}' matched no tools (connection may not be loaded yet)",
+                    pattern);
+            }
+
+            return matchingTools;
+        }
+
+        // Not a wildcard - return as single-item list if tool exists
+        if (HasTool(pattern))
+        {
+            return [pattern];
+        }
+
+        // Tool doesn't exist - return empty list
+        return [];
+    }
+
     public async Task RefreshMcpToolsAsync()
     {
         _logger.LogInternalInformation("Refreshing MCP tools from repository");

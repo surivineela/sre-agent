@@ -66,6 +66,14 @@ public interface IToolFactory<TContext> : IAsyncInitializer
 
     public bool HasTool(string name);
 
+    /// <summary>
+    /// Expands a tool name pattern that may contain wildcards into a list of matching tool names.
+    /// Supports the pattern {connection-id}/* to include all tools from an MCP connection.
+    /// </summary>
+    /// <param name="pattern">Tool name or pattern (e.g., "kusto-mcp/*" or "SearchResource")</param>
+    /// <returns>List of tool names matching the pattern. Empty list if no matches.</returns>
+    public List<string> ExpandToolPattern(string pattern);
+
     public bool IsToolDisabled(string name);
 
     public Task FindAndRegisterAllToolsAsync(BehaviorOnNameConflict onNameConflict);
