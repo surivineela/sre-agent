@@ -11,5 +11,4 @@ public interface IAzureDevOpsWorkItemPlugin
     Task<string> ConnectRepository(string resourceId, string repositoryUrl);
     Task<string> DisconnectRepository(string resourceId);
     Task<AzureDevOpsAccessToken> GetToken();
-    Task<bool> CheckConnectivityAsync(string dataSource, CancellationToken cancellationToken = default);
 }

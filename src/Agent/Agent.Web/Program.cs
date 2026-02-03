@@ -901,6 +901,8 @@ public class Program
         builder.Services.AddTransient<IExtendedAgentValidator, ExtendedAgentValidator>();
         builder.Services.AddSingleton<IIncidentFilterValidator, IncidentFilterValidator>();
         builder.Services.AddSingleton<IIncidentFilterApiService, IncidentFilterApiService>();
+        builder.Services.AddScoped<ICodeRepoValidator, CodeRepoValidator>();
+        builder.Services.AddScoped<ICodeRepoService, CodeRepoService>();
         builder.Services.AddSingleton<IConnectorResolver, DataConnectorResolverService>();
 
         builder.Services.AddScoped<IResourceDeploymentService, ResourceDeploymentService>();

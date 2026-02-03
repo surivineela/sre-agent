@@ -247,7 +247,10 @@ public class DataConnectorResolverService : IConnectorResolver
                 DataSource = settings.DataSource,
                 Identity = settings.Identity,
                 Source = settings.Source.ToString(),
-                ExtendedProperties = settings.ExtendedProperties
+                ExtendedProperties = settings.ExtendedProperties,
+                UseManagedIdentityAsFic = settings.UseManagedIdentityAsFic,
+                FederatedClientId = settings.FederatedClientId,
+                FederatedTenantId = settings.FederatedTenantId,
             }).ToList();
         }
         catch (Exception ex)

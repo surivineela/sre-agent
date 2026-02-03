@@ -46,11 +46,34 @@ public sealed class OAuthTokenService : IOAuthTokenService, IDisposable
                 return null;
             }
 
-            // GitHub tokens currently don't support refresh - they use device flow
-            // Check if token is expired
+            // Check if token is expired or about to expire
             if (token.ExpiresOn.HasValue && token.ExpiresOn.Value <= DateTime.UtcNow.Add(TokenExpirationBuffer))
             {
-                _logger.LogInternalWarning("GitHub OAuth token is expired and cannot be refreshed automatically");
+                _logger.LogExternalInformation("GitHub OAuth token is expired or expiring soon, attempting refresh");
+
+                if (string.IsNullOrEmpty(token.RefreshToken))
+                {
+                    _logger.LogInternalWarning("GitHub OAuth token is expired but no refresh token is available");
+                    return null;
+                }
+
+                // Check if refresh token itself is expired
+                if (token.RefreshTokenExpiresOn.HasValue && token.RefreshTokenExpiresOn.Value <= DateTime.UtcNow)
+                {
+                    _logger.LogInternalWarning("GitHub OAuth refresh token is expired");
+                    return null;
+                }
+
+                // Attempt to refresh the token
+                var refreshedToken = await RefreshGitHubTokenAsync(token.RefreshToken);
+                if (refreshedToken is not null)
+                {
+                    // Save the new token to database
+                    await _threadRepository.CreateOrUpdateGitHubAccessTokenAsync(refreshedToken);
+                    _logger.LogExternalInformation("GitHub OAuth token refreshed successfully");
+                    return refreshedToken;
+                }
+
                 return null;
             }
 
@@ -101,7 +124,6 @@ public sealed class OAuthTokenService : IOAuthTokenService, IDisposable
                     return refreshedToken;
                 }
 
-                _logger.LogInternalWarning("Failed to refresh Azure DevOps OAuth token for organization {OrganizationName}", organizationName);
                 return null;
             }
 
@@ -124,55 +146,20 @@ public sealed class OAuthTokenService : IOAuthTokenService, IDisposable
     /// </summary>
     private async Task<AzureDevOpsAccessToken?> RefreshAzureDevOpsTokenAsync(string refreshToken)
     {
-        try
-        {
-            var httpClient = _httpClientFactory.CreateClient();
+        // TODO: implement in Auth Endpoint since client secret is required
+        await Task.CompletedTask;
+        return null;
+    }
 
-            // Azure AD token endpoint (common tenant since we support multi-tenant)
-            var tokenEndpoint = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
-
-            // Prepare the request parameters
-            var requestParams = new Dictionary<string, string>
-            {
-                ["grant_type"] = "refresh_token",
-                ["refresh_token"] = refreshToken,
-                ["client_id"] = "499b84ac-1321-427f-aa17-267ca6975798", // Azure DevOps client ID
-                ["scope"] = "499b84ac-1321-427f-aa17-267ca6975798/.default offline_access"
-            };
-
-            using var requestContent = new FormUrlEncodedContent(requestParams);
-            using var response = await httpClient.PostAsync(tokenEndpoint, requestContent);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogInternalWarning(
-                    "Failed to refresh Azure DevOps OAuth token. Status: {StatusCode}, Error: {Error}",
-                    response.StatusCode,
-                    errorContent);
-                return null;
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var tokenResponse = responseContent.DeserializeNoThrow<AzureDevOpsTokenResponse>();
-
-            if (tokenResponse is null || string.IsNullOrEmpty(tokenResponse.AccessToken))
-            {
-                _logger.LogInternalWarning("Invalid token response from Azure DevOps refresh endpoint");
-                return null;
-            }
-
-            var expiresOn = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
-            return new AzureDevOpsAccessToken(
-                tokenResponse.AccessToken,
-                expiresOn,
-                tokenResponse.RefreshToken ?? refreshToken); // Use new refresh token if provided, else keep old one
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error refreshing Azure DevOps OAuth token");
-            return null;
-        }
+    /// <summary>
+    /// Refreshes the GitHub OAuth token using the refresh token
+    /// GitHub OAuth2 token endpoint documentation: https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps
+    /// </summary>
+    private async Task<GitHubAccessToken?> RefreshGitHubTokenAsync(string refreshToken)
+    {
+        // TODO: implement in Auth Endpoint since client secret is required
+        await Task.CompletedTask;
+        return null;
     }
 
     /// <summary>
@@ -182,6 +169,17 @@ public sealed class OAuthTokenService : IOAuthTokenService, IDisposable
         [property: JsonPropertyName("access_token")] string AccessToken,
         [property: JsonPropertyName("expires_in")] int ExpiresIn,
         [property: JsonPropertyName("refresh_token")] string? RefreshToken = null,
+        [property: JsonPropertyName("token_type")] string? TokenType = null,
+        [property: JsonPropertyName("scope")] string? Scope = null);
+
+    /// <summary>
+    /// Response from GitHub OAuth token endpoint
+    /// </summary>
+    private sealed record GitHubTokenResponse(
+        [property: JsonPropertyName("access_token")] string AccessToken,
+        [property: JsonPropertyName("expires_in")] int ExpiresIn,
+        [property: JsonPropertyName("refresh_token")] string? RefreshToken = null,
+        [property: JsonPropertyName("refresh_token_expires_in")] int? RefreshTokenExpiresIn = null,
         [property: JsonPropertyName("token_type")] string? TokenType = null,
         [property: JsonPropertyName("scope")] string? Scope = null);
 

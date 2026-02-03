@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using YamlDotNet.Serialization;
 
 namespace Agent.Framework
@@ -34,5 +35,43 @@ namespace Agent.Framework
         public string? FederatedClientId { get; set; }
         [YamlMember(Alias = "federated_tenant_id")]
         public string? FederatedTenantId { get; set; }
+
+        public static ConnectorAuthSettings CreateFromManagedIdentity(
+            string? managedIdentityResourceId,
+            bool isDevelopment,
+            bool useManagedIdentityAsFic = false,
+            string? federatedClientId = null,
+            string? federatedTenantId = null)
+        {
+            if (isDevelopment)
+            {
+                return new ConnectorAuthSettings()
+                {
+                    AuthenticationType = ConnectorAuthType.User
+                };
+            }
+
+            // Build ConnectorAuthSettings
+            var authSettings = new ConnectorAuthSettings()
+            {
+                AuthenticationType = string.IsNullOrEmpty(managedIdentityResourceId) ? ConnectorAuthType.ManagedIdentity : ConnectorAuthType.UAMI,
+                ManagedIdentityResourceId = managedIdentityResourceId ?? string.Empty
+            };
+
+            // Add Managed Identity as FIC configuration if enabled
+            if (useManagedIdentityAsFic)
+            {
+                if (string.IsNullOrEmpty(federatedClientId) || string.IsNullOrEmpty(federatedTenantId))
+                {
+                    throw new InvalidOperationException("Managed Identity as FIC mode requires both FederatedClientId and FederatedTenantId in ExtendedProperties");
+                }
+
+                authSettings.UseManagedIdentityAsFic = true;
+                authSettings.FederatedClientId = federatedClientId;
+                authSettings.FederatedTenantId = federatedTenantId;
+            }
+
+            return authSettings;
+        }
     }
 }

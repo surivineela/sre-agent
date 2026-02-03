@@ -47,4 +47,19 @@ public class DataConnectorBasicInfo
     /// Extended properties for the data connector
     /// </summary>
     public Dictionary<string, System.Text.Json.JsonElement>? ExtendedProperties { get; set; }
+
+    /// <summary>
+    /// Indicates whether to use Managed Identity as Federated Identity Credential (FIC).
+    /// </summary>
+    public bool UseManagedIdentityAsFic { get; set; }
+
+    /// <summary>
+    /// The federated client ID for FIC authentication.
+    /// </summary>
+    public string? FederatedClientId { get; set; }
+
+    /// <summary>
+    /// The federated tenant ID for FIC authentication.
+    /// </summary>
+    public string? FederatedTenantId { get; set; }
 }
