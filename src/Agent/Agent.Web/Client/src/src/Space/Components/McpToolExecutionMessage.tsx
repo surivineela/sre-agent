@@ -20,7 +20,7 @@ import {
     Database20Regular,
     DismissCircle16Filled,
 } from '@fluentui/react-icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { CopyButton } from '../../Common/Components/CopyButton';
 import { McpToolExecution, getMcpToolDisplayConfig } from '../../Common/Contracts/DataPlane/McpToolExecution';
@@ -151,9 +151,25 @@ const useStyles = makeStyles({
         flexShrink: 0,
     },
 
+    // Animated expand/collapse wrapper
+    expandWrapper: {
+        display: 'grid',
+        gridTemplateRows: '0fr',
+        opacity: 0,
+        transitionProperty: 'grid-template-rows, opacity, margin-top',
+        transitionDuration: '0.35s',
+        transitionTimingFunction: 'cubic-bezier(0.33, 1, 0.68, 1)',
+    },
+    expandWrapperOpen: {
+        gridTemplateRows: '1fr',
+        opacity: 1,
+        marginTop: '12px',
+    },
+    expandWrapperInner: {
+        overflow: 'hidden',
+    },
     // Expanded content container
     expandedContainer: {
-        marginTop: '12px',
         border: `1px solid ${tokens.colorNeutralStroke2}`,
         borderRadius: '8px',
         backgroundColor: tokens.colorNeutralBackground1,
@@ -206,10 +222,11 @@ const useStyles = makeStyles({
         padding: '8px 0',
     },
     kqlBlock: {
-        backgroundColor: 'rgba(30, 30, 30, 0.5)',
-        color: '#d4d4d4',
+        backgroundColor: tokens.colorNeutralBackground4,
+        color: tokens.colorNeutralForeground1,
         padding: '8px 12px',
-        borderRadius: '4px',
+        borderRadius: '6px',
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     copyButtonContainer: {
         position: 'absolute',
@@ -286,12 +303,31 @@ const useStyles = makeStyles({
     resultSection: {
         padding: '4px 12px 8px 12px',
     },
+    // Collapsed query preview
+    queryPreview: {
+        fontFamily: 'Consolas, Monaco, monospace',
+        fontSize: '11px',
+        color: tokens.colorNeutralForeground4,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        marginTop: '2px',
+    },
 });
 
 const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) => {
     const classes = useStyles();
     const intl = useIntl();
     const [isExpanded, setIsExpanded] = useState(execution.status === 'Running');
+    const userInteracted = useRef(false);
+
+    // Auto-collapse after completion/failure unless user manually toggled
+    useEffect(() => {
+        if (execution.status !== 'Running' && isExpanded && !userInteracted.current) {
+            const timer = setTimeout(() => setIsExpanded(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [execution.status, isExpanded]);
 
     const displayConfig = useMemo(
         () => getMcpToolDisplayConfig(execution.mcpServerName, execution.toolName),
@@ -359,7 +395,10 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
         }
     }, [execution.status, classes.statusBadge]);
 
-    const handleToggleExpand = () => setIsExpanded(prev => !prev);
+    const handleToggleExpand = () => {
+        userInteracted.current = true;
+        setIsExpanded(prev => !prev);
+    };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -488,6 +527,14 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
         return null;
     };
 
+    // Build a one-line query preview for the collapsed state
+    const queryPreview = useMemo(() => {
+        const query = execution.parameters?.query;
+        if (!query) return null;
+        // Collapse whitespace/newlines into single spaces
+        return query.replace(/\s+/g, ' ').trim();
+    }, [execution.parameters?.query]);
+
     return (
         <div className={classes.card}>
             {/* Card header with icon container */}
@@ -506,6 +553,8 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
                         <Caption1 className={classes.toolNameBadge}>{execution.mcpServerName}</Caption1>
                     </div>
                     <Text className={classes.secondaryText}>{getResultInfo}</Text>
+                    {/* Query preview when collapsed */}
+                    {!isExpanded && queryPreview && <div className={classes.queryPreview}>{queryPreview}</div>}
                 </div>
                 {isLoading ? <Spinner size="extra-tiny" className={classes.spinner} /> : statusBadge}
                 {isExpanded ? (
@@ -515,8 +564,9 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
                 )}
             </div>
 
-            {/* Expanded Content inside the card */}
-            {isExpanded && (
+            {/* Animated expand/collapse content */}
+            <div className={mergeClasses(classes.expandWrapper, isExpanded && classes.expandWrapperOpen)}>
+                <div className={classes.expandWrapperInner}>
                 <div className={classes.expandedContainer}>
                     {/* Parameters */}
                     {renderParameters()}
@@ -696,7 +746,8 @@ const McpToolExecutionMessage = ({ execution }: McpToolExecutionMessageProps) =>
                         </div>
                     )}
                 </div>
-            )}
+                </div>
+            </div>
         </div>
     );
 };

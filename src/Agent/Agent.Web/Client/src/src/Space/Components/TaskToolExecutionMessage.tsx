@@ -84,6 +84,7 @@ const useStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        overflow: 'hidden',
     },
 
     // Parent node (hub)
@@ -110,6 +111,7 @@ const useStyles = makeStyles({
         flexDirection: 'column',
         alignItems: 'center',
         width: '100%',
+        minWidth: 0,
     },
 
     // Vertical line from parent
@@ -132,11 +134,29 @@ const useStyles = makeStyles({
         backgroundColor: tokens.colorNeutralStroke1,
     },
 
+    // Scrollable wrapper for branches
+    branchesScrollArea: {
+        width: '100%',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        // Hide scrollbar by default, show thin one on hover
+        scrollbarWidth: 'thin',
+        scrollbarColor: `${tokens.colorNeutralStroke2} transparent`,
+        paddingBottom: '4px',
+        // Fade edges when scrollable
+        maskImage: 'linear-gradient(to right, transparent 0px, black 8px, black calc(100% - 8px), transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent 0px, black 8px, black calc(100% - 8px), transparent 100%)',
+    },
+
     // Branch lines going down to each card
     branchesContainer: {
         display: 'flex',
         justifyContent: 'center',
-        gap: '24px',
+        gap: '16px',
+        width: 'max-content',
+        minWidth: '100%',
+        paddingLeft: '12px',
+        paddingRight: '12px',
     },
 
     branchLine: {
@@ -149,7 +169,9 @@ const useStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        width: '280px',
+        width: '240px',
+        minWidth: '240px',
+        flexShrink: 0,
     },
 
     // Individual agent card
@@ -591,11 +613,6 @@ const TaskToolExecutionMessage = ({ execution, executionGroup }: TaskToolExecuti
         </Badge>
     );
 
-    // Calculate horizontal line width based on number of cards
-    const cardWidth = 280;
-    const gap = 24;
-    const horizontalLineWidth = totalCount > 1 ? (totalCount - 1) * (cardWidth + gap) : 0;
-
     return (
         <div className={classes.card}>
             {/* Header */}
@@ -627,21 +644,24 @@ const TaskToolExecutionMessage = ({ execution, executionGroup }: TaskToolExecuti
                     {/* Vertical line from parent */}
                     <div className={classes.verticalLine} />
 
-                    {/* Horizontal line spanning cards (only if more than 1 card) */}
-                    {totalCount > 1 && (
-                        <div className={classes.horizontalLineContainer}>
-                            <div className={classes.horizontalLine} style={{ width: `${horizontalLineWidth}px` }} />
-                        </div>
-                    )}
-
-                    {/* Branch lines going down to each card */}
-                    <div className={classes.branchesContainer}>
-                        {executions.map(exec => (
-                            <div key={exec.id} className={classes.branchWrapper}>
-                                <div className={classes.branchLine} />
-                                <AgentExecutionCard execution={exec} classes={classes} intl={intl} />
+                    {/* Scrollable branch area */}
+                    <div className={classes.branchesScrollArea}>
+                        {/* Horizontal line spanning cards (only if more than 1 card) */}
+                        {totalCount > 1 && (
+                            <div className={classes.horizontalLineContainer}>
+                                <div className={classes.horizontalLine} style={{ width: `calc(100% - ${240 + 24}px)` }} />
                             </div>
-                        ))}
+                        )}
+
+                        {/* Branch lines going down to each card */}
+                        <div className={classes.branchesContainer}>
+                            {executions.map(exec => (
+                                <div key={exec.id} className={classes.branchWrapper}>
+                                    <div className={classes.branchLine} />
+                                    <AgentExecutionCard execution={exec} classes={classes} intl={intl} />
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
