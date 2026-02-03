@@ -2,12 +2,12 @@ import { Caption1, Subtitle1, tokens } from '@fluentui-copilot/react-copilot';
 import { DataVizPalette, getColorFromToken, Sparkline } from '@fluentui/react-charts';
 import { Badge, Caption1Strong, Card, CardFooter, makeStyles, Skeleton, SkeletonItem } from '@fluentui/react-components';
 import { FC, memo, ReactNode, useMemo } from 'react';
+import { useIntl } from 'react-intl';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { MetricsCardHeader } from './MetricsCardHeader';
 
 interface IMetricsCardProps {
     title: string;
-    subtitle: string;
-    percentageChange?: number;
     score: string;
     chartData?: Array<{ x: number; y: number }>;
     refresh: () => Promise<unknown>;
@@ -49,8 +49,18 @@ const useStyles = makeStyles({
     },
 });
 
-const MetricsCard: FC<IMetricsCardProps> = ({ title, subtitle, percentageChange, score, chartData, footer, refresh, isFetching }) => {
-    const { sparkLineColor, percentageSign } = useMemo(() => {
+const MetricsCard: FC<IMetricsCardProps> = ({ title, score, chartData, footer, refresh, isFetching }) => {
+    const intl = useIntl();
+
+    const { sparkLineColor, percentageSign, percentageChange } = useMemo(() => {
+        let percentageChange: number | undefined = undefined;
+
+        if (!chartData || chartData.length === 0) {
+            percentageChange = undefined;
+        } else {
+            percentageChange = ((chartData[chartData.length - 1].y - chartData[0].y) / chartData[0].y) * 100;
+        }
+
         let sparkLineColor = DataVizPalette.color1;
         let percentageSign = '';
 
@@ -66,14 +76,15 @@ const MetricsCard: FC<IMetricsCardProps> = ({ title, subtitle, percentageChange,
         return {
             sparkLineColor,
             percentageSign,
+            percentageChange,
         };
-    }, [percentageChange]);
+    }, [chartData]);
 
     const styles = useStyles();
 
     return (
         <Card className={styles.root}>
-            <MetricsCardHeader title={title} subtitle={subtitle} refresh={refresh}>
+            <MetricsCardHeader title={title} subtitle={intl.formatMessage(SreAgentResources.last30days)} refresh={refresh}>
                 {percentageChange !== undefined && (
                     <Badge appearance={'tint'} color={percentageChange === 0 ? undefined : percentageChange > 0 ? 'success' : 'severe'}>
                         {`${percentageSign}${percentageChange}%`}

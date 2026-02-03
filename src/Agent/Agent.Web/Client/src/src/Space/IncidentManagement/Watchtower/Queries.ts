@@ -197,3 +197,33 @@ export const getIntentMetScoreTrendQuery = () => {
     | order by IncidentHandledOn asc
     `;
 };
+
+export const getHandledIncidentsCountQuery = () => {
+    return `
+     customEvents
+    | where name == 'IncidentActivitySnapshot'
+    | where timestamp > ago(30d)
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)),
+        IncidentId = tostring(customDimensions.IncidentId),
+        IntentMetScore = todouble(customDimensions.IntentMetScore),
+        UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+    | where IncidentHandledOn > ago(30d)
+    | summarize count()
+    `;
+};
+
+/** Query for getting handled incidents count per day for the past 30 days */
+export const getHandledIncidentsCountTrendQuery = () => {
+    return `
+    customEvents
+    | where name == 'IncidentActivitySnapshot'
+    | where timestamp > ago(30d)
+    | extend IncidentHandledOn = todatetime(iif(isnull(customDimensions.IncidentHandledOn), customDimensions.IncidentHandledAt, customDimensions.IncidentHandledOn)),
+        IncidentId = tostring(customDimensions.IncidentId),
+        UpdatedOn = todatetime(customDimensions.IncidentUpdatedOn)
+    | where IncidentHandledOn > ago(30d)
+    | summarize arg_max(UpdatedOn, IncidentHandledOn) by IncidentId
+    | summarize IncidentCount = count() by bin(IncidentHandledOn, 1d)
+    | order by IncidentHandledOn asc
+    `;
+};

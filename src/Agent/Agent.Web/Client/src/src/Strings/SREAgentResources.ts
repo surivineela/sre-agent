@@ -963,6 +963,7 @@ export const SreAgentResources = defineMessages({
         id: '4yQHX3',
     },
     taskToolEarlierCount: { defaultMessage: '+{count} earlier', id: 'GcvRXK' },
+    last30days: { defaultMessage: 'Last 30 days', id: 'Rfvi9/' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -6729,7 +6730,7 @@ export const OverviewResources = defineMessages({
     goToQuickStart: { defaultMessage: 'Go to quick start', id: 'qZ6FID' },
     intentMetScore: { defaultMessage: 'Intent met score', id: '07461w' },
     meanTimeToMitigate: { defaultMessage: 'Mean time to mitigate', id: 'o8Lpmf' },
-    incidentsAnalyzed: { defaultMessage: 'Incidents analyzed', id: 'WD+A2I' },
+    estimatedTimeSaved: { defaultMessage: 'Estimated time saved', id: 'ETSsyC' },
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     recentInsights: { defaultMessage: 'Recent insights', id: 'G4Dpsw' },
     noRecentInsights: { defaultMessage: 'No recent insights available', id: 'E4ETPQ' },

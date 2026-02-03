@@ -2,13 +2,13 @@ import { tokens } from '@fluentui-copilot/react-copilot';
 import { makeStyles, mergeClasses } from '@fluentui/react-components';
 import { FC, memo } from 'react';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable.ts';
-import AnalyzedIncidentsCard from './AnalyzedIncidentsCard.tsx';
 import IncidentManagementCard from './IncidentManagementCard.tsx';
 import InsightsAndSuggestionsCard from './InsightsAndSuggestionsCard.tsx';
 import IntentMetScoreCard from './IntentMetScoreCard.tsx';
 import MitigationMeanTimeCard from './MitigationMeanTimeCard.tsx';
 import ReviewedIncidentsCard from './ReviewedIncidentsCard.tsx';
 import SuggestedActionsCard from './SuggestedActionsCard';
+import TimeSavingCard from './TimeSavingCard.tsx';
 
 const useStyles = makeStyles({
     overview: {
@@ -76,7 +76,7 @@ const useStyles = makeStyles({
             gridRow: '4',
         },
     },
-    analyzedIncidentsCard: {
+    timeSavingCard: {
         gridColumn: '2',
         gridRow: '4',
         '@media (max-width: 1000px)': {
@@ -112,8 +112,8 @@ const Overview: FC = () => {
                 <div className={styles.mitigationMeanTimeCard}>
                     <MitigationMeanTimeCard />
                 </div>
-                <div className={styles.analyzedIncidentsCard}>
-                    <AnalyzedIncidentsCard />
+                <div className={styles.timeSavingCard}>
+                    <TimeSavingCard />
                 </div>
             </div>
         </div>
