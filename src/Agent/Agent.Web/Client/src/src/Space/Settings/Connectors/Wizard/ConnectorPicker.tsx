@@ -1,9 +1,11 @@
 import { Card, CardHeader, mergeClasses, Text, Tooltip } from '@fluentui/react-components';
 import { useFormikContext } from 'formik';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { EnvironmentContext } from '../../../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { SearchBoxWithDebounce } from '../../../../Common/Components/SearchBox/SearchBoxWithDebounce';
 import { Connector } from '../../../../Common/Contracts/Azure/SreAgent';
+import { FirstPartyHelper } from '../../../../Common/Helpers/FirstPartyHelper';
 import { Guid } from '../../../../Common/Helpers/Guid';
 import { AntUxStringComparison, equals } from '../../../../Common/Helpers/Strings';
 import { ConnectorsResources } from '../../../../Strings/SREAgentResources';
@@ -20,11 +22,16 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
     const intl = useIntl();
     const styles = useConnectorWizardStyles();
     const { values, setFieldValue, setTouched, setErrors } = useFormikContext<ConnectorFormProps>();
+    const { userInfo } = useContext(EnvironmentContext);
 
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredConnectorOptions = useMemo(() => {
         return connectorTypeOptions(intl).filter((option: ConnectorTypeOption) => {
+            // Hide IcM Connector support for non 1p customers
+            if (!FirstPartyHelper.isFirstPartyAgent(userInfo?.directoryId || '') && option.id === ConnectorType.Icm) {
+                return false;
+            }
             const searchLower = searchTerm.toLowerCase().trim();
             const matchesSearch =
                 !searchLower ||
@@ -34,7 +41,7 @@ export const ConnectorPicker: React.FC<ConnectorPickerProps> = props => {
 
             return matchesSearch;
         });
-    }, [intl, searchTerm]);
+    }, [intl, searchTerm, userInfo?.directoryId]);
 
     const onConnectorSelected = useCallback(
         (connector: ConnectorTypeOption) => {
