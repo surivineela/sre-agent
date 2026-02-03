@@ -105,6 +105,14 @@ export const buildAgentConfigurationYaml = (agent: Partial<ExtendedAgent>, allow
         spec.vanilla_mode = agent.enableVanillaMode;
     }
 
+    if (agent.enableSkills !== undefined) {
+        spec.enable_skills = agent.enableSkills;
+    }
+
+    if (agent.allowedSkills && agent.allowedSkills.length > 0) {
+        spec.allowed_skills = agent.allowedSkills;
+    }
+
     // Create document structure matching the meta agent format (no metadata section)
     const document = sanitizeRecord({
         api_version: DEFAULT_API_VERSION,

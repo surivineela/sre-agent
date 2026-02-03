@@ -142,6 +142,7 @@ public class ResourceDeploymentService : IResourceDeploymentService
                 OutputType = agentSpec.OutputType,
                 EnableSkills = agentSpec.EnableSkills,
                 AddSystemSkills = agentSpec.AddSystemSkills,
+                AllowedSkills = agentSpec.AllowedSkills,
             };
 
             var metadata = ResourceMetadata.FromYamlMetadata(yamlMetadata, agentName ?? string.Empty);

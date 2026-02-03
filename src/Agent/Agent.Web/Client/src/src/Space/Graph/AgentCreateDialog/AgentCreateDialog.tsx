@@ -45,6 +45,7 @@ export const AgentCreateDialog: FC<AgentCreateDialogProps> = props => {
                     existingTools={existingTools}
                     systemTools={systemTools}
                     mcpConnections={mcpConnections}
+                    skills={skills}
                     excludedHandoffAgent={excludedHandoffAgent}
                     additionalHandoffAgents={additionalHandoffAgents}
                     isEditScenario={isEditScenario}

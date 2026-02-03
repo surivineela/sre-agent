@@ -707,6 +707,8 @@ export const ExtendedAgentInfoPanel = memo(
                     systemToolMap={systemToolMap}
                     memoryEnabled={memoryEnabled}
                     documentCount={documentCount}
+                    skillsEnabled={selectedAgent.enableSkills || (selectedAgent.allowedSkills && selectedAgent.allowedSkills.length > 0)}
+                    allowedSkills={selectedAgent.allowedSkills}
                 />
             ) : !selectedAgent && !collapsibleProps?.isCollapsed ? (
                 <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.noAgentSelected)}</Text>

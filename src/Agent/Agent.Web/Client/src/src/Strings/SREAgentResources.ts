@@ -4436,6 +4436,7 @@ export const ExtendedAgentsGraphResources = defineMessages({
     agentAsToolCountBadge: { defaultMessage: 'Agents-as-tools · {count}', id: 'tujypD' },
     memoryEnabledBadge: { defaultMessage: 'Knowledge Base Enabled', id: 'ketkP5' },
     skillsEnabledBadge: { defaultMessage: 'Skills Enabled', id: '/mPnOR' },
+    skillsDisabledLabel: { defaultMessage: 'Skills are disabled for this agent', id: 'AnU1u1' },
     skillsLabel: { defaultMessage: 'Skills', id: 'EJSVsO' },
     noSkillsFound: { defaultMessage: 'No skills found', id: 'z4NnlT' },
     searchSkillsPlaceholder: { defaultMessage: 'Search by skill', id: 'uQ/yKk' },
@@ -4950,6 +4951,21 @@ export const ExtendedAgentsGraphResources = defineMessages({
             'Knowledge base is enabled for this agent. The SearchMemory tool and knowledge base prompts will be automatically included.',
         id: 'FsIud6',
     },
+
+    // Agent Skills
+    enableSkillsLabel: { defaultMessage: 'Enable Skills', id: 'cHpxFI' },
+    enableSkillsDescription: { defaultMessage: 'Allow this agent to use skills', id: '5dqROh' },
+    allowedSkillsLabel: { defaultMessage: 'Allowed Skills', id: 'q3Un3h' },
+    allowedSkillsDescription: {
+        defaultMessage: 'Select which skills this agent can access. Leave empty to allow all skills.',
+        id: '8Nw4OO',
+    },
+    skillsInfoText: {
+        defaultMessage: 'Skills apply to all agents that have skills enabled. Use Allowed Skills to restrict access for specific agents.',
+        id: 'V+tp/F',
+    },
+    noSkillsAvailable: { defaultMessage: 'No skills available', id: 'frPg+c' },
+    allSkillsAllowed: { defaultMessage: 'All skills allowed', id: 'r2w55S' },
 
     metaAgentAlreadyExistsMessage: {
         defaultMessage: 'A meta agent override already exists in your system.',

@@ -17,10 +17,22 @@ type AgentDetailsProps = {
     systemToolMap: Map<string, SystemTool>;
     memoryEnabled: boolean;
     documentCount: number | null;
+    skillsEnabled?: boolean;
+    allowedSkills?: string[];
 };
 
 export const AgentDetails = memo(
-    ({ agent, agents, toolNames, toolMap, systemToolMap, memoryEnabled, documentCount }: AgentDetailsProps) => {
+    ({
+        agent,
+        agents,
+        toolNames,
+        toolMap,
+        systemToolMap,
+        memoryEnabled,
+        documentCount,
+        skillsEnabled,
+        allowedSkills,
+    }: AgentDetailsProps) => {
         const styles = useExtendedAgentInfoStyles();
         const intl = useIntl();
         const navigate = useAgentSiteNavigate();
@@ -42,6 +54,11 @@ export const AgentDetails = memo(
                         {memoryEnabled && (
                             <Badge appearance="outline" size="medium" className={styles.neutralBadge}>
                                 {intl.formatMessage(ExtendedAgentsGraphResources.memoryEnabledBadge)}
+                            </Badge>
+                        )}
+                        {skillsEnabled && (
+                            <Badge appearance="outline" size="medium" className={styles.neutralBadge}>
+                                {intl.formatMessage(ExtendedAgentsGraphResources.skillsEnabledBadge)}
                             </Badge>
                         )}
                     </div>
@@ -84,6 +101,19 @@ export const AgentDetails = memo(
                 <div className={styles.section}>
                     <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.tools)}</Text>
                     <ToolsTable toolNames={toolNames} toolMap={toolMap} systemToolMap={systemToolMap} />
+                </div>
+
+                <div className={styles.section}>
+                    <Text className={styles.sectionTitle}>{intl.formatMessage(ExtendedAgentsGraphResources.skillsLabel)}</Text>
+                    {skillsEnabled ? (
+                        allowedSkills && allowedSkills.length > 0 ? (
+                            <Text>{allowedSkills.join(', ')}</Text>
+                        ) : (
+                            <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.allSkillsAllowed)}</Text>
+                        )
+                    ) : (
+                        <Text className={styles.emptyState}>{intl.formatMessage(ExtendedAgentsGraphResources.skillsDisabledLabel)}</Text>
+                    )}
                 </div>
 
                 <div className={styles.section}>

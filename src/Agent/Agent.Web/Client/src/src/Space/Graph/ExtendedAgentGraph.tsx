@@ -504,7 +504,9 @@ const ExtendedAgentGraphContent = memo(() => {
         }
 
         const hasAgent = anchorEntity.entityType === 'Agent' && agents.some(agent => agent.name === anchorEntity.entityName);
-        const hasTrigger = (anchorEntity.entityType === 'IncidentTrigger' || anchorEntity.entityType === 'ScheduledTrigger') && triggers.some(trigger => trigger.name === anchorEntity.entityName);
+        const hasTrigger =
+            (anchorEntity.entityType === 'IncidentTrigger' || anchorEntity.entityType === 'ScheduledTrigger') &&
+            triggers.some(trigger => trigger.name === anchorEntity.entityName);
 
         if (hasAgent || hasTrigger) {
             return;
@@ -546,7 +548,7 @@ const ExtendedAgentGraphContent = memo(() => {
 
         if (pendingEntitySelection.entityType === 'IncidentTrigger' || pendingEntitySelection.entityType === 'ScheduledTrigger') {
             if (triggers.some(trigger => trigger.name === pendingEntitySelection.entityName)) {
-                setAnchorEntity({...pendingEntitySelection });
+                setAnchorEntity({ ...pendingEntitySelection });
                 setPendingEntitySelection(undefined);
             }
             return;
@@ -554,7 +556,7 @@ const ExtendedAgentGraphContent = memo(() => {
 
         if (pendingEntitySelection.entityType === 'Agent') {
             if (agents.some(agent => agent.name === pendingEntitySelection.entityName)) {
-                setAnchorEntity({...pendingEntitySelection });
+                setAnchorEntity({ ...pendingEntitySelection });
                 setPendingEntitySelection(undefined);
             }
         }
@@ -1590,8 +1592,6 @@ const ExtendedAgentGraphContent = memo(() => {
     const hasSkills = useMemo(() => skills.length > 0, [skills.length]);
     const hasAgents = useMemo(() => agents.length > 0, [agents.length]);
     const hasTriggers = useMemo(() => triggers.length > 0, [triggers.length]);
-    // Check for subagents excluding the meta_agent override (for skill creation logic)
-    const hasSubagents = useMemo(() => agents.some(agent => agent.name !== 'meta_agent'), [agents]);
     const hasData = useMemo(() => graphNodes.length > 0, [graphNodes.length]);
 
     const infoPanelStyle: React.CSSProperties = useMemo(() => {
@@ -1940,8 +1940,6 @@ const ExtendedAgentGraphContent = memo(() => {
                         onCreateItem={handleCreateItemStandalone}
                         isLoading={isLoading}
                         disableCreateMetaAgent={hasMetaAgentOverride}
-                        disableCreateSubagent={hasSkills}
-                        disableCreateSkill={hasSubagents}
                     />
                     {creationSuccessMessage && (
                         <div className={statusMessageContainer}>
@@ -2028,8 +2026,6 @@ const ExtendedAgentGraphContent = memo(() => {
                                             setEditingSkill(undefined);
                                             setIsSkillDialogOpen(true);
                                         }}
-                                        agents={agents}
-                                        skills={skills}
                                     />
                                 ) : (
                                     <>{renderGraphContent()}</>
@@ -2181,9 +2177,7 @@ const ExtendedAgentGraphContent = memo(() => {
                         onDismiss={() => setAgentCreateOrEditInfo(undefined)}
                         refresh={(selectedAgent?: string) => {
                             handleRefresh().then(() => {
-                                setPendingEntitySelection(
-                                    selectedAgent ? { entityType: 'Agent', entityName: selectedAgent } : undefined
-                                );
+                                setPendingEntitySelection(selectedAgent ? { entityType: 'Agent', entityName: selectedAgent } : undefined);
                             });
                         }}
                         agents={agents}

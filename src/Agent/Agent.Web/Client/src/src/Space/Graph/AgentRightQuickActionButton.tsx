@@ -24,8 +24,8 @@ export interface AgentRightQuickActionButtonProps {
 export const AgentRightQuickActionButton: React.FC<AgentRightQuickActionButtonProps> = ({ agent }) => {
     const intl = useIntl();
     const { quickActionButton, menuPopover } = useExtendedAgentNodeStyles();
-    const { contextMenuItemWithIcon, menuIconDisabled } = useExtendedAgentGraphStyles();
-    const { triggerAgentQuickAction, hasSkills } = useContext(ExtendedAgentGraphContext);
+    const { contextMenuItemWithIcon } = useExtendedAgentGraphStyles();
+    const { triggerAgentQuickAction } = useContext(ExtendedAgentGraphContext);
     const iconSizeProp = useMemo(() => ({ wrapperSize: 20, iconSize: 16, borderRadius: 6 }), []);
 
     return (
@@ -65,32 +65,20 @@ export const AgentRightQuickActionButton: React.FC<AgentRightQuickActionButtonPr
                     <MenuDivider />
                     <MenuGroup>
                         <MenuGroupHeader>{intl.formatMessage(ExtendedAgentsGraphResources.subagent)}</MenuGroupHeader>
-                        <Tooltip
-                            content={hasSkills ? intl.formatMessage(ExtendedAgentsGraphResources.cannotCreateSubagentWithSkills) : ''}
-                            relationship="description"
+                        <MenuItem
+                            className={contextMenuItemWithIcon}
+                            icon={<EntityIcon type="agent" shorthandStyle={iconSizeProp} />}
+                            onClick={() => triggerAgentQuickAction(agent.name, 'addHandoffTargetExistingAgent')}
                         >
-                            <MenuItem
-                                className={hasSkills ? menuIconDisabled : contextMenuItemWithIcon}
-                                icon={<EntityIcon type="agent" shorthandStyle={iconSizeProp} />}
-                                onClick={() => triggerAgentQuickAction(agent.name, 'addHandoffTargetExistingAgent')}
-                                disabled={hasSkills}
-                            >
-                                {intl.formatMessage(ExtendedAgentsGraphResources.quickCreateAddExistingSubagent)}
-                            </MenuItem>
-                        </Tooltip>
-                        <Tooltip
-                            content={hasSkills ? intl.formatMessage(ExtendedAgentsGraphResources.cannotCreateSubagentWithSkills) : ''}
-                            relationship="description"
+                            {intl.formatMessage(ExtendedAgentsGraphResources.quickCreateAddExistingSubagent)}
+                        </MenuItem>
+                        <MenuItem
+                            className={contextMenuItemWithIcon}
+                            icon={<EntityIcon type="agent" shorthandStyle={iconSizeProp} />}
+                            onClick={() => triggerAgentQuickAction(agent.name, 'createHandoffTargetAgent')}
                         >
-                            <MenuItem
-                                className={hasSkills ? menuIconDisabled : contextMenuItemWithIcon}
-                                icon={<EntityIcon type="agent" shorthandStyle={iconSizeProp} />}
-                                onClick={() => triggerAgentQuickAction(agent.name, 'createHandoffTargetAgent')}
-                                disabled={hasSkills}
-                            >
-                                {intl.formatMessage(ExtendedAgentsGraphResources.quickCreateCreateNewSubagent)}
-                            </MenuItem>
-                        </Tooltip>
+                            {intl.formatMessage(ExtendedAgentsGraphResources.quickCreateCreateNewSubagent)}
+                        </MenuItem>
                     </MenuGroup>
                 </MenuList>
             </MenuPopover>

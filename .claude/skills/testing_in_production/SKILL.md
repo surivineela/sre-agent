@@ -81,7 +81,8 @@ If the user asks to test a feature with Playwright:
 
 1. Navigate to https://sre.azure.com using `browser_navigate`
 2. Click "Sign in" and select the appropriate Microsoft account
-3. Find your agent in the list (you can use the search box or filter by subscription/resource group)
-4. Click on the agent name to open it
+3. You can navigate directly to the agent with the URL `https://sre.azure.com/agents/subscriptions/[sub-id]/resourceGroups/[rg]/providers/Microsoft.App/agents/[agent-name]` rather than searching for it in the list on the home page
+4. If navigating directly doesn't work, find your agent in the list (you can use the search box or filter by subscription/resource group)
+5. Click on the agent name to open it
 
 **Note:** Do not access the agent directly via its endpoint URL (e.g., `https://[agent-name]--[hash].azuresre.ai`) as this will return an unauthorized error. Always access through sre.azure.com which handles authentication properly.

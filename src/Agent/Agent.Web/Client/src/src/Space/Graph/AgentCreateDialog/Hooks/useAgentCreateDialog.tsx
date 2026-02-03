@@ -102,6 +102,8 @@ export const useAgentCreateDialog = (
                 mcpTools: values.mcpTools,
                 enableMemory: values.enableMemory,
                 enableVanillaMode: values.enableVanillaMode,
+                enableSkills: values.enableSkills,
+                allowedSkills: values.enableSkills ? values.allowedSkills : undefined,
             };
 
             // If enableMemory is true, ensure SearchMemory is in the tools list
@@ -199,6 +201,8 @@ export const useAgentCreateDialog = (
                 mcpTools: values.mcpTools,
                 enableMemory: values.enableMemory,
                 enableVanillaMode: values.enableVanillaMode,
+                enableSkills: values.enableSkills,
+                allowedSkills: values.enableSkills ? values.allowedSkills : undefined,
             };
 
             // If enableMemory is true, ensure SearchMemory is in the tools list
@@ -264,6 +268,8 @@ export const useAgentCreateDialog = (
                 mcpTools: agentToEdit.mcpTools || [],
                 enableMemory: agentToEdit.enableMemory || agentToEdit.tools?.includes('SearchMemory') || false,
                 enableVanillaMode: agentToEdit.enableVanillaMode ?? false,
+                enableSkills: agentToEdit.enableSkills ?? (agentToEdit.allowedSkills && agentToEdit.allowedSkills.length > 0) ?? true,
+                allowedSkills: agentToEdit.allowedSkills || [],
             });
             setExistingAgentGuid(Guid.newGuid());
         } else if (agentCreateOrEditInfo.mode === 'createSource') {
@@ -302,6 +308,8 @@ const defaultInitialValues: AgentCreateFormValues = {
     handoffSubagents: [],
     tools: [],
     mcpTools: [],
+    enableSkills: true,
+    allowedSkills: [],
 };
 
 const metaAgentDefaultInitialValues: AgentCreateFormValues = {
@@ -379,4 +387,6 @@ Begin with a concise checklist (3–7 bullets) of what you will do; keep items c
     handoffSubagents: ['scheduled_task_agent', 'self_manual_agent'],
     tools: [],
     mcpTools: [],
+    enableSkills: true,
+    allowedSkills: [],
 };

@@ -26,6 +26,6 @@ export const isEntityNameValid = (value: string | undefined | null): boolean => 
 };
 
 export const INSTRUCTION_MIN_LENGTH = 50;
-export const INSTRUCTION_MAX_LENGTH = 6000;
+export const INSTRUCTION_MAX_LENGTH = 20000;
 
 export const HANDOFF_INSTRUCTION_MAX_LENGTH = 500;
