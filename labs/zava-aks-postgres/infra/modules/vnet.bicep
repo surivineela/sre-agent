@@ -1,0 +1,664 @@
+@description('Azure region for the network resources.')
+param location string
+
+@description('Unique suffix for resource names.')
+param uniqueSuffix string
+
+@description('''Lock the agent to PRIVATE-ONLY Azure Monitor (default true). When true, the public
+`AzureMonitor` service tag is dropped from the firewall L4 allow-list and the agent reaches Monitor
+via the AMPLS private endpoint (10.10.2.0/27, rule allow-agent-to-ampls) + the linked private-DNS
+zones. The agent remains fully functional under this lockdown (Monitor queries, Kubernetes tools, and
+incident remediation all work). See the main.bicep param doc.''')
+param lockAgentToPrivateMonitor bool = true
+
+// ===========================================================================
+// Hub-and-spoke network for the SRE Agent demo
+// ===========================================================================
+// This lab models a realistic enterprise topology instead of one flat VNet, so
+// the SRE Agent is shown running VNet-injected in its own spoke and reaching
+// everything it needs through a shared HUB firewall — the way customers actually
+// run hub-and-spoke (often with ExpressRoute/VPN to on-prem).
+//
+//   HUB  vnet-Zava-hub-*            10.10.0.0/22   (shared edge / security)
+//     ├─ AzureFirewallSubnet        10.10.0.0/26   Azure Firewall — the single egress
+//     │                                            point AND the "network device" the
+//     │                                            agent interrogates (see below).
+//     ├─ GatewaySubnet              10.10.1.0/27   RESERVED for an ExpressRoute/VPN
+//     │                                            gateway (hub→on-prem). Not deployed:
+//     │                                            a real ExpressRoute circuit must be
+//     │                                            provisioned by a connectivity
+//     │                                            provider and can't be self-contained
+//     │                                            in a demo. Reserving the subnet keeps
+//     │                                            the topology honest and makes adding a
+//     │                                            gateway a one-resource change.
+//     └─ pe-subnet                  10.10.2.0/27   Azure Monitor Private Link Scope
+//                                                  (AMPLS) private endpoint lands here.
+//
+//   SPOKE 1 — platform  vnet-Zava-platform-*  10.20.0.0/16  (the application workload)
+//     ├─ aks-subnet                 10.20.0.0/20   AKS nodes/pods (NSG attached;
+//     │                                            Scenario 2's red-herring deny rule
+//     │                                            lands on this NSG).
+//     └─ db-subnet                  10.20.16.0/24  PostgreSQL Flexible Server delegation.
+//
+//   SPOKE 2 — agent     vnet-Zava-agent-*      10.30.0.0/24  (the SRE Agent)
+//     └─ agent-subnet               10.30.0.0/27   Microsoft.App/environments delegation;
+//                                                  ALL egress forced to the hub firewall
+//                                                  via a UDR (0.0.0.0/0 → firewall private
+//                                                  IP) over peering.
+//
+// REGIONAL INJECTION, CROSS-REGION REACH:
+// the agent-subnet is delegated to Microsoft.App/environments and MUST be in the
+// SAME REGION as the Microsoft.App/agents resource — VNet injection is regional.
+// Docs: "The subnet must be in the same region as your SRE Agent resource."
+// https://learn.microsoft.com/azure/sre-agent/network-integration#configure-azure-vnet-mode
+// That pins WHERE the agent runs, NOT what it can REACH. Peered to the hub, the
+// agent routes to ANY peered network — other Azure REGIONS over GLOBAL VNet
+// peering (https://learn.microsoft.com/azure/virtual-network/virtual-network-peering-overview)
+// or ON-PREM over an ExpressRoute/VPN gateway in GatewaySubnet — "as long as your
+// network routes and rules allow it". The cross-region case is the SAME mechanism
+// as the on-prem case; see the optional remote-region example after the peerings.
+//
+// WHY THIS IS SAFE / BEHAVIOR-PRESERVING: the agent never needed raw L3 reach to
+// AKS or PostgreSQL. The AKS API server is PRIVATE and reached through native
+// `kubectl` over the firewall-brokered private API-server path; PostgreSQL SQL
+// runs from an in-cluster pod via `kubectl exec`; everything else (ARM, Entra,
+// Azure Monitor, Microsoft Learn) is
+// allow-listed HTTPS. The agent's sandbox egress is HTTP(S)-proxy-brokered
+// (allow-listed HTTPS only — it cannot open raw TCP to private VNet IPs). So
+// putting the agent in its own spoke changes only WHICH firewall inspects its
+// egress, not how it operates. See sre-config/knowledge-base/zava-architecture.md.
+//
+// Canonical references this hand-rolled module follows (kept registry-free so the
+// demo is self-contained): Azure CAF hub-spoke
+// https://learn.microsoft.com/azure/architecture/networking/architecture/hub-spoke
+// Container Apps custom VNet + forced tunneling (UDR → firewall)
+// https://learn.microsoft.com/azure/container-apps/user-defined-routes
+// (equivalent AVM modules: avm/ptn/network/hub-networking, avm/res/network/azure-firewall).
+
+var hubVnetName = 'vnet-Zava-hub-${uniqueSuffix}'
+var platformVnetName = 'vnet-Zava-platform-${uniqueSuffix}'
+var agentVnetName = 'vnet-Zava-agent-${uniqueSuffix}'
+var nsgName = 'nsg-aks-${uniqueSuffix}'
+var agentSubnetPrefix = '10.30.0.0/27'
+
+// First usable address in AzureFirewallSubnet (Azure reserves .0-.3 of the
+// subnet). Kept in sync with the AzureFirewallSubnet prefix (10.10.0.0/26).
+var firewallPrivateIp = '10.10.0.4'
+
+resource nsg 'Microsoft.Network/networkSecurityGroups@2024-01-01' = {
+  name: nsgName
+  location: location
+  properties: {
+    securityRules: [
+      {
+        // Intentionally permissive: this demo needs to reproduce egress patterns
+        // (PostgreSQL on 5432, ACR pulls, ARM control plane). A locked-down NSG
+        // would mask the failure modes the SRE Agent is supposed to diagnose —
+        // Scenario 2 specifically depends on being able to add/remove a deny
+        // rule against this open baseline. Do NOT tighten without rewriting the
+        // break/fix scenarios.
+        name: 'allow-all-outbound'
+        properties: {
+          priority: 1000
+          direction: 'Outbound'
+          access: 'Allow'
+          protocol: '*'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '*'
+        }
+      }
+    ]
+  }
+}
+
+// Forced tunneling for the SRE Agent subnet: all egress (0.0.0.0/0) is routed to
+// the HUB Azure Firewall over VNet peering. The peering installs a more-specific
+// system route for the hub prefix (10.10.0.0/22), so traffic to the firewall's
+// private IP reaches it directly; everything else default-routes to the firewall.
+// disableBgpRoutePropagation keeps a gateway-learned 0.0.0.0/0 from competing.
+resource agentRouteTable 'Microsoft.Network/routeTables@2024-05-01' = {
+  name: 'rt-agent-${uniqueSuffix}'
+  location: location
+  properties: {
+    disableBgpRoutePropagation: true
+    routes: [
+      {
+        name: 'default-to-hub-firewall'
+        properties: {
+          addressPrefix: '0.0.0.0/0'
+          nextHopType: 'VirtualAppliance'
+          nextHopIpAddress: firewallPrivateIp
+        }
+      }
+    ]
+  }
+}
+
+// --------------------------------------------------------------------------
+// Hub VNet — shared edge/security services
+// --------------------------------------------------------------------------
+resource hubVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
+  name: hubVnetName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: ['10.10.0.0/22']
+    }
+    subnets: [
+      {
+        // Required exact name; Azure Firewall needs a /26 or larger.
+        name: 'AzureFirewallSubnet'
+        properties: {
+          addressPrefix: '10.10.0.0/26'
+        }
+      }
+      {
+        // Required exact name. Reserved for a future ExpressRoute/VPN gateway
+        // (hub→on-prem). Left empty on purpose — see header note on ExpressRoute.
+        name: 'GatewaySubnet'
+        properties: {
+          addressPrefix: '10.10.1.0/27'
+        }
+      }
+      {
+        // Private endpoint for the Azure Monitor Private Link Scope (AMPLS).
+        name: 'pe-subnet'
+        properties: {
+          addressPrefix: '10.10.2.0/27'
+          privateEndpointNetworkPolicies: 'Disabled'
+        }
+      }
+    ]
+  }
+}
+
+// --------------------------------------------------------------------------
+// Platform spoke — the application workload (AKS + PostgreSQL)
+// --------------------------------------------------------------------------
+resource platformVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
+  name: platformVnetName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: ['10.20.0.0/16']
+    }
+    subnets: [
+      {
+        name: 'aks-subnet'
+        properties: {
+          addressPrefix: '10.20.0.0/20'
+          networkSecurityGroup: { id: nsg.id }
+          serviceEndpoints: [
+            { service: 'Microsoft.Storage' }
+          ]
+        }
+      }
+      {
+        name: 'db-subnet'
+        properties: {
+          addressPrefix: '10.20.16.0/24'
+          delegations: [
+            {
+              name: 'postgres-delegation'
+              properties: {
+                serviceName: 'Microsoft.DBforPostgreSQL/flexibleServers'
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+// --------------------------------------------------------------------------
+// Agent spoke — the VNet-injected SRE Agent
+// --------------------------------------------------------------------------
+resource agentVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
+  name: agentVnetName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: ['10.30.0.0/24']
+    }
+    subnets: [
+      {
+        // SRE Agent workload subnet — delegated to Microsoft.App/environments so
+        // the agent's sandbox is injected here, with all egress forced through
+        // the hub Azure Firewall (route table above). /27 is the minimum:
+        // 32 total addresses minus 5 Azure-reserved addresses = 27 usable.
+        name: 'agent-subnet'
+        properties: {
+          addressPrefix: agentSubnetPrefix
+          routeTable: { id: agentRouteTable.id }
+          delegations: [
+            {
+              name: 'agent-delegation'
+              properties: {
+                serviceName: 'Microsoft.App/environments'
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+// --------------------------------------------------------------------------
+// VNet peering — hub <-> each spoke (bidirectional; two resources per link).
+// allowForwardedTraffic lets the firewall forward traffic that didn't originate
+// in the local VNet. No gateway is deployed, so the gateway-transit flags are
+// false; flip allowGatewayTransit (hub) / useRemoteGateways (spoke) once a real
+// ExpressRoute/VPN gateway lands in GatewaySubnet.
+// NOTE: this same resource type peers ACROSS REGIONS — Azure transparently makes
+// a peering "global VNet peering" when the remote VNet is in a different region
+// (no extra property, no gateway). That's how the agent — pinned to THIS region
+// by injection — still reaches another region's private resources: peer that
+// region's VNet to the hub. See the optional remote-region example below.
+// --------------------------------------------------------------------------
+resource peerHubToPlatform 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = {
+  parent: hubVnet
+  name: 'hub-to-platform'
+  properties: {
+    remoteVirtualNetwork: { id: platformVnet.id }
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+  }
+}
+
+resource peerPlatformToHub 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = {
+  parent: platformVnet
+  name: 'platform-to-hub'
+  properties: {
+    remoteVirtualNetwork: { id: hubVnet.id }
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+  }
+}
+
+resource peerHubToAgent 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = {
+  parent: hubVnet
+  name: 'hub-to-agent'
+  properties: {
+    remoteVirtualNetwork: { id: agentVnet.id }
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+  }
+}
+
+resource peerAgentToHub 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = {
+  parent: agentVnet
+  name: 'agent-to-hub'
+  properties: {
+    remoteVirtualNetwork: { id: hubVnet.id }
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+  }
+}
+
+// ==========================================================================
+// OPTIONAL — reach a SECOND AZURE REGION over GLOBAL VNet peering.
+// ==========================================================================
+// Demonstrates the cross-region half of "regional injection, cross-region reach"
+// (see the header note). The agent's OWN subnet stays in THIS region — that's a
+// hard requirement of VNet injection:
+//   "The subnet must be in the same region as your SRE Agent resource."
+//   https://learn.microsoft.com/azure/sre-agent/network-integration#configure-azure-vnet-mode
+// But peering the HUB to a VNet in a DIFFERENT region lets every spoke — the
+// agent included — route to that region's private resources, exactly like the
+// agent reaches the platform spoke here. Azure calls cross-region peering
+// "global VNet peering" (https://learn.microsoft.com/azure/virtual-network/virtual-network-peering-overview):
+// private, on Microsoft's backbone, NO gateway required. This is the SAME pattern
+// as the on-prem ExpressRoute/VPN path (which lands in GatewaySubnet) — just
+// another Azure VNet instead of an on-prem circuit.
+//
+// To try it: pick a different region, then UNCOMMENT the block below and place a
+// private resource in remoteVnet for the agent to reach. (Kept commented so the
+// default demo stays single-region and cheap — same stance as the on-prem
+// gateway, which is documented but not deployed.)
+//
+// @description('Region for the optional remote (cross-region) spoke. Must DIFFER from `location`.')
+// param remoteRegion string = 'westus2'
+//
+// resource remoteVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
+//   name: 'vnet-Zava-remote-${uniqueSuffix}'
+//   location: remoteRegion              // DIFFERENT region from the agent/hub.
+//   properties: {
+//     addressSpace: { addressPrefixes: ['10.40.0.0/24'] }   // must NOT overlap any VNet above
+//     subnets: [
+//       { name: 'workload-subnet', properties: { addressPrefix: '10.40.0.0/27' } }
+//     ]
+//   }
+// }
+//
+// // Global VNet peering hub <-> remote (bidirectional). IDENTICAL to the local
+// // hub<->spoke peerings above — Azure makes it "global" automatically because
+// // the two VNets are in different regions. No gateway, no extra property.
+// resource peerHubToRemote 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = {
+//   parent: hubVnet
+//   name: 'hub-to-remote'
+//   properties: {
+//     remoteVirtualNetwork: { id: remoteVnet.id }
+//     allowVirtualNetworkAccess: true
+//     allowForwardedTraffic: true
+//     allowGatewayTransit: false
+//     useRemoteGateways: false
+//   }
+// }
+// resource peerRemoteToHub 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = {
+//   parent: remoteVnet
+//   name: 'remote-to-hub'
+//   properties: {
+//     remoteVirtualNetwork: { id: hubVnet.id }
+//     allowVirtualNetworkAccess: true
+//     allowForwardedTraffic: true
+//     allowGatewayTransit: false
+//     useRemoteGateways: false
+//   }
+// }
+//
+// // The agent's egress is force-tunneled to the hub firewall (UDR 0.0.0.0/0 ->
+// // firewall). Peering carries the packets, but the firewall still GATES the
+// // agent's egress — so add a network rule permitting agent-subnet -> the remote
+// // range to the ruleCollectionGroup below (the module already SNATs all egress,
+// // so the return path stays symmetric):
+// //   { name: 'allow-agent-to-remote-region', ruleType: 'NetworkRule',
+// //     sourceAddresses: [agentSubnetPrefix], destinationAddresses: ['10.40.0.0/24'],
+// //     destinationPorts: ['*'], ipProtocols: ['Any'] }
+// // Cross-region peering alone is enough for VNet-to-VNet traffic that ISN'T
+// // force-tunneled; this lab force-tunnels the agent, hence the extra firewall rule.
+
+// Public IP for the Azure Firewall frontend (the only public ingress in the hub).
+resource firewallPip 'Microsoft.Network/publicIPAddresses@2024-05-01' = {
+  name: 'afw-pip-Zava-${uniqueSuffix}'
+  location: location
+  sku: {
+    name: 'Standard'
+    tier: 'Regional'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static'
+  }
+}
+
+// Firewall policy: default-deny egress with a precise allow-list. DNS proxy is on
+// so the firewall resolves FQDNs for the application rules. Threat intel denies
+// known-bad destinations.
+resource firewallPolicy 'Microsoft.Network/firewallPolicies@2024-05-01' = {
+  name: 'afw-policy-Zava-${uniqueSuffix}'
+  location: location
+  properties: {
+    sku: { tier: 'Standard' }
+    dnsSettings: {
+      enableProxy: true
+    }
+    threatIntelMode: 'Deny'
+    // SNAT all traffic, including private destinations. This supports the
+    // private AKS API-server network path: the API
+    // server's NSG only admits the `VirtualNetwork` service tag, and the agent
+    // spoke is NOT directly peered to the platform spoke — so without SNAT the
+    // agent's 10.30.x.x source would be denied and the return path asymmetric.
+    // SNATing to the firewall's hub IP (10.10.x.x — directly peered = part of
+    // the platform NSG's VirtualNetwork tag) makes the API server accept it AND
+    // reply through the firewall symmetrically (stateful). Remove this together
+    // with the `allow-agent-to-aks-api` rule below to revert to a command-invoke-
+    // only posture (no API-server line of sight).
+    snat: {
+      privateRanges: ['255.255.255.255/32']
+    }
+  }
+}
+
+// Allow-list = exactly what the VNet-injected SRE Agent needs to operate:
+// DNS, ARM / Entra / Microsoft Graph, Azure Monitor (App Insights + Log
+// Analytics queries), and Microsoft Learn (the agent's learn MCP / docs tools).
+// All az CLI operations ride ARM (including `az aks command invoke`, used by
+// human operators — not the agent), so they work through these rules without
+// exposing the cluster API server publicly.
+// AzureCloud is deliberately NOT used (it covers ~65k prefixes including
+// third-party SaaS); precise service tags are used instead. The source is the
+// agent spoke's subnet (agentSubnetPrefix).
+//
+// To let the agent reach a NETWORK DEVICE or other private service DIRECTLY, its
+// management endpoint must be HTTPS and its FQDN added BOTH here (an application
+// rule) AND to the agent's sandbox egress allow-list — the sandbox proxy only
+// speaks allow-listed HTTPS, never raw TCP. Azure-native "devices" (this Azure
+// Firewall, NSGs, Route Server) need no new rule: the agent
+// reads them over ARM, which is already allowed.
+resource ruleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2024-05-01' = {
+  parent: firewallPolicy
+  name: 'DefaultNetworkRuleCollectionGroup'
+  properties: {
+    priority: 200
+    ruleCollections: [
+      {
+        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
+        name: 'allow-essential-dns'
+        priority: 100
+        action: { type: 'Allow' }
+        rules: [
+          {
+            ruleType: 'NetworkRule'
+            name: 'allow-azure-dns'
+            description: 'DNS resolution via Azure DNS (required for the firewall DNS proxy)'
+            ipProtocols: ['UDP', 'TCP']
+            sourceAddresses: [agentSubnetPrefix]
+            destinationAddresses: ['168.63.129.16']
+            destinationPorts: ['53']
+          }
+        ]
+      }
+      {
+        // Native-kubectl enablement: lets the VNet-injected agent reach the
+        // PRIVATE AKS API server (10.20.0.4, in the platform spoke's aks-subnet)
+        // on 443. Combined with (a) linking the AKS private-DNS zone to the agent
+        // VNet (a post-deploy step — the zone is AKS-managed in the MC_* RG) and
+        // (b) the SNAT on the policy above, this completes direct API-server
+        // network reachability from the agent subnet.
+        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
+        name: 'allow-agent-to-aks-api'
+        priority: 210
+        action: { type: 'Allow' }
+        rules: [
+          {
+            ruleType: 'NetworkRule'
+            name: 'agent-to-apiserver'
+            description: 'Agent subnet -> AKS private API server'
+            ipProtocols: ['TCP']
+            sourceAddresses: [agentSubnetPrefix]
+            destinationAddresses: ['10.20.0.0/20']
+            destinationPorts: ['443']
+          }
+        ]
+      }
+      {
+        // Private-monitoring path (DEFAULT — lockAgentToPrivateMonitor=true). Lets
+        // the agent reach the AMPLS private endpoint (hub pe-subnet 10.10.2.0/27)
+        // for App Insights / Log Analytics; the agent remains fully functional over
+        // it. NOTE: 10.10.2.0/27 is inside the hub address space
+        // (10.10.0.0/22), which the agent<->hub peering routes DIRECTLY —
+        // longest-prefix match beats the 0.0.0.0/0 UDR to the firewall — so this
+        // traffic actually bypasses the firewall and this allow rule is
+        // belt-and-suspenders. Add a /27 UDR -> firewall if you want it inspected.
+        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
+        name: 'allow-agent-to-ampls'
+        priority: 215
+        action: { type: 'Allow' }
+        rules: [
+          {
+            ruleType: 'NetworkRule'
+            name: 'agent-to-ampls-pe'
+            description: 'Agent subnet -> AMPLS private endpoint (private Azure Monitor)'
+            ipProtocols: ['TCP']
+            sourceAddresses: [agentSubnetPrefix]
+            destinationAddresses: ['10.10.2.0/27']
+            destinationPorts: ['443']
+          }
+        ]
+      }
+      {
+        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
+        name: 'allow-azure-service-tags'
+        priority: 105
+        action: { type: 'Allow' }
+        rules: [
+          {
+            ruleType: 'NetworkRule'
+            name: 'allow-azure-services-l4'
+            description: 'L4 access to Azure services via precise service tags (NOT AzureCloud)'
+            ipProtocols: ['TCP']
+            sourceAddresses: [agentSubnetPrefix]
+            // AzureMonitor is dropped by DEFAULT (lockAgentToPrivateMonitor=true)
+            // so the agent reaches Monitor only over the AMPLS private endpoint —
+            // private-only / maximum restraint; the agent remains fully functional
+            // over the private path. Set the param false to re-add the public tag.
+            destinationAddresses: lockAgentToPrivateMonitor ? [
+              'AzureResourceManager'
+              'AzureActiveDirectory'
+            ] : [
+              'AzureResourceManager'
+              'AzureActiveDirectory'
+              'AzureMonitor'
+            ]
+            destinationPorts: ['443']
+          }
+        ]
+      }
+      {
+        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
+        name: 'allow-agent-azure-services'
+        priority: 150
+        action: { type: 'Allow' }
+        rules: [
+          {
+            ruleType: 'ApplicationRule'
+            name: 'allow-arm-aad-graph'
+            description: 'FQDN access to ARM, Entra ID, and Microsoft Graph'
+            sourceAddresses: [agentSubnetPrefix]
+            protocols: [{ protocolType: 'Https', port: 443 }]
+            targetFqdns: [
+              'management.azure.com'
+              'login.microsoftonline.com'
+              'graph.microsoft.com'
+            ]
+          }
+          // The agent's OWN data-plane rule (allow-agent-data-plane) is NOT here —
+          // it lives in firewall-agent-dataplane.bicep, deployed AFTER the agent
+          // resource so it can pin to the agent's exact hostname (platform-assigned
+          // at creation time, not computable in Bicep beforehand). See main.bicep.
+        ]
+      }
+      {
+        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
+        name: 'allow-microsoft-learn'
+        priority: 200
+        action: { type: 'Allow' }
+        rules: [
+          {
+            ruleType: 'ApplicationRule'
+            name: 'allow-learn-microsoft-com'
+            description: 'Microsoft Learn docs + MCP runtime endpoint (the agent looks up Azure/AKS/PostgreSQL guidance here)'
+            sourceAddresses: [agentSubnetPrefix]
+            protocols: [{ protocolType: 'Https', port: 443 }]
+            targetFqdns: [
+              'learn.microsoft.com'
+              '*.learn.microsoft.com'
+            ]
+          }
+          {
+            ruleType: 'ApplicationRule'
+            name: 'allow-github-raw-mcp-bits'
+            // The Streamable-HTTP Microsoft Learn MCP connector fetches its server
+            // bits from raw.githubusercontent.com (the microsoftdocs/mcp repo) over
+            // the VNet during the tools/list handshake. Without this the connector
+            // shows "no active connection" and surfaces zero tools — even though
+            // learn.microsoft.com itself is reachable. Scoped to the single host the
+            // agent actually hits (verified in AZFWApplicationRule denials) — no
+            // *.githubusercontent.com wildcard. This is a Standard firewall, so L7
+            // matching is FQDN/SNI only; to pin the exact repo PATH
+            // (raw.githubusercontent.com/microsoftdocs/mcp/*) you'd need Azure
+            // Firewall Premium + TLS inspection (targetUrls). See README caveats.
+            description: 'GitHub raw content — the Microsoft Learn MCP connector fetches its server bits here to complete the tool-discovery handshake'
+            sourceAddresses: [agentSubnetPrefix]
+            protocols: [{ protocolType: 'Https', port: 443 }]
+            targetFqdns: [
+              'raw.githubusercontent.com'
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+
+resource firewall 'Microsoft.Network/azureFirewalls@2024-05-01' = {
+  name: 'afw-Zava-${uniqueSuffix}'
+  location: location
+  properties: {
+    sku: {
+      name: 'AZFW_VNet'
+      tier: 'Standard'
+    }
+    firewallPolicy: { id: firewallPolicy.id }
+    ipConfigurations: [
+      {
+        name: 'fw-ipconfig'
+        properties: {
+          subnet: { id: '${hubVnet.id}/subnets/AzureFirewallSubnet' }
+          publicIPAddress: { id: firewallPip.id }
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    ruleCollectionGroup
+  ]
+}
+
+// PostgreSQL private DNS zone — linked to the PLATFORM spoke, where both the AKS
+// pods and the delegated db-subnet live and resolve the server's private FQDN.
+resource privateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
+  name: '${uniqueSuffix}.private.postgres.database.azure.com'
+  location: 'global'
+}
+
+resource privateDnsVnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = {
+  parent: privateDnsZone
+  name: 'platform-link'
+  location: 'global'
+  properties: {
+    virtualNetwork: { id: platformVnet.id }
+    registrationEnabled: false
+  }
+}
+
+// Workload outputs (names preserved for back-compat with main.bicep / scripts).
+output vnetName string = platformVnet.name
+output nsgName string = nsg.name
+output aksSubnetId string = '${platformVnet.id}/subnets/aks-subnet'
+output dbSubnetId string = '${platformVnet.id}/subnets/db-subnet'
+output agentSubnetId string = '${agentVnet.id}/subnets/agent-subnet'
+output agentSubnetPrefix string = agentSubnetPrefix
+output privateDnsZoneId string = privateDnsZone.id
+
+// Hub-and-spoke outputs (consumed by the AMPLS + firewall-diagnostics modules).
+output hubVnetName string = hubVnet.name
+output hubVnetId string = hubVnet.id
+output platformVnetId string = platformVnet.id
+output agentVnetId string = agentVnet.id
+output peSubnetId string = '${hubVnet.id}/subnets/pe-subnet'
+output firewallName string = firewall.name
+output firewallPolicyName string = firewallPolicy.name
+output firewallId string = firewall.id
+output firewallPrivateIp string = firewallPrivateIp

@@ -1,0 +1,2939 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.42.1.51946",
+      "templateHash": "13463374783617981532"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "swedencentral",
+      "metadata": {
+        "description": "Azure region for all resources"
+      }
+    },
+    "resourceGroupName": {
+      "type": "string",
+      "defaultValue": "rg-zava-aks-postgres",
+      "metadata": {
+        "description": "Resource group name"
+      }
+    },
+    "uniqueSuffix": {
+      "type": "string",
+      "defaultValue": "[take(uniqueString(subscription().subscriptionId, parameters('resourceGroupName')), 6)]",
+      "metadata": {
+        "description": "Unique suffix for globally unique resource names. Deterministic on subscription+RG so that incremental `azd up` is idempotent."
+      }
+    },
+    "environmentName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "AZD environment name (auto-injected from AZURE_ENV_NAME by main.bicepparam). Used only to derive a short distinguishing suffix on the SRE Agent name so that fresh `azd env new` demos get fresh agents (and therefore fresh data-plane thread state). Other resources keep using uniqueSuffix only, so they remain idempotent across incremental `azd up` runs on the same env."
+      }
+    },
+    "lockAgentToPrivateMonitor": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Lock the SRE Agent down to PRIVATE-ONLY Azure Monitor (maximum restraint).\nWhen true (default): the agent\\'s Monitor private-DNS zones are linked to the agent VNet AND the\npublic `AzureMonitor` service tag is removed from the firewall L4 allow-list, so the agent reaches\nLog Analytics / Application Insights only via the AMPLS private endpoint over the hub/spoke.\n\nThe agent remains fully functional under this lockdown: it queries Log Analytics / Application\nInsights and remediates incidents end-to-end over the private path. (The agent\\'s Monitor query\nconnector is platform-brokered, so dropping the public `AzureMonitor` tag from the agent-VNet\nfirewall does not gate it.) Set false to keep the public allow-listed Monitor path instead."
+      }
+    },
+    "allowAgentSelfManagement": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Allow the agent to reach its OWN data-plane endpoint (`*.azuresre.ai`) through the hub\nfirewall, default true. Required for the agent to read or write the configuration surfaces ARM does not\nexpose — custom instructions, hooks, knowledge files, and global tool enablement. This is also a\nself-modification path (the agent can rewrite its own skills and always-on prompts); set false to keep\ndata-plane config strictly operator/CI-applied. The firewall module remains deployed with an empty\nrule collection when false so incremental deployments revoke previously granted access."
+      }
+    }
+  },
+  "variables": {
+    "agentEnvSuffix": "[if(empty(parameters('environmentName')), '', format('-{0}', take(uniqueString(parameters('environmentName')), 4)))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('resourceGroupName')]",
+      "location": "[parameters('location')]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "vnet",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "uniqueSuffix": {
+            "value": "[parameters('uniqueSuffix')]"
+          },
+          "lockAgentToPrivateMonitor": {
+            "value": "[parameters('lockAgentToPrivateMonitor')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "1522027209987142253"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the network resources."
+              }
+            },
+            "uniqueSuffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique suffix for resource names."
+              }
+            },
+            "lockAgentToPrivateMonitor": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Lock the agent to PRIVATE-ONLY Azure Monitor (default true). When true, the public\n`AzureMonitor` service tag is dropped from the firewall L4 allow-list and the agent reaches Monitor\nvia the AMPLS private endpoint (10.10.2.0/27, rule allow-agent-to-ampls) + the linked private-DNS\nzones. The agent remains fully functional under this lockdown (Monitor queries, Kubernetes tools, and\nincident remediation all work). See the main.bicep param doc."
+              }
+            }
+          },
+          "variables": {
+            "hubVnetName": "[format('vnet-Zava-hub-{0}', parameters('uniqueSuffix'))]",
+            "platformVnetName": "[format('vnet-Zava-platform-{0}', parameters('uniqueSuffix'))]",
+            "agentVnetName": "[format('vnet-Zava-agent-{0}', parameters('uniqueSuffix'))]",
+            "nsgName": "[format('nsg-aks-{0}', parameters('uniqueSuffix'))]",
+            "agentSubnetPrefix": "10.30.0.0/27",
+            "firewallPrivateIp": "10.10.0.4"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('nsgName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "securityRules": [
+                  {
+                    "name": "allow-all-outbound",
+                    "properties": {
+                      "priority": 1000,
+                      "direction": "Outbound",
+                      "access": "Allow",
+                      "protocol": "*",
+                      "sourceAddressPrefix": "*",
+                      "sourcePortRange": "*",
+                      "destinationAddressPrefix": "*",
+                      "destinationPortRange": "*"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/routeTables",
+              "apiVersion": "2024-05-01",
+              "name": "[format('rt-agent-{0}', parameters('uniqueSuffix'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "disableBgpRoutePropagation": true,
+                "routes": [
+                  {
+                    "name": "default-to-hub-firewall",
+                    "properties": {
+                      "addressPrefix": "0.0.0.0/0",
+                      "nextHopType": "VirtualAppliance",
+                      "nextHopIpAddress": "[variables('firewallPrivateIp')]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('hubVnetName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "10.10.0.0/22"
+                  ]
+                },
+                "subnets": [
+                  {
+                    "name": "AzureFirewallSubnet",
+                    "properties": {
+                      "addressPrefix": "10.10.0.0/26"
+                    }
+                  },
+                  {
+                    "name": "GatewaySubnet",
+                    "properties": {
+                      "addressPrefix": "10.10.1.0/27"
+                    }
+                  },
+                  {
+                    "name": "pe-subnet",
+                    "properties": {
+                      "addressPrefix": "10.10.2.0/27",
+                      "privateEndpointNetworkPolicies": "Disabled"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('platformVnetName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "10.20.0.0/16"
+                  ]
+                },
+                "subnets": [
+                  {
+                    "name": "aks-subnet",
+                    "properties": {
+                      "addressPrefix": "10.20.0.0/20",
+                      "networkSecurityGroup": {
+                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+                      },
+                      "serviceEndpoints": [
+                        {
+                          "service": "Microsoft.Storage"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "db-subnet",
+                    "properties": {
+                      "addressPrefix": "10.20.16.0/24",
+                      "delegations": [
+                        {
+                          "name": "postgres-delegation",
+                          "properties": {
+                            "serviceName": "Microsoft.DBforPostgreSQL/flexibleServers"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('agentVnetName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "10.30.0.0/24"
+                  ]
+                },
+                "subnets": [
+                  {
+                    "name": "agent-subnet",
+                    "properties": {
+                      "addressPrefix": "[variables('agentSubnetPrefix')]",
+                      "routeTable": {
+                        "id": "[resourceId('Microsoft.Network/routeTables', format('rt-agent-{0}', parameters('uniqueSuffix')))]"
+                      },
+                      "delegations": [
+                        {
+                          "name": "agent-delegation",
+                          "properties": {
+                            "serviceName": "Microsoft.App/environments"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables', format('rt-agent-{0}', parameters('uniqueSuffix')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', variables('hubVnetName'), 'hub-to-platform')]",
+              "properties": {
+                "remoteVirtualNetwork": {
+                  "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('platformVnetName'))]"
+                },
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": true,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('platformVnetName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', variables('platformVnetName'), 'platform-to-hub')]",
+              "properties": {
+                "remoteVirtualNetwork": {
+                  "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+                },
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": true,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('platformVnetName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', variables('hubVnetName'), 'hub-to-agent')]",
+              "properties": {
+                "remoteVirtualNetwork": {
+                  "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('agentVnetName'))]"
+                },
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": true,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('agentVnetName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', variables('agentVnetName'), 'agent-to-hub')]",
+              "properties": {
+                "remoteVirtualNetwork": {
+                  "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+                },
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": true,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('agentVnetName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2024-05-01",
+              "name": "[format('afw-pip-Zava-{0}', parameters('uniqueSuffix'))]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+              },
+              "properties": {
+                "publicIPAllocationMethod": "Static"
+              }
+            },
+            {
+              "type": "Microsoft.Network/firewallPolicies",
+              "apiVersion": "2024-05-01",
+              "name": "[format('afw-policy-Zava-{0}', parameters('uniqueSuffix'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "sku": {
+                  "tier": "Standard"
+                },
+                "dnsSettings": {
+                  "enableProxy": true
+                },
+                "threatIntelMode": "Deny",
+                "snat": {
+                  "privateRanges": [
+                    "255.255.255.255/32"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', format('afw-policy-Zava-{0}', parameters('uniqueSuffix')), 'DefaultNetworkRuleCollectionGroup')]",
+              "properties": {
+                "priority": 200,
+                "ruleCollections": [
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "name": "allow-essential-dns",
+                    "priority": 100,
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "rules": [
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "allow-azure-dns",
+                        "description": "DNS resolution via Azure DNS (required for the firewall DNS proxy)",
+                        "ipProtocols": [
+                          "UDP",
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[variables('agentSubnetPrefix')]"
+                        ],
+                        "destinationAddresses": [
+                          "168.63.129.16"
+                        ],
+                        "destinationPorts": [
+                          "53"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "name": "allow-agent-to-aks-api",
+                    "priority": 210,
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "rules": [
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "agent-to-apiserver",
+                        "description": "Agent subnet -> AKS private API server",
+                        "ipProtocols": [
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[variables('agentSubnetPrefix')]"
+                        ],
+                        "destinationAddresses": [
+                          "10.20.0.0/20"
+                        ],
+                        "destinationPorts": [
+                          "443"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "name": "allow-agent-to-ampls",
+                    "priority": 215,
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "rules": [
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "agent-to-ampls-pe",
+                        "description": "Agent subnet -> AMPLS private endpoint (private Azure Monitor)",
+                        "ipProtocols": [
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[variables('agentSubnetPrefix')]"
+                        ],
+                        "destinationAddresses": [
+                          "10.10.2.0/27"
+                        ],
+                        "destinationPorts": [
+                          "443"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "name": "allow-azure-service-tags",
+                    "priority": 105,
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "rules": [
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "allow-azure-services-l4",
+                        "description": "L4 access to Azure services via precise service tags (NOT AzureCloud)",
+                        "ipProtocols": [
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[variables('agentSubnetPrefix')]"
+                        ],
+                        "destinationAddresses": "[if(parameters('lockAgentToPrivateMonitor'), createArray('AzureResourceManager', 'AzureActiveDirectory'), createArray('AzureResourceManager', 'AzureActiveDirectory', 'AzureMonitor'))]",
+                        "destinationPorts": [
+                          "443"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "name": "allow-agent-azure-services",
+                    "priority": 150,
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "rules": [
+                      {
+                        "ruleType": "ApplicationRule",
+                        "name": "allow-arm-aad-graph",
+                        "description": "FQDN access to ARM, Entra ID, and Microsoft Graph",
+                        "sourceAddresses": [
+                          "[variables('agentSubnetPrefix')]"
+                        ],
+                        "protocols": [
+                          {
+                            "protocolType": "Https",
+                            "port": 443
+                          }
+                        ],
+                        "targetFqdns": [
+                          "management.azure.com",
+                          "login.microsoftonline.com",
+                          "graph.microsoft.com"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "name": "allow-microsoft-learn",
+                    "priority": 200,
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "rules": [
+                      {
+                        "ruleType": "ApplicationRule",
+                        "name": "allow-learn-microsoft-com",
+                        "description": "Microsoft Learn docs + MCP runtime endpoint (the agent looks up Azure/AKS/PostgreSQL guidance here)",
+                        "sourceAddresses": [
+                          "[variables('agentSubnetPrefix')]"
+                        ],
+                        "protocols": [
+                          {
+                            "protocolType": "Https",
+                            "port": 443
+                          }
+                        ],
+                        "targetFqdns": [
+                          "learn.microsoft.com",
+                          "*.learn.microsoft.com"
+                        ]
+                      },
+                      {
+                        "ruleType": "ApplicationRule",
+                        "name": "allow-github-raw-mcp-bits",
+                        "description": "GitHub raw content — the Microsoft Learn MCP connector fetches its server bits here to complete the tool-discovery handshake",
+                        "sourceAddresses": [
+                          "[variables('agentSubnetPrefix')]"
+                        ],
+                        "protocols": [
+                          {
+                            "protocolType": "Https",
+                            "port": 443
+                          }
+                        ],
+                        "targetFqdns": [
+                          "raw.githubusercontent.com"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', format('afw-policy-Zava-{0}', parameters('uniqueSuffix')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/azureFirewalls",
+              "apiVersion": "2024-05-01",
+              "name": "[format('afw-Zava-{0}', parameters('uniqueSuffix'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "sku": {
+                  "name": "AZFW_VNet",
+                  "tier": "Standard"
+                },
+                "firewallPolicy": {
+                  "id": "[resourceId('Microsoft.Network/firewallPolicies', format('afw-policy-Zava-{0}', parameters('uniqueSuffix')))]"
+                },
+                "ipConfigurations": [
+                  {
+                    "name": "fw-ipconfig",
+                    "properties": {
+                      "subnet": {
+                        "id": "[format('{0}/subnets/AzureFirewallSubnet', resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName')))]"
+                      },
+                      "publicIPAddress": {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', format('afw-pip-Zava-{0}', parameters('uniqueSuffix')))]"
+                      }
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', format('afw-pip-Zava-{0}', parameters('uniqueSuffix')))]",
+                "[resourceId('Microsoft.Network/firewallPolicies', format('afw-policy-Zava-{0}', parameters('uniqueSuffix')))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
+                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', format('afw-policy-Zava-{0}', parameters('uniqueSuffix')), 'DefaultNetworkRuleCollectionGroup')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateDnsZones",
+              "apiVersion": "2024-06-01",
+              "name": "[format('{0}.private.postgres.database.azure.com', parameters('uniqueSuffix'))]",
+              "location": "global"
+            },
+            {
+              "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+              "apiVersion": "2024-06-01",
+              "name": "[format('{0}/{1}', format('{0}.private.postgres.database.azure.com', parameters('uniqueSuffix')), 'platform-link')]",
+              "location": "global",
+              "properties": {
+                "virtualNetwork": {
+                  "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('platformVnetName'))]"
+                },
+                "registrationEnabled": false
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('platformVnetName'))]",
+                "[resourceId('Microsoft.Network/privateDnsZones', format('{0}.private.postgres.database.azure.com', parameters('uniqueSuffix')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "vnetName": {
+              "type": "string",
+              "value": "[variables('platformVnetName')]"
+            },
+            "nsgName": {
+              "type": "string",
+              "value": "[variables('nsgName')]"
+            },
+            "aksSubnetId": {
+              "type": "string",
+              "value": "[format('{0}/subnets/aks-subnet', resourceId('Microsoft.Network/virtualNetworks', variables('platformVnetName')))]"
+            },
+            "dbSubnetId": {
+              "type": "string",
+              "value": "[format('{0}/subnets/db-subnet', resourceId('Microsoft.Network/virtualNetworks', variables('platformVnetName')))]"
+            },
+            "agentSubnetId": {
+              "type": "string",
+              "value": "[format('{0}/subnets/agent-subnet', resourceId('Microsoft.Network/virtualNetworks', variables('agentVnetName')))]"
+            },
+            "agentSubnetPrefix": {
+              "type": "string",
+              "value": "[variables('agentSubnetPrefix')]"
+            },
+            "privateDnsZoneId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/privateDnsZones', format('{0}.private.postgres.database.azure.com', parameters('uniqueSuffix')))]"
+            },
+            "hubVnetName": {
+              "type": "string",
+              "value": "[variables('hubVnetName')]"
+            },
+            "hubVnetId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+            },
+            "platformVnetId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('platformVnetName'))]"
+            },
+            "agentVnetId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('agentVnetName'))]"
+            },
+            "peSubnetId": {
+              "type": "string",
+              "value": "[format('{0}/subnets/pe-subnet', resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName')))]"
+            },
+            "firewallName": {
+              "type": "string",
+              "value": "[format('afw-Zava-{0}', parameters('uniqueSuffix'))]"
+            },
+            "firewallPolicyName": {
+              "type": "string",
+              "value": "[format('afw-policy-Zava-{0}', parameters('uniqueSuffix'))]"
+            },
+            "firewallId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/azureFirewalls', format('afw-Zava-{0}', parameters('uniqueSuffix')))]"
+            },
+            "firewallPrivateIp": {
+              "type": "string",
+              "value": "[variables('firewallPrivateIp')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "acr",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "uniqueSuffix": {
+            "value": "[parameters('uniqueSuffix')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "17480536039515911558"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the container registry."
+              }
+            },
+            "uniqueSuffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique suffix for globally unique resource names."
+              }
+            }
+          },
+          "variables": {
+            "acrName": "[format('acrzava{0}', parameters('uniqueSuffix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ContainerRegistry/registries",
+              "apiVersion": "2023-07-01",
+              "name": "[variables('acrName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Basic"
+              },
+              "properties": {
+                "adminUserEnabled": false
+              }
+            }
+          ],
+          "outputs": {
+            "acrName": {
+              "type": "string",
+              "value": "[variables('acrName')]"
+            },
+            "acrLoginServer": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', variables('acrName')), '2023-07-01').loginServer]"
+            },
+            "acrId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ContainerRegistry/registries', variables('acrName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "monitoring",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "uniqueSuffix": {
+            "value": "[parameters('uniqueSuffix')]"
+          },
+          "postgresServerName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql'), '2025-04-01').outputs.serverName.value]"
+          },
+          "resourceGroupId": {
+            "value": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "2780827486819952173"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for monitoring resources."
+              }
+            },
+            "uniqueSuffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique suffix for globally unique resource names."
+              }
+            },
+            "postgresServerName": {
+              "type": "string",
+              "metadata": {
+                "description": "PostgreSQL flexible server name to attach diagnostic settings to."
+              }
+            },
+            "resourceGroupId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource group ID — scope for activity-log-based alerts."
+              }
+            },
+            "enableDbCpuSaturationAlert": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Enable the PostgreSQL CPU-saturation metric alert. Deployed DISABLED by default on purpose — see the resource comment: the disabled causal alert is what makes the correlation scenario teach anything."
+              }
+            }
+          },
+          "variables": {
+            "lawName": "[format('law-Zava-{0}', parameters('uniqueSuffix'))]",
+            "aiName": "[format('ai-Zava-{0}', parameters('uniqueSuffix'))]",
+            "shortLivedTables": [
+              "AppTraces",
+              "AppRequests",
+              "AppDependencies",
+              "AppPerformanceCounters",
+              "AppPageViews",
+              "AppBrowserTimings",
+              "AppMetrics",
+              "AppSystemEvents",
+              "AppAvailabilityResults"
+            ]
+          },
+          "resources": [
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2023-09-01",
+              "name": "[variables('lawName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "sku": {
+                  "name": "PerGB2018"
+                },
+                "retentionInDays": 30,
+                "features": {
+                  "immediatePurgeDataOn30Days": true
+                }
+              }
+            },
+            {
+              "copy": {
+                "name": "shortRetention",
+                "count": "[length(variables('shortLivedTables'))]"
+              },
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "name": "[format('{0}/{1}', variables('lawName'), variables('shortLivedTables')[copyIndex()])]",
+              "properties": {
+                "retentionInDays": 4,
+                "totalRetentionInDays": 4
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/components",
+              "apiVersion": "2020-02-02",
+              "name": "[variables('aiName')]",
+              "location": "[parameters('location')]",
+              "kind": "web",
+              "properties": {
+                "Application_Type": "web",
+                "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]",
+                "RetentionInDays": 30,
+                "IngestionMode": "LogAnalytics"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/actionGroups",
+              "apiVersion": "2023-01-01",
+              "name": "[format('ag-Zava-sre-{0}', parameters('uniqueSuffix'))]",
+              "location": "global",
+              "properties": {
+                "groupShortName": "Zava-sre",
+                "enabled": true
+              }
+            },
+            {
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2023-03-15-preview",
+              "name": "Zava-http-5xx-errors",
+              "location": "[parameters('location')]",
+              "properties": {
+                "severity": 2,
+                "enabled": true,
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT5M",
+                "scopes": [
+                  "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+                ],
+                "criteria": {
+                  "allOf": [
+                    {
+                      "query": "            AppRequests\r\n            | where TimeGenerated > ago(5m)\r\n            | where AppRoleName == 'zava-api'\r\n            | where Success == false and toint(ResultCode) >= 500\r\n            | summarize ErrorCount = count()\r\n          ",
+                      "timeAggregation": "Total",
+                      "metricMeasureColumn": "ErrorCount",
+                      "operator": "GreaterThan",
+                      "threshold": 5,
+                      "failingPeriods": {
+                        "numberOfEvaluationPeriods": 1,
+                        "minFailingPeriodsToAlert": 1
+                      }
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]"
+                  ]
+                },
+                "autoMitigate": true,
+                "description": "Zava Demo: zava-api returned more than 5 HTTP 5xx responses in the last 5 minutes."
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]",
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/diagnosticSettings",
+              "apiVersion": "2021-05-01-preview",
+              "scope": "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('postgresServerName'))]",
+              "name": "pg-to-law",
+              "properties": {
+                "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]",
+                "logs": [
+                  {
+                    "categoryGroup": "allLogs",
+                    "enabled": true
+                  }
+                ],
+                "metrics": [
+                  {
+                    "category": "AllMetrics",
+                    "enabled": true
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2023-03-15-preview",
+              "name": "postgres-unreachable",
+              "location": "[parameters('location')]",
+              "properties": {
+                "severity": 1,
+                "enabled": true,
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT5M",
+                "scopes": [
+                  "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+                ],
+                "criteria": {
+                  "allOf": [
+                    {
+                      "query": "            AppTraces\r\n            | where TimeGenerated > ago(5m)\r\n            | where AppRoleName == 'zava-api' and SeverityLevel >= 3\r\n            | where Message has_any (\"ECONNREFUSED\", \"ETIMEDOUT\", \"connection refused\", \"timeout exceeded when trying to connect\", \"connection timeout\", \"connection terminated\")\r\n               or tostring(Properties) has_any (\"ECONNREFUSED\", \"ETIMEDOUT\", \"connection refused\", \"timeout exceeded when trying to connect\", \"connection timeout\", \"connection terminated\")\r\n            | summarize ErrorCount = count()\r\n          ",
+                      "timeAggregation": "Total",
+                      "metricMeasureColumn": "ErrorCount",
+                      "operator": "GreaterThan",
+                      "threshold": 3,
+                      "failingPeriods": {
+                        "numberOfEvaluationPeriods": 1,
+                        "minFailingPeriodsToAlert": 1
+                      }
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]"
+                  ]
+                },
+                "autoMitigate": true,
+                "description": "Zava Demo: zava-api logged more than 3 PostgreSQL connectivity failures (connection refused or timeout) in the last 5 minutes — the database is unreachable from the application."
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]",
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2023-03-15-preview",
+              "name": "Zava-products-query-slow",
+              "location": "[parameters('location')]",
+              "properties": {
+                "severity": 2,
+                "enabled": true,
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT5M",
+                "scopes": [
+                  "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+                ],
+                "criteria": {
+                  "allOf": [
+                    {
+                      "query": "AppRequests\r\n| where AppRoleName == 'zava-api'\r\n| where Name startswith 'GET /api/products/category/' and Name !contains '__probe'\r\n| summarize AvgDurationMs = avg(DurationMs) by Name\r\n| where AvgDurationMs > 30",
+                      "timeAggregation": "Count",
+                      "operator": "GreaterThan",
+                      "threshold": 0,
+                      "failingPeriods": {
+                        "numberOfEvaluationPeriods": 1,
+                        "minFailingPeriodsToAlert": 1
+                      }
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]"
+                  ]
+                },
+                "autoMitigate": true,
+                "description": "Zava Demo: at least one /api/products/category/<X> endpoint averaged above 30ms over 5 minutes (healthy baseline ~3ms)."
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]",
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/metricAlerts",
+              "apiVersion": "2018-03-01",
+              "name": "Zava-db-cpu-saturation",
+              "location": "global",
+              "properties": {
+                "severity": 3,
+                "enabled": "[parameters('enableDbCpuSaturationAlert')]",
+                "evaluationFrequency": "PT1M",
+                "windowSize": "PT5M",
+                "scopes": [
+                  "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('postgresServerName'))]"
+                ],
+                "criteria": {
+                  "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+                  "allOf": [
+                    {
+                      "criterionType": "StaticThresholdCriterion",
+                      "name": "pgCpu",
+                      "metricName": "cpu_percent",
+                      "metricNamespace": "Microsoft.DBforPostgreSQL/flexibleServers",
+                      "operator": "GreaterThan",
+                      "threshold": 80,
+                      "timeAggregation": "Average"
+                    }
+                  ]
+                },
+                "actions": [
+                  {
+                    "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]"
+                  }
+                ],
+                "autoMitigate": true,
+                "description": "Zava Demo: PostgreSQL server CPU averaged above 80% over 5 minutes."
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/activityLogAlerts",
+              "apiVersion": "2023-01-01-preview",
+              "name": "Zava-unknown-test",
+              "location": "global",
+              "properties": {
+                "enabled": false,
+                "scopes": [
+                  "[parameters('resourceGroupId')]"
+                ],
+                "condition": {
+                  "allOf": [
+                    {
+                      "field": "category",
+                      "equals": "Administrative"
+                    },
+                    {
+                      "field": "operationName",
+                      "equals": "Microsoft.Resources/tags/write"
+                    },
+                    {
+                      "field": "status",
+                      "equals": "Succeeded"
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    {
+                      "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]"
+                    }
+                  ]
+                },
+                "description": "Zava Demo: a tag was written on the resource group."
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-Zava-sre-{0}', parameters('uniqueSuffix')))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "logAnalyticsWorkspaceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('lawName'))]"
+            },
+            "logAnalyticsWorkspaceName": {
+              "type": "string",
+              "value": "[variables('lawName')]"
+            },
+            "appInsightsConnectionString": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('aiName')), '2020-02-02').ConnectionString]"
+            },
+            "appInsightsResourceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Insights/components', variables('aiName'))]"
+            },
+            "appInsightsName": {
+              "type": "string",
+              "value": "[variables('aiName')]"
+            },
+            "appInsightsAppId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('aiName')), '2020-02-02').AppId]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "postgresql",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "uniqueSuffix": {
+            "value": "[parameters('uniqueSuffix')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.dbSubnetId.value]"
+          },
+          "privateDnsZoneId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.privateDnsZoneId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "16600624925514353524"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the PostgreSQL flexible server."
+              }
+            },
+            "uniqueSuffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique suffix for the server name."
+              }
+            },
+            "subnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the delegated subnet for the flexible server."
+              }
+            },
+            "privateDnsZoneId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the private DNS zone for the flexible server."
+              }
+            }
+          },
+          "variables": {
+            "serverName": "[format('zava-pg-{0}', parameters('uniqueSuffix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers",
+              "apiVersion": "2024-08-01",
+              "name": "[variables('serverName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Standard_D2ds_v5",
+                "tier": "GeneralPurpose"
+              },
+              "properties": {
+                "version": "16",
+                "authConfig": {
+                  "activeDirectoryAuth": "Enabled",
+                  "passwordAuth": "Disabled"
+                },
+                "storage": {
+                  "storageSizeGB": 128
+                },
+                "backup": {
+                  "backupRetentionDays": 7,
+                  "geoRedundantBackup": "Disabled"
+                },
+                "network": {
+                  "delegatedSubnetResourceId": "[parameters('subnetId')]",
+                  "privateDnsZoneArmResourceId": "[parameters('privateDnsZoneId')]"
+                },
+                "highAvailability": {
+                  "mode": "Disabled"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/databases",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', variables('serverName'), 'zava_store')]",
+              "properties": {
+                "charset": "UTF8",
+                "collation": "en_US.utf8"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('serverName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/configurations",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', variables('serverName'), 'pg_stat_statements.track')]",
+              "properties": {
+                "value": "all",
+                "source": "user-override"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('serverName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/configurations",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', variables('serverName'), 'pg_qs.query_capture_mode')]",
+              "properties": {
+                "value": "ALL",
+                "source": "user-override"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('serverName'))]",
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers/configurations', variables('serverName'), 'pg_stat_statements.track')]"
+              ]
+            },
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/configurations",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', variables('serverName'), 'pg_qs.retention_period_in_days')]",
+              "properties": {
+                "value": "7",
+                "source": "user-override"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers/configurations', variables('serverName'), 'pg_qs.query_capture_mode')]",
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('serverName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/configurations",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', variables('serverName'), 'pgms_wait_sampling.query_capture_mode')]",
+              "properties": {
+                "value": "ALL",
+                "source": "user-override"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers/configurations', variables('serverName'), 'pg_qs.retention_period_in_days')]",
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('serverName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/configurations",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', variables('serverName'), 'track_io_timing')]",
+              "properties": {
+                "value": "on",
+                "source": "user-override"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers/configurations', variables('serverName'), 'pgms_wait_sampling.query_capture_mode')]",
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('serverName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/configurations",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', variables('serverName'), 'random_page_cost')]",
+              "properties": {
+                "value": "1.1",
+                "source": "user-override"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('serverName'))]",
+                "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers/configurations', variables('serverName'), 'track_io_timing')]"
+              ]
+            }
+          ],
+          "outputs": {
+            "serverName": {
+              "type": "string",
+              "value": "[variables('serverName')]"
+            },
+            "fqdn": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('serverName')), '2024-08-01').fullyQualifiedDomainName]"
+            },
+            "serverResourceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('serverName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "aks",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "uniqueSuffix": {
+            "value": "[parameters('uniqueSuffix')]"
+          },
+          "subnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.aksSubnetId.value]"
+          },
+          "logAnalyticsWorkspaceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.logAnalyticsWorkspaceId.value]"
+          },
+          "acrId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'acr'), '2025-04-01').outputs.acrId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "1641231188956360063"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the AKS cluster."
+              }
+            },
+            "uniqueSuffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique suffix for globally unique resource names."
+              }
+            },
+            "subnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the AKS subnet."
+              }
+            },
+            "logAnalyticsWorkspaceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Log Analytics workspace resource ID for Container Insights (omsagent addon)."
+              }
+            },
+            "acrId": {
+              "type": "string",
+              "metadata": {
+                "description": "Container registry resource ID — used to grant AKS kubelet AcrPull."
+              }
+            }
+          },
+          "variables": {
+            "clusterName": "[format('aks-Zava-{0}', parameters('uniqueSuffix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ContainerService/managedClusters",
+              "apiVersion": "2024-09-01",
+              "name": "[variables('clusterName')]",
+              "location": "[parameters('location')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "dnsPrefix": "[format('Zava-{0}', parameters('uniqueSuffix'))]",
+                "aadProfile": {
+                  "managed": true,
+                  "enableAzureRBAC": true
+                },
+                "networkProfile": {
+                  "networkPlugin": "azure",
+                  "networkPolicy": "azure",
+                  "serviceCidr": "10.2.0.0/16",
+                  "dnsServiceIP": "10.2.0.10"
+                },
+                "apiServerAccessProfile": {
+                  "enablePrivateCluster": true,
+                  "privateDNSZone": "system",
+                  "enablePrivateClusterPublicFQDN": false
+                },
+                "oidcIssuerProfile": {
+                  "enabled": true
+                },
+                "securityProfile": {
+                  "workloadIdentity": {
+                    "enabled": true
+                  }
+                },
+                "agentPoolProfiles": [
+                  {
+                    "name": "apppool2",
+                    "count": 3,
+                    "vmSize": "Standard_D2ds_v5",
+                    "osType": "Linux",
+                    "mode": "System",
+                    "vnetSubnetID": "[parameters('subnetId')]",
+                    "enableAutoScaling": false
+                  }
+                ],
+                "addonProfiles": {
+                  "omsagent": {
+                    "enabled": true,
+                    "config": {
+                      "logAnalyticsWorkspaceResourceID": "[parameters('logAnalyticsWorkspaceId')]"
+                    }
+                  },
+                  "azurepolicy": {
+                    "enabled": true
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.ContainerRegistry/registries', last(split(parameters('acrId'), '/')))]",
+              "name": "[guid(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), parameters('acrId'), 'acrpull')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
+                "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2024-09-01').identityProfile.kubeletidentity.objectId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "clusterName": {
+              "type": "string",
+              "value": "[variables('clusterName')]"
+            },
+            "clusterResourceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+            },
+            "clusterPrivateFqdn": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2024-09-01').privateFQDN]"
+            },
+            "kubeletPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2024-09-01').identityProfile.kubeletidentity.objectId]"
+            },
+            "oidcIssuerUrl": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2024-09-01').oidcIssuerProfile.issuerURL]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'acr')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "identity",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "uniqueSuffix": {
+            "value": "[parameters('uniqueSuffix')]"
+          },
+          "aksClusterName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'aks'), '2025-04-01').outputs.clusterName.value]"
+          },
+          "appInsightsName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.appInsightsName.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "14290555692999582225"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for the managed identities."
+              }
+            },
+            "uniqueSuffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique suffix for identity resource names."
+              }
+            },
+            "aksClusterName": {
+              "type": "string",
+              "metadata": {
+                "description": "AKS cluster name — used to grant SRE Agent K8s-level RBAC"
+              }
+            },
+            "appInsightsName": {
+              "type": "string",
+              "metadata": {
+                "description": "Application Insights component name"
+              }
+            }
+          },
+          "variables": {
+            "appIdentityName": "[format('id-Zava-app-{0}', parameters('uniqueSuffix'))]",
+            "sreIdentityName": "[format('id-sre-agent-{0}', parameters('uniqueSuffix'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2023-01-31",
+              "name": "[variables('appIdentityName')]",
+              "location": "[parameters('location')]"
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
+              "name": "[guid(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appIdentityName')), 'metrics-publisher')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '3913510d-42f4-4e42-8a64-420c390055eb')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appIdentityName')), '2023-01-31').principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appIdentityName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2023-01-31",
+              "name": "[variables('sreIdentityName')]",
+              "location": "[parameters('location')]"
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceGroup().id, resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName')), 'reader')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName')), '2023-01-31').principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceGroup().id, resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName')), 'monreader')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '43d0d8ad-25c7-4714-9337-8ba259a9fe05')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName')), '2023-01-31').principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceGroup().id, resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName')), 'contributor')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName')), '2023-01-31').principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksClusterName'))]",
+              "name": "[guid(resourceId('Microsoft.ContainerService/managedClusters', parameters('aksClusterName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName')), 'aksrbacadmin')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b')]",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName')), '2023-01-31').principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "sreAgentIdentityName": {
+              "type": "string",
+              "value": "[variables('sreIdentityName')]"
+            },
+            "sreAgentIdentityPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName')), '2023-01-31').principalId]"
+            },
+            "sreAgentIdentityId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('sreIdentityName'))]"
+            },
+            "appIdentityName": {
+              "type": "string",
+              "value": "[variables('appIdentityName')]"
+            },
+            "appIdentityClientId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appIdentityName')), '2023-01-31').clientId]"
+            },
+            "appIdentityPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appIdentityName')), '2023-01-31').principalId]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'aks')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "correlation-subscription-reader",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "principalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.sreAgentIdentityPrincipalId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "1534538610064046419"
+            }
+          },
+          "parameters": {
+            "principalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Principal object ID that receives subscription Reader."
+              }
+            }
+          },
+          "variables": {
+            "readerRoleId": "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(subscription().id, parameters('principalId'), variables('readerRoleId'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('readerRoleId'))]",
+                "principalId": "[parameters('principalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "sre-agent",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "agentName": {
+            "value": "[format('sre-agent-zava{0}', variables('agentEnvSuffix'))]"
+          },
+          "identityId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.sreAgentIdentityId.value]"
+          },
+          "appInsightsAppId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.appInsightsAppId.value]"
+          },
+          "appInsightsConnectionString": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.appInsightsConnectionString.value]"
+          },
+          "appInsightsId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.appInsightsResourceId.value]"
+          },
+          "managedResourceGroupId": {
+            "value": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+          },
+          "aksClusterName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'aks'), '2025-04-01').outputs.clusterName.value]"
+          },
+          "agentSubnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.agentSubnetId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "12122559219255243442"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Location for resources"
+              }
+            },
+            "agentName": {
+              "type": "string",
+              "metadata": {
+                "description": "SRE Agent name"
+              }
+            },
+            "identityId": {
+              "type": "string",
+              "metadata": {
+                "description": "User-Assigned Managed Identity resource ID"
+              }
+            },
+            "appInsightsAppId": {
+              "type": "string",
+              "metadata": {
+                "description": "Application Insights App ID"
+              }
+            },
+            "appInsightsConnectionString": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Application Insights Connection String"
+              }
+            },
+            "appInsightsId": {
+              "type": "string",
+              "metadata": {
+                "description": "Application Insights resource ID"
+              }
+            },
+            "managedResourceGroupId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource Group ID to add as managed resource"
+              }
+            },
+            "aksClusterName": {
+              "type": "string",
+              "metadata": {
+                "description": "AKS cluster name"
+              }
+            },
+            "agentSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the VNet-injection subnet delegated to Microsoft.App/environments"
+              }
+            },
+            "modelProvider": {
+              "type": "string",
+              "defaultValue": "Anthropic",
+              "allowedValues": [
+                "Anthropic",
+                "MicrosoftFoundry"
+              ],
+              "metadata": {
+                "description": "AI model provider for the agent"
+              }
+            },
+            "upgradeChannel": {
+              "type": "string",
+              "defaultValue": "Preview",
+              "allowedValues": [
+                "Preview",
+                "Stable"
+              ],
+              "metadata": {
+                "description": "Agent upgrade channel"
+              }
+            },
+            "enableEarlyAccessFeatures": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Enables workspace tools and early-access experimental features"
+              }
+            }
+          },
+          "variables": {
+            "sreAgentAdminRoleId": "e79298df-d852-4c6d-84f9-5d13249d1e55"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/agents",
+              "apiVersion": "2025-05-01-preview",
+              "name": "[parameters('agentName')]",
+              "location": "[parameters('location')]",
+              "tags": {
+                "hidden-link: /app-insights-resource-id": "[parameters('appInsightsId')]",
+                "sample": "zava-aks-postgres"
+              },
+              "identity": {
+                "type": "SystemAssigned, UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('identityId'))]": {}
+                }
+              },
+              "properties": {
+                "vnetConfiguration": {
+                  "subnetResourceId": "[parameters('agentSubnetId')]"
+                },
+                "sandboxConfiguration": {
+                  "egress": {
+                    "mode": "AzureVNet",
+                    "vnetConfiguration": {
+                      "usePrivateDnsResolution": true
+                    },
+                    "allowHttpMcpServerNetworkAccess": false,
+                    "allowedCodeRepositories": [],
+                    "allowedRegistries": [],
+                    "allowedHosts": []
+                  },
+                  "packages": []
+                },
+                "knowledgeGraphConfiguration": {
+                  "managedResources": [
+                    "[parameters('managedResourceGroupId')]"
+                  ],
+                  "identity": "[parameters('identityId')]"
+                },
+                "actionConfiguration": {
+                  "mode": "autonomous",
+                  "identity": "[parameters('identityId')]",
+                  "accessLevel": "High"
+                },
+                "defaultModel": {
+                  "name": "Automatic",
+                  "provider": "[parameters('modelProvider')]"
+                },
+                "upgradeChannel": "[parameters('upgradeChannel')]",
+                "experimentalSettings": {
+                  "EnableWorkspaceTools": "[parameters('enableEarlyAccessFeatures')]"
+                },
+                "incidentManagementConfiguration": {
+                  "type": "AzMonitor",
+                  "connectionName": "azmonitor"
+                },
+                "mcpServers": [],
+                "logConfiguration": {
+                  "applicationInsightsConfiguration": {
+                    "appId": "[parameters('appInsightsAppId')]",
+                    "connectionString": "[parameters('appInsightsConnectionString')]"
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.App/agents', parameters('agentName'))]",
+              "name": "[guid(resourceId('Microsoft.App/agents', parameters('agentName')), deployer().objectId, variables('sreAgentAdminRoleId'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('sreAgentAdminRoleId'))]",
+                "principalId": "[deployer().objectId]",
+                "principalType": "User"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/agents', parameters('agentName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[resourceId('Microsoft.ContainerService/managedClusters', parameters('aksClusterName'))]",
+              "name": "[guid(resourceId('Microsoft.ContainerService/managedClusters', parameters('aksClusterName')), resourceId('Microsoft.App/agents', parameters('agentName')), 'aksrbacadmin-system')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b')]",
+                "principalId": "[reference(resourceId('Microsoft.App/agents', parameters('agentName')), '2025-05-01-preview', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/agents', parameters('agentName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceGroup().id, resourceId('Microsoft.App/agents', parameters('agentName')), 'reader-system')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+                "principalId": "[reference(resourceId('Microsoft.App/agents', parameters('agentName')), '2025-05-01-preview', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/agents', parameters('agentName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceGroup().id, resourceId('Microsoft.App/agents', parameters('agentName')), 'monreader-system')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '43d0d8ad-25c7-4714-9337-8ba259a9fe05')]",
+                "principalId": "[reference(resourceId('Microsoft.App/agents', parameters('agentName')), '2025-05-01-preview', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/agents', parameters('agentName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(resourceGroup().id, resourceId('Microsoft.App/agents', parameters('agentName')), 'contributor-system')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+                "principalId": "[reference(resourceId('Microsoft.App/agents', parameters('agentName')), '2025-05-01-preview', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/agents', parameters('agentName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "agentName": {
+              "type": "string",
+              "value": "[parameters('agentName')]"
+            },
+            "agentId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.App/agents', parameters('agentName'))]"
+            },
+            "agentEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.App/agents', parameters('agentName')), '2025-05-01-preview').agentEndpoint]"
+            },
+            "agentSystemPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.App/agents', parameters('agentName')), '2025-05-01-preview', 'full').identity.principalId]"
+            },
+            "agentPortalUrl": {
+              "type": "string",
+              "value": "[format('https://sre.azure.com/agents{0}', resourceId('Microsoft.App/agents', parameters('agentName')))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'aks')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "firewall-agent-dataplane",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "firewallPolicyName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.firewallPolicyName.value]"
+          },
+          "agentEndpoint": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'sre-agent'), '2025-04-01').outputs.agentEndpoint.value]"
+          },
+          "agentSubnetPrefix": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.agentSubnetPrefix.value]"
+          },
+          "enabled": {
+            "value": "[parameters('allowAgentSelfManagement')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "10588782725774421165"
+            }
+          },
+          "parameters": {
+            "firewallPolicyName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the firewall policy to add the rule collection group to."
+              }
+            },
+            "agentEndpoint": {
+              "type": "string",
+              "metadata": {
+                "description": "The agent data-plane endpoint URL (e.g. https://<agent>--<hash>.<hash>.<region>.azuresre.ai). The host is extracted automatically."
+              }
+            },
+            "agentSubnetPrefix": {
+              "type": "string",
+              "defaultValue": "10.30.0.0/27",
+              "metadata": {
+                "description": "Source address prefix for the agent subnet (must match vnet.bicep)."
+              }
+            },
+            "enabled": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Whether the exact-host data-plane allow rule is active. False removes the rule on incremental deployments."
+              }
+            }
+          },
+          "variables": {
+            "agentFqdn": "[split(replace(parameters('agentEndpoint'), 'https://', ''), '/')[0]]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+              "apiVersion": "2023-11-01",
+              "name": "[format('{0}/{1}', parameters('firewallPolicyName'), 'AgentDataPlaneRuleCollectionGroup')]",
+              "properties": {
+                "priority": 250,
+                "ruleCollections": "[if(parameters('enabled'), createArray(createObject('ruleCollectionType', 'FirewallPolicyFilterRuleCollection', 'name', 'allow-agent-data-plane', 'priority', 100, 'action', createObject('type', 'Allow'), 'rules', createArray(createObject('ruleType', 'ApplicationRule', 'name', 'allow-agent-data-plane', 'description', format('SRE Agent data-plane: {0}', variables('agentFqdn')), 'sourceAddresses', createArray(parameters('agentSubnetPrefix')), 'protocols', createArray(createObject('protocolType', 'Https', 'port', 443)), 'targetFqdns', createArray(variables('agentFqdn')))))), createArray())]"
+              }
+            }
+          ],
+          "outputs": {
+            "agentDataPlaneFqdn": {
+              "type": "string",
+              "value": "[variables('agentFqdn')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'sre-agent')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "monitor-private-link",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "uniqueSuffix": {
+            "value": "[parameters('uniqueSuffix')]"
+          },
+          "logAnalyticsWorkspaceResourceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.logAnalyticsWorkspaceId.value]"
+          },
+          "appInsightsResourceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.appInsightsResourceId.value]"
+          },
+          "peSubnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.peSubnetId.value]"
+          },
+          "hubVnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.hubVnetId.value]"
+          },
+          "platformVnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.platformVnetId.value]"
+          },
+          "agentVnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.agentVnetId.value]"
+          },
+          "lockAgentToPrivateMonitor": {
+            "value": "[parameters('lockAgentToPrivateMonitor')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "17682626619172123953"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region (the AMPLS itself is global; this is used for the private endpoint)."
+              }
+            },
+            "uniqueSuffix": {
+              "type": "string",
+              "metadata": {
+                "description": "Unique suffix for resource names."
+              }
+            },
+            "logAnalyticsWorkspaceResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Log Analytics workspace to bring into the private link scope."
+              }
+            },
+            "appInsightsResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Application Insights component to bring into the private link scope."
+              }
+            },
+            "peSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the subnet (in the hub) where the AMPLS private endpoint NIC lands."
+              }
+            },
+            "hubVnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the hub VNet (its private DNS links are always created)."
+              }
+            },
+            "platformVnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the platform (workload) spoke VNet."
+              }
+            },
+            "agentVnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the agent spoke VNet."
+              }
+            },
+            "linkWorkloadVnetsToPrivateMonitor": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Also link the Azure Monitor private DNS zones to the PLATFORM (workload) spoke.\nDefault false on purpose: linking the workload spoke forces its app-telemetry FQDNs to resolve to\nthe private endpoint, which only works if every endpoint in the App Insights connection string is\nserved by the AMPLS zones. The regional App Insights INGESTION host (e.g.\n<region>-N.in.applicationinsights.azure.com) is a documented gap — it can resolve into the private\nzone without a matching record, return NXDOMAIN, and silently stop the app shipping telemetry. This\nlab doesn\\'t validate the workload\\'s private path. The agent is locked to the private path\nindependently via lockAgentToPrivateMonitor. Set this true only after validating the workload\\'s\ningestion endpoints against the private zones."
+              }
+            },
+            "lockAgentToPrivateMonitor": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Link the Azure Monitor private DNS zones to the AGENT spoke (default true) so the\nSRE Agent resolves Log Analytics / App Insights to the AMPLS private endpoint. Pairs with the\nfirewall dropping the public `AzureMonitor` tag (vnet.bicep lockAgentToPrivateMonitor).\nThe agent remains fully functional under this lockdown — its Monitor queries and end-to-end\nincident handling work over the private path. Set false to keep the public Monitor path."
+              }
+            },
+            "ingestionAccessMode": {
+              "type": "string",
+              "defaultValue": "Open",
+              "allowedValues": [
+                "Open",
+                "PrivateOnly"
+              ],
+              "metadata": {
+                "description": "AMPLS ingestion access mode. Open = the VNet can also reach Monitor resources outside this scope; PrivateOnly = only in-scope resources (can break other Monitor access region-wide)."
+              }
+            },
+            "queryAccessMode": {
+              "type": "string",
+              "defaultValue": "Open",
+              "allowedValues": [
+                "Open",
+                "PrivateOnly"
+              ],
+              "metadata": {
+                "description": "AMPLS query access mode. See ingestionAccessMode for the Open vs PrivateOnly trade-off."
+              }
+            }
+          },
+          "variables": {
+            "amplsName": "[format('ampls-Zava-{0}', parameters('uniqueSuffix'))]",
+            "privateEndpointName": "[format('pe-azmonitor-{0}', parameters('uniqueSuffix'))]",
+            "privateDnsZoneNames": [
+              "privatelink.monitor.azure.com",
+              "privatelink.oms.opinsights.azure.com",
+              "privatelink.ods.opinsights.azure.com",
+              "privatelink.agentsvc.azure-automation.net",
+              "[format('privatelink.blob.{0}', environment().suffixes.storage)]"
+            ]
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Insights/privateLinkScopes",
+              "apiVersion": "2023-06-01-preview",
+              "name": "[variables('amplsName')]",
+              "location": "global",
+              "properties": {
+                "accessModeSettings": {
+                  "ingestionAccessMode": "[parameters('ingestionAccessMode')]",
+                  "queryAccessMode": "[parameters('queryAccessMode')]"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Insights/privateLinkScopes/scopedResources",
+              "apiVersion": "2021-07-01-preview",
+              "name": "[format('{0}/{1}', variables('amplsName'), format('law-{0}', uniqueString(parameters('logAnalyticsWorkspaceResourceId'))))]",
+              "properties": {
+                "linkedResourceId": "[parameters('logAnalyticsWorkspaceResourceId')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/privateLinkScopes', variables('amplsName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/privateLinkScopes/scopedResources",
+              "apiVersion": "2021-07-01-preview",
+              "name": "[format('{0}/{1}', variables('amplsName'), format('appi-{0}', uniqueString(parameters('appInsightsResourceId'))))]",
+              "properties": {
+                "linkedResourceId": "[parameters('appInsightsResourceId')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/privateLinkScopes', variables('amplsName'))]",
+                "[resourceId('Microsoft.Insights/privateLinkScopes/scopedResources', variables('amplsName'), format('law-{0}', uniqueString(parameters('logAnalyticsWorkspaceResourceId'))))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints",
+              "apiVersion": "2024-05-01",
+              "name": "[variables('privateEndpointName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "subnet": {
+                  "id": "[parameters('peSubnetId')]"
+                },
+                "privateLinkServiceConnections": [
+                  {
+                    "name": "[format('{0}-conn', variables('privateEndpointName'))]",
+                    "properties": {
+                      "privateLinkServiceId": "[resourceId('Microsoft.Insights/privateLinkScopes', variables('amplsName'))]",
+                      "groupIds": [
+                        "azuremonitor"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/privateLinkScopes', variables('amplsName'))]",
+                "[resourceId('Microsoft.Insights/privateLinkScopes/scopedResources', variables('amplsName'), format('appi-{0}', uniqueString(parameters('appInsightsResourceId'))))]",
+                "[resourceId('Microsoft.Insights/privateLinkScopes/scopedResources', variables('amplsName'), format('law-{0}', uniqueString(parameters('logAnalyticsWorkspaceResourceId'))))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "privateDnsZones",
+                "count": "[length(variables('privateDnsZoneNames'))]"
+              },
+              "type": "Microsoft.Network/privateDnsZones",
+              "apiVersion": "2024-06-01",
+              "name": "[variables('privateDnsZoneNames')[copyIndex()]]",
+              "location": "global"
+            },
+            {
+              "copy": {
+                "name": "hubLinks",
+                "count": "[length(variables('privateDnsZoneNames'))]"
+              },
+              "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+              "apiVersion": "2024-06-01",
+              "name": "[format('{0}/{1}', variables('privateDnsZoneNames')[copyIndex()], 'hub-link')]",
+              "location": "global",
+              "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                  "id": "[parameters('hubVnetId')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneNames')[copyIndex()])]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "platformLinks",
+                "count": "[length(variables('privateDnsZoneNames'))]"
+              },
+              "condition": "[parameters('linkWorkloadVnetsToPrivateMonitor')]",
+              "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+              "apiVersion": "2024-06-01",
+              "name": "[format('{0}/{1}', variables('privateDnsZoneNames')[copyIndex()], 'platform-link')]",
+              "location": "global",
+              "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                  "id": "[parameters('platformVnetId')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneNames')[copyIndex()])]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "agentLinks",
+                "count": "[length(variables('privateDnsZoneNames'))]"
+              },
+              "condition": "[or(parameters('lockAgentToPrivateMonitor'), parameters('linkWorkloadVnetsToPrivateMonitor'))]",
+              "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+              "apiVersion": "2024-06-01",
+              "name": "[format('{0}/{1}', variables('privateDnsZoneNames')[copyIndex()], 'agent-link')]",
+              "location": "global",
+              "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                  "id": "[parameters('agentVnetId')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneNames')[copyIndex()])]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+              "apiVersion": "2024-05-01",
+              "name": "[format('{0}/{1}', variables('privateEndpointName'), 'default')]",
+              "properties": {
+                "copy": [
+                  {
+                    "name": "privateDnsZoneConfigs",
+                    "count": "[length(variables('privateDnsZoneNames'))]",
+                    "input": {
+                      "name": "[replace(variables('privateDnsZoneNames')[copyIndex('privateDnsZoneConfigs')], '.', '-')]",
+                      "properties": {
+                        "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneNames')[copyIndex('privateDnsZoneConfigs')])]"
+                      }
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "privateDnsZones",
+                "[resourceId('Microsoft.Network/privateEndpoints', variables('privateEndpointName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "amplsName": {
+              "type": "string",
+              "value": "[variables('amplsName')]"
+            },
+            "amplsId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Insights/privateLinkScopes', variables('amplsName'))]"
+            },
+            "privateEndpointName": {
+              "type": "string",
+              "value": "[variables('privateEndpointName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "firewall-diagnostics",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "firewallName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.firewallName.value]"
+          },
+          "logAnalyticsWorkspaceId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.logAnalyticsWorkspaceId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "16198709998746038686"
+            }
+          },
+          "parameters": {
+            "firewallName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Azure Firewall to attach diagnostic settings to."
+              }
+            },
+            "logAnalyticsWorkspaceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Resource ID of the Log Analytics workspace that receives the firewall logs."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Insights/diagnosticSettings",
+              "apiVersion": "2021-05-01-preview",
+              "scope": "[resourceId('Microsoft.Network/azureFirewalls', parameters('firewallName'))]",
+              "name": "azfw-to-law",
+              "properties": {
+                "workspaceId": "[parameters('logAnalyticsWorkspaceId')]",
+                "logAnalyticsDestinationType": "Dedicated",
+                "logs": [
+                  {
+                    "categoryGroup": "allLogs",
+                    "enabled": true
+                  }
+                ],
+                "metrics": [
+                  {
+                    "category": "AllMetrics",
+                    "enabled": true
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "pg-admin-sre-umi",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "pgServerName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql'), '2025-04-01').outputs.serverName.value]"
+          },
+          "principalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.sreAgentIdentityPrincipalId.value]"
+          },
+          "principalName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.sreAgentIdentityName.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "14756717451055550202"
+            }
+          },
+          "parameters": {
+            "pgServerName": {
+              "type": "string",
+              "metadata": {
+                "description": "PostgreSQL Flexible Server name (parent resource)."
+              }
+            },
+            "principalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Object ID of the principal to register as PG Entra admin."
+              }
+            },
+            "principalName": {
+              "type": "string",
+              "metadata": {
+                "description": "Display name of the principal (shown in the PG admin list and required by the API)."
+              }
+            },
+            "principalType": {
+              "type": "string",
+              "defaultValue": "ServicePrincipal",
+              "allowedValues": [
+                "ServicePrincipal",
+                "User",
+                "Group"
+              ],
+              "metadata": {
+                "description": "Principal type. ServicePrincipal for managed identities, User for human admins."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/administrators",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', parameters('pgServerName'), parameters('principalId'))]",
+              "properties": {
+                "principalType": "[parameters('principalType')]",
+                "principalName": "[parameters('principalName')]",
+                "tenantId": "[subscription().tenantId]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "pg-admin-sre-smi",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "pgServerName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql'), '2025-04-01').outputs.serverName.value]"
+          },
+          "principalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'sre-agent'), '2025-04-01').outputs.agentSystemPrincipalId.value]"
+          },
+          "principalName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'sre-agent'), '2025-04-01').outputs.agentName.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "14756717451055550202"
+            }
+          },
+          "parameters": {
+            "pgServerName": {
+              "type": "string",
+              "metadata": {
+                "description": "PostgreSQL Flexible Server name (parent resource)."
+              }
+            },
+            "principalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Object ID of the principal to register as PG Entra admin."
+              }
+            },
+            "principalName": {
+              "type": "string",
+              "metadata": {
+                "description": "Display name of the principal (shown in the PG admin list and required by the API)."
+              }
+            },
+            "principalType": {
+              "type": "string",
+              "defaultValue": "ServicePrincipal",
+              "allowedValues": [
+                "ServicePrincipal",
+                "User",
+                "Group"
+              ],
+              "metadata": {
+                "description": "Principal type. ServicePrincipal for managed identities, User for human admins."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/administrators",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', parameters('pgServerName'), parameters('principalId'))]",
+              "properties": {
+                "principalType": "[parameters('principalType')]",
+                "principalName": "[parameters('principalName')]",
+                "tenantId": "[subscription().tenantId]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'pg-admin-sre-umi')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'sre-agent')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "pg-admin-app",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "pgServerName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql'), '2025-04-01').outputs.serverName.value]"
+          },
+          "principalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.appIdentityPrincipalId.value]"
+          },
+          "principalName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.appIdentityName.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.42.1.51946",
+              "templateHash": "14756717451055550202"
+            }
+          },
+          "parameters": {
+            "pgServerName": {
+              "type": "string",
+              "metadata": {
+                "description": "PostgreSQL Flexible Server name (parent resource)."
+              }
+            },
+            "principalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Object ID of the principal to register as PG Entra admin."
+              }
+            },
+            "principalName": {
+              "type": "string",
+              "metadata": {
+                "description": "Display name of the principal (shown in the PG admin list and required by the API)."
+              }
+            },
+            "principalType": {
+              "type": "string",
+              "defaultValue": "ServicePrincipal",
+              "allowedValues": [
+                "ServicePrincipal",
+                "User",
+                "Group"
+              ],
+              "metadata": {
+                "description": "Principal type. ServicePrincipal for managed identities, User for human admins."
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.DBforPostgreSQL/flexibleServers/administrators",
+              "apiVersion": "2024-08-01",
+              "name": "[format('{0}/{1}', parameters('pgServerName'), parameters('principalId'))]",
+              "properties": {
+                "principalType": "[parameters('principalType')]",
+                "principalName": "[parameters('principalName')]",
+                "tenantId": "[subscription().tenantId]"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'pg-admin-sre-smi')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "RESOURCE_GROUP": {
+      "type": "string",
+      "value": "[parameters('resourceGroupName')]"
+    },
+    "AKS_CLUSTER_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'aks'), '2025-04-01').outputs.clusterName.value]"
+    },
+    "AKS_OIDC_ISSUER": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'aks'), '2025-04-01').outputs.oidcIssuerUrl.value]"
+    },
+    "ACR_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'acr'), '2025-04-01').outputs.acrName.value]"
+    },
+    "ACR_LOGIN_SERVER": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'acr'), '2025-04-01').outputs.acrLoginServer.value]"
+    },
+    "DB_HOST": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql'), '2025-04-01').outputs.fqdn.value]"
+    },
+    "DB_NAME": {
+      "type": "string",
+      "value": "zava_store"
+    },
+    "PG_SERVER_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'postgresql'), '2025-04-01').outputs.serverName.value]"
+    },
+    "APP_IDENTITY_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.appIdentityName.value]"
+    },
+    "APP_IDENTITY_CLIENT_ID": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.appIdentityClientId.value]"
+    },
+    "APP_IDENTITY_PRINCIPAL_ID": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.appIdentityPrincipalId.value]"
+    },
+    "SRE_AGENT_PRINCIPAL_ID": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'identity'), '2025-04-01').outputs.sreAgentIdentityPrincipalId.value]"
+    },
+    "LOG_ANALYTICS_WORKSPACE_ID": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.logAnalyticsWorkspaceId.value]"
+    },
+    "APPINSIGHTS_CONNECTION_STRING": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.appInsightsConnectionString.value]"
+    },
+    "APPINSIGHTS_RESOURCE_ID": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitoring'), '2025-04-01').outputs.appInsightsResourceId.value]"
+    },
+    "VNET_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.vnetName.value]"
+    },
+    "NSG_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.nsgName.value]"
+    },
+    "HUB_VNET_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.hubVnetName.value]"
+    },
+    "FIREWALL_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet'), '2025-04-01').outputs.firewallName.value]"
+    },
+    "AMPLS_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'monitor-private-link'), '2025-04-01').outputs.amplsName.value]"
+    },
+    "SRE_AGENT_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'sre-agent'), '2025-04-01').outputs.agentName.value]"
+    },
+    "SRE_AGENT_ENDPOINT": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'sre-agent'), '2025-04-01').outputs.agentEndpoint.value]"
+    },
+    "AGENT_PORTAL_URL": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'sre-agent'), '2025-04-01').outputs.agentPortalUrl.value]"
+    }
+  }
+}
