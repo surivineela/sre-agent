@@ -114,6 +114,18 @@ def render(template_path):
         skills.append(read_skill(source_path, name))
 
     instructions = require_string(custom_agent.get("instructions"), "custom_agent.instructions")
+    hooks = require_mapping(custom_agent.get("hooks"), "custom_agent.hooks")
+    stop_hooks = hooks.get("Stop")
+    if not isinstance(stop_hooks, list) or len(stop_hooks) != 1:
+        fail("custom_agent.hooks.Stop must contain exactly one hook")
+    stop_hook = require_mapping(stop_hooks[0], "custom_agent.hooks.Stop entry")
+    if stop_hook.get("type") != "prompt":
+        fail("custom_agent.hooks.Stop hook must use type prompt")
+    require_string(stop_hook.get("prompt"), "custom_agent.hooks.Stop prompt")
+    if not isinstance(stop_hook.get("timeout"), int) or stop_hook["timeout"] < 1:
+        fail("custom_agent.hooks.Stop timeout must be a positive integer")
+    if not isinstance(stop_hook.get("maxRejections"), int) or stop_hook["maxRejections"] < 1:
+        fail("custom_agent.hooks.Stop maxRejections must be a positive integer")
     extras = {
         "skills": skills,
         "subagents": [{
@@ -127,6 +139,7 @@ def render(template_path):
                 "temperature": 0.2,
                 "enableSkills": True,
                 "allowedSkills": skill_names,
+                "hooks": {"Stop": [stop_hook]},
             },
         }],
         "incidentFilters": [{

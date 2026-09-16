@@ -39,9 +39,7 @@
     }
   ],
   "subagents": [],
-  "hooks": [
-    "evidence-checklist"
-  ],
+  "hooks": [],
   "commonPrompts": [
     "onboardinglab-safety"
   ],

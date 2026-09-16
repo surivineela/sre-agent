@@ -36,6 +36,14 @@ class WorkflowTemplateTests(unittest.TestCase):
             "github-issue-followup",
             "email-incident-followup",
         ])
+        self.assertNotIn("hooks", extras)
+        self.assertEqual(list(custom_agent["spec"]["hooks"]), ["Stop"])
+        stop_hooks = custom_agent["spec"]["hooks"]["Stop"]
+        self.assertEqual(len(stop_hooks), 1)
+        self.assertEqual(stop_hooks[0]["type"], "prompt")
+        self.assertEqual(stop_hooks[0]["timeout"], 30)
+        self.assertEqual(stop_hooks[0]["maxRejections"], 2)
+        self.assertIn("timestamped evidence", stop_hooks[0]["prompt"])
 
         self.assertEqual(len(extras["incidentFilters"]), 1)
         response_plan = extras["incidentFilters"][0]
