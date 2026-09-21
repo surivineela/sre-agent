@@ -43,6 +43,12 @@ Keep the operator informed with the status lines emitted by the script. Do not d
 individual commands in separate Azure CLI tool calls. If the terminal or thread is interrupted,
 run the same script command again; it detects active or completed deployments and resumes safely.
 
+If extended configuration fails with `settings/global: A single strong ETag is required for the
+settings update`, do not run the external finalizer. Record the full error and have the shared
+configuration template repaired so it handles an absent global-settings document before rerunning
+the same deployment script. The run is incomplete until the script verifies checkout and telemetry
+and writes its completion marker.
+
 Do not install dependencies, create another SRE Agent or managed identity, enable the database
 fault, modify resources outside `LAB_RG`, remove temporary Owner, or lower the agent's access.
 The external bootstrap finalizer performs and verifies that final boundary.
