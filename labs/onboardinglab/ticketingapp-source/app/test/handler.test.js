@@ -322,6 +322,7 @@ test('App Service fault returns 503 while health remains available', async () =>
   const response = await invoke(f.handler);
   assert.equal(response.status, 503);
   assert.equal(response.headers['Retry-After'], '3');
+  assert.match(response.headers['Retry-After'], /^\d+$/);
   assert.equal(f.clients.length, 0);
   assert.equal(f.dependencies.length, 0);
   assert.equal(f.requests[0].properties.outcome, 'application-fault');
