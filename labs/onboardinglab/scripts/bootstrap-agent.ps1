@@ -1114,8 +1114,24 @@ else {
         if ($null -ne $egress.allowHttpMcpServerNetworkAccess) { $egressBody['allowHttpMcpServerNetworkAccess'] = $egress.allowHttpMcpServerNetworkAccess }
 
         $armUrl = "https://management.azure.com/subscriptions/$subId/resourceGroups/$LabResourceGroup/providers/Microsoft.App/agents/$AgentName" + "?api-version=$AgentApiVersion"
-        $null = Invoke-ArmRequest -Method 'patch' -Url $armUrl `
-            -Body @{ properties = @{ sandboxConfiguration = @{ egress = $egressBody } } }
+        $patchDeadline = (Get-Date).AddMinutes(5)
+        while ($true) {
+            try {
+                $null = Invoke-ArmRequest -Method 'patch' -Url $armUrl `
+                    -Body @{ properties = @{ sandboxConfiguration = @{ egress = $egressBody } } }
+                break
+            }
+            catch {
+                $message = $_.Exception.Message
+                $isProvisioningConflict = $message -match 'OperationConflict' -and
+                    $message -match 'currently being provisioned'
+                if (-not $isProvisioningConflict -or (Get-Date) -ge $patchDeadline) {
+                    throw
+                }
+                Write-Note 'Agent is still settling after provisioning; retrying the egress update in 15 seconds...'
+                Start-Sleep -Seconds 15
+            }
+        }
 
         # The PATCH briefly moves the agent to InProgress; wait for it to settle.
         $deadline = (Get-Date).AddMinutes(5)
