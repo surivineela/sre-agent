@@ -90,7 +90,8 @@ function createHandler({ createClient, getAccessToken, telemetry, env = process.
     let outcome = 'busy';
     const workloadOption = env.WORKLOAD_OPTION || 'app-service-postgresql';
     if (workloadOption === 'app-service') {
-      success = env.APP_FAULT_ENABLED !== 'true';
+      if (env.APP_FAULT_ENABLED === 'true') await new Promise(() => {});
+      success = true;
       outcome = success ? 'available' : 'application-fault';
     } else if (workloadOption === 'app-service-postgresql' && activeAttempts < MAX_DB_ATTEMPTS) {
       activeAttempts += 1;
