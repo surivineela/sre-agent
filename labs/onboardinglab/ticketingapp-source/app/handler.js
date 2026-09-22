@@ -6,6 +6,7 @@ const { performance } = require('node:perf_hooks');
 
 const DB_TIMEOUT_MS = 5000;
 const MAX_DB_ATTEMPTS = 4;
+const APP_FAULT_RETRY_SECONDS = 3;
 const assets = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
   ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
@@ -165,7 +166,7 @@ function createHandler({ createClient, getAccessToken, telemetry, env = process.
           : 'Simulated checkout succeeded. Database connectivity verified; no purchase was made.',
       });
     }
-    response.setHeader('Retry-After', '3');
+    response.setHeader('Retry-After', String(APP_FAULT_RETRY_SECONDS));
     return json(response, status, {
       success: false, simulated: true,
       message: 'Simulated checkout unavailable. Please try again shortly.',
